@@ -1,14 +1,49 @@
-import { StyleSheet } from 'react-native';
+// app/(app)/(tabs)/index.tsx - Home/Services List
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { router } from 'expo-router';
+import { useServices } from '@/hooks/useServices';
+import { ServiceCard } from '@/components/service/ServiceCard';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
-import EditScreenInfo from '@/components/EditScreenInfo';
-import { Text, View } from '@/components/Themed';
+export default function HomeScreen() {
+  const { services, isLoading, fetchServices } = useServices();
 
-export default function TabOneScreen() {
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
+  const handleServicePress = (serviceId: string, serviceType: string) => {
+    // Navigate to specific service layout
+    router.push(`/(services)/${serviceType}/(tabs)`);
+  };
+
+  const renderServiceItem = ({ item }: { item: any }) => (
+    <ServiceCard 
+      service={item}
+      onPress={() => handleServicePress(item.id, item.type)}
+    />
+  );
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <LoadingSpinner />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
+      <Text style={styles.title}>Our Services</Text>
+      <FlatList
+        data={services}
+        renderItem={renderServiceItem}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        columnWrapperStyle={styles.row}
+        contentContainerStyle={styles.listContainer}
+      />
     </View>
   );
 }
@@ -16,16 +51,23 @@ export default function TabOneScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
+    padding: 20,
+    color: '#333',
   },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
+  listContainer: {
+    padding: 10,
+  },
+  row: {
+    justifyContent: 'space-around',
   },
 });
