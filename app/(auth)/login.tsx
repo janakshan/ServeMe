@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useThemedStyles } from "@/contexts/ServiceThemeContext";
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
@@ -21,6 +22,8 @@ const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const { login } = useAuth();
+  
+  const styles = useThemedStyles(createStyles);
 
   useEffect(() => {
     loadStoredCredentials();
@@ -85,7 +88,7 @@ const LoginScreen = () => {
             onChangeText={setEmail}
             autoCapitalize="none"
             keyboardType="email-address"
-            placeholderTextColor="#546E7A"
+            placeholderTextColor={styles.input.placeholderTextColor}
           />
           <Text style={styles.label}>Password</Text>
           <View style={styles.passwordContainer}>
@@ -95,7 +98,7 @@ const LoginScreen = () => {
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
-              placeholderTextColor="#546E7A"
+              placeholderTextColor={styles.passwordInput.placeholderTextColor}
             />
             <Pressable
               style={styles.eyeBtn}
@@ -105,7 +108,7 @@ const LoginScreen = () => {
               <Ionicons
                 name={showPassword ? "eye-off-outline" : "eye-outline"}
                 size={22}
-                color="#42A5F5"
+                color={styles.eyeIcon.color}
               />
             </Pressable>
           </View>
@@ -145,8 +148,8 @@ const LoginScreen = () => {
           <View style={styles.spacer} />
           <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
             <Text style={styles.signupLink}>
-              <Text style={{ color: "#666666" }}>Don't have an account?</Text>{" "}
-              <Text style={{ color: "#42A5F5", fontWeight: "bold" }}>
+              <Text style={styles.signupLinkNormal}>Don't have an account?</Text>{" "}
+              <Text style={styles.signupLinkHighlight}>
                 Sign up
               </Text>
             </Text>
@@ -157,10 +160,10 @@ const LoginScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (tokens, layout, variants) => StyleSheet.create({
   bgWrap: {
     flex: 1,
-    backgroundColor: "#F8FCFF",
+    backgroundColor: tokens.colors.background,
   },
   blueBg: {
     position: "absolute",
@@ -168,7 +171,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 260,
-    backgroundColor: "#0D47A1",
+    backgroundColor: tokens.colors.primary,
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
     zIndex: 0,
@@ -182,94 +185,95 @@ const styles = StyleSheet.create({
   headerWrap: {
     width: "100%",
     alignItems: "center",
-    marginTop: 18,
-    marginBottom: 12,
+    marginTop: tokens.spacing.lg,
+    marginBottom: tokens.spacing.md,
   },
   logoipsum: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 32,
-    marginBottom: 10,
-    marginTop: 10,
+    color: tokens.colors.onPrimary,
+    fontWeight: tokens.typography.bold,
+    fontSize: tokens.typography.display,
+    marginBottom: tokens.spacing.sm,
+    marginTop: tokens.spacing.sm,
   },
   title: {
-    color: "#fff",
-    fontWeight: "normal",
-    fontSize: 18,
+    color: tokens.colors.onPrimary,
+    fontWeight: tokens.typography.regular,
+    fontSize: tokens.typography.subtitle,
     textAlign: "center",
     marginBottom: 0,
-    lineHeight: 22,
+    lineHeight: tokens.typography.subtitle * tokens.typography.tight,
   },
   card: {
     flex: 1,
     width: "100%",
     alignSelf: "center",
-    backgroundColor: "#fff",
-    borderRadius: 32,
-    marginTop: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 28,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 24,
-    elevation: 12,
+    backgroundColor: tokens.colors.surface,
+    borderRadius: tokens.borderRadius.card,
+    marginTop: tokens.spacing.sm,
+    paddingHorizontal: tokens.spacing.cardPadding.horizontal,
+    paddingVertical: tokens.spacing.cardPadding.vertical,
+    ...tokens.shadows.md,
   },
   cardTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#1A237E",
-    marginBottom: 18,
+    fontSize: tokens.typography.title,
+    fontWeight: tokens.typography.bold,
+    color: tokens.colors.onSurface,
+    marginBottom: tokens.spacing.lg,
     textAlign: "center",
   },
   label: {
-    fontSize: 15,
-    color: "#1A237E",
-    marginBottom: 6,
-    marginTop: 8,
-    fontWeight: "600",
+    fontSize: tokens.typography.caption,
+    color: tokens.colors.onSurface,
+    marginBottom: tokens.spacing.xs,
+    marginTop: tokens.spacing.sm,
+    fontWeight: tokens.typography.semibold,
   },
   input: {
-    backgroundColor: "#E8F4FD",
+    backgroundColor: tokens.colors.inputBackground,
     borderWidth: 2,
-    borderColor: "#42A5F5",
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: "#111827",
-    marginBottom: 14,
+    borderColor: tokens.colors.inputBorder,
+    borderRadius: tokens.borderRadius.input,
+    padding: tokens.spacing.inputPadding.vertical,
+    fontSize: tokens.typography.body,
+    color: tokens.colors.onBackground,
+    marginBottom: tokens.spacing.md,
     width: "100%",
+    placeholderTextColor: tokens.colors.placeholder,
   },
   passwordContainer: {
     position: "relative",
     width: "100%",
-    marginBottom: 14,
+    marginBottom: tokens.spacing.md,
   },
   passwordInput: {
-    backgroundColor: "#E8F4FD",
+    backgroundColor: tokens.colors.inputBackground,
     borderWidth: 2,
-    borderColor: "#42A5F5",
-    borderRadius: 12,
-    padding: 16,
+    borderColor: tokens.colors.inputBorder,
+    borderRadius: tokens.borderRadius.input,
+    padding: tokens.spacing.inputPadding.vertical,
     paddingRight: 50,
-    fontSize: 16,
-    color: "#111827",
+    fontSize: tokens.typography.body,
+    color: tokens.colors.onBackground,
     width: "100%",
+    placeholderTextColor: tokens.colors.placeholder,
   },
   eyeBtn: {
     position: "absolute",
-    right: 12,
+    right: tokens.spacing.md,
     top: 0,
     bottom: 0,
     justifyContent: "center",
     alignItems: "center",
     width: 40,
   },
+  eyeIcon: {
+    color: tokens.colors.primaryLight,
+  },
   rowBetween: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 22,
+    marginBottom: tokens.spacing.xl,
   },
   rememberMe: {
     flexDirection: "row",
@@ -278,61 +282,63 @@ const styles = StyleSheet.create({
   checkbox: {
     width: 20,
     height: 20,
-    borderRadius: 5,
+    borderRadius: tokens.spacing.xs,
     borderWidth: 2,
-    borderColor: "#42A5F5",
-    backgroundColor: "#fff",
+    borderColor: tokens.colors.primaryLight,
+    backgroundColor: tokens.colors.surface,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 8,
+    marginRight: tokens.spacing.sm,
   },
   checkboxChecked: {
-    backgroundColor: "#42A5F5",
-    borderColor: "#42A5F5",
+    backgroundColor: tokens.colors.primaryLight,
+    borderColor: tokens.colors.primaryLight,
   },
   rememberText: {
-    fontSize: 15,
-    color: "#1A237E",
+    fontSize: tokens.typography.caption,
+    color: tokens.colors.onSurface,
   },
   forgot: {
-    color: "#42A5F5",
-    fontSize: 15,
-    fontWeight: "600",
+    color: tokens.colors.primaryLight,
+    fontSize: tokens.typography.caption,
+    fontWeight: tokens.typography.semibold,
     textAlign: "right",
   },
   loginBtn: {
-    backgroundColor: "#1565C0",
-    paddingVertical: 18,
-    borderRadius: 14,
+    backgroundColor: tokens.colors.primaryDark,
+    paddingVertical: tokens.spacing.buttonPadding.vertical,
+    borderRadius: tokens.borderRadius.button,
     alignItems: "center",
-    marginBottom: 18,
-    marginTop: 2,
-    shadowColor: "#1565C0",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 2,
+    marginBottom: tokens.spacing.lg,
+    marginTop: tokens.spacing.xxs,
+    ...tokens.shadows.sm,
   },
   loginBtnText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 18,
+    color: tokens.colors.onPrimary,
+    fontWeight: tokens.typography.bold,
+    fontSize: tokens.typography.subtitle,
   },
   spacer: {
     flex: 1,
   },
   signupLink: {
-    color: "#546E7A",
-    fontSize: 16,
+    fontSize: tokens.typography.body,
     textAlign: "center",
-    marginBottom: 12,
-    fontWeight: "500",
+    marginBottom: tokens.spacing.md,
+    fontWeight: tokens.typography.medium,
+  },
+  signupLinkNormal: {
+    color: tokens.colors.onSurfaceVariant,
+  },
+  signupLinkHighlight: {
+    color: tokens.colors.primaryLight,
+    fontWeight: tokens.typography.bold,
   },
   error: {
-    color: "#EF4444",
-    marginBottom: 10,
+    color: tokens.colors.error,
+    marginBottom: tokens.spacing.sm,
     textAlign: "center",
-    fontSize: 15,
+    fontSize: tokens.typography.caption,
   },
 });
 
