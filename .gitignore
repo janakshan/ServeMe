@@ -1,7 +1,10 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
-# dependencies
+# Dependencies
 node_modules/
+npm-debug.*
+yarn-debug.*
+yarn-error.*
 
 # Expo
 .expo/
@@ -21,17 +24,85 @@ expo-env.d.ts
 # Metro
 .metro-health-check*
 
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
-# macOS
-.DS_Store
-*.pem
-
-# local env files
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
 .env*.local
 
-# typescript
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# TypeScript
 *.tsbuildinfo
+*.d.ts.map
+
+# Build artifacts
+build/
+dist/
+out/
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Temporary folders
+tmp/
+temp/
+
+# Sensitive data
+*.pem
+config/keys.js
+config/secrets.json
+
+# iOS
+ios/build/
+ios/Pods/
+ios/*.xcworkspace/xcuserdata/
+ios/*.xcodeproj/xcuserdata/
+
+# Android
+android/app/build/
+android/build/
+android/.gradle/
+android/captures/
+android/gradlew.bat
+android/local.properties
+*.keystore
+
+# Expo
+.expo-shared/
