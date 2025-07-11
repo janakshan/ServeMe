@@ -287,7 +287,7 @@ const createStyles = (tokens, layout, variants) =>
       fontSize: tokens.typography.body,
       color: tokens.colors.onSurfaceVariant,
       textAlign: "center",
-      marginVertical: tokens.spacing.sm,
+      marginVertical: tokens.spacing.lg,
     },
     signinLinkText: {
       color: tokens.colors.primaryLight,
@@ -308,7 +308,6 @@ const createStyles = (tokens, layout, variants) =>
     socialButtonsContainer: {
       flexDirection: "row",
       gap: tokens.spacing.md,
-      marginTop: tokens.spacing.lg,
       marginBottom: tokens.spacing.lg,
     },
     socialButton: {
