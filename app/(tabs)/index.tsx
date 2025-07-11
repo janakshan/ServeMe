@@ -35,7 +35,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Our Services</Text>
+      <Text style={styles.title}>ServeMe</Text>
       <FlatList
         data={services}
         renderItem={renderServiceItem}

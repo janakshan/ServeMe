@@ -1,18 +1,19 @@
-import { useThemedStyles, useServiceTheme } from "@/contexts/ServiceThemeContext";
+import {
+  useServiceTheme,
+  useThemedStyles,
+} from "@/contexts/ServiceThemeContext";
 import { router } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import {
   Alert,
   Animated,
   Dimensions,
-  FlatList,
   Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { LoadingSpinner } from "../../../components/ui/LoadingSpinner";
 import { ScreenHeader } from "../../../components/ui/ScreenHeader";
 import { useServices } from "../../../hooks/useServices";
 
@@ -36,7 +37,7 @@ const ServiceCardSkeleton = ({ index }: { index: number }) => {
         }),
       ])
     );
-    
+
     shimmerAnimation.start();
     return () => shimmerAnimation.stop();
   }, []);
@@ -47,39 +48,45 @@ const ServiceCardSkeleton = ({ index }: { index: number }) => {
   });
 
   return (
-    <View style={[
-      {
-        backgroundColor: tokens.colors.surface,
-        borderRadius: tokens.borderRadius.card,
-        padding: tokens.spacing.cardPadding.vertical,
-        paddingHorizontal: tokens.spacing.cardPadding.horizontal,
-        margin: tokens.spacing.sm,
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 120,
-        flex: 1,
-        ...tokens.shadows.sm,
-      }
-    ]}>
-      <Animated.View style={[
+    <View
+      style={[
         {
-          width: 60,
-          height: 60,
-          backgroundColor: tokens.colors.divider,
-          borderRadius: tokens.borderRadius.lg,
-          marginBottom: tokens.spacing.md,
-          opacity: shimmerOpacity,
-        }
-      ]} />
-      <Animated.View style={[
-        {
-          width: '80%',
-          height: 16,
-          backgroundColor: tokens.colors.divider,
-          borderRadius: tokens.borderRadius.sm,
-          opacity: shimmerOpacity,
-        }
-      ]} />
+          backgroundColor: tokens.colors.surface,
+          borderRadius: tokens.borderRadius.card,
+          padding: tokens.spacing.cardPadding.vertical,
+          paddingHorizontal: tokens.spacing.cardPadding.horizontal,
+          margin: tokens.spacing.sm,
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: 120,
+          flex: 1,
+          ...tokens.shadows.sm,
+        },
+      ]}
+    >
+      <Animated.View
+        style={[
+          {
+            width: 60,
+            height: 60,
+            backgroundColor: tokens.colors.divider,
+            borderRadius: tokens.borderRadius.lg,
+            marginBottom: tokens.spacing.md,
+            opacity: shimmerOpacity,
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          {
+            width: "80%",
+            height: 16,
+            backgroundColor: tokens.colors.divider,
+            borderRadius: tokens.borderRadius.sm,
+            opacity: shimmerOpacity,
+          },
+        ]}
+      />
     </View>
   );
 };
@@ -95,7 +102,7 @@ const useServiceCardAnimation = (index: number, isVisible: boolean) => {
     if (isVisible) {
       // Staggered entrance animation
       const delay = index * 100; // 100ms delay between cards
-      
+
       Animated.parallel([
         Animated.timing(opacityAnim, {
           toValue: 1,
@@ -162,16 +169,13 @@ function ServiceCard({
 }) {
   const cardStyles = useThemedStyles(createServiceCardStyles);
   const { tokens } = useServiceTheme();
-  const { animatedStyles, handlePressIn, handlePressOut } = 
+  const { animatedStyles, handlePressIn, handlePressOut } =
     useServiceCardAnimation(index, true);
 
   return (
     <Animated.View style={[animatedStyles]}>
       <TouchableOpacity
-        style={[
-          cardStyles.container,
-          tokens.shadows.sm,
-        ]}
+        style={[cardStyles.container, tokens.shadows.sm]}
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
@@ -233,23 +237,25 @@ export default function HomeScreen() {
 
   if (isLoading) {
     // Show skeleton cards while loading
-    const skeletonData = Array.from({ length: 6 }, (_, index) => ({ id: `skeleton-${index}` }));
-    
+    const skeletonData = Array.from({ length: 6 }, (_, index) => ({
+      id: `skeleton-${index}`,
+    }));
+
     return (
       <View style={styles.container}>
         <ScreenHeader
-          title="Our Services"
+          title="ServeMe Services"
           subtitle="Choose a service to get started"
         />
-        
+
         <View style={styles.contentSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Popular services</Text>
+            <Text style={styles.sectionTitle}>All Categories</Text>
             <TouchableOpacity disabled>
               <Text style={[styles.seeAllText, { opacity: 0.5 }]}>See all</Text>
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.listContainer}>
             <View style={styles.row}>
               {skeletonData.slice(0, 3).map((_, index) => (
@@ -270,13 +276,13 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <ScreenHeader
-        title="Our Services"
+        title="ServeMe"
         subtitle="Choose a service to get started"
       />
 
       <View style={styles.contentSection}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Popular services</Text>
+          <Text style={styles.sectionTitle}>All Categories</Text>
           <TouchableOpacity onPress={() => console.log("See all pressed")}>
             <Text style={styles.seeAllText}>See all</Text>
           </TouchableOpacity>
@@ -336,20 +342,20 @@ const createStyles = (tokens, layout, variants) =>
       paddingTop: 0,
     },
     gridContainer: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
+      flexDirection: "row",
+      flexWrap: "wrap",
       paddingHorizontal: tokens.spacing.md,
-      justifyContent: 'space-between',
+      justifyContent: "space-between",
     },
   });
 
 const createServiceCardStyles = (tokens, layout, variants) => {
-  const { width: screenWidth } = Dimensions.get('window');
+  const { width: screenWidth } = Dimensions.get("window");
   const horizontalPadding = tokens.spacing.md * 2; // Container padding both sides
   const cardSpacing = tokens.spacing.sm; // Space between cards
   const availableWidth = screenWidth - horizontalPadding;
-  const cardWidth = (availableWidth - (cardSpacing * 2)) / 3; // 3 columns with spacing
-  
+  const cardWidth = (availableWidth - cardSpacing * 2) / 3; // 3 columns with spacing
+
   return StyleSheet.create({
     container: {
       backgroundColor: tokens.colors.surface,
