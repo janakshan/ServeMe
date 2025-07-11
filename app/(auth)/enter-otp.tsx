@@ -196,6 +196,7 @@ const createStyles = (tokens, layout, variants) =>
       backgroundColor: tokens.colors.surface,
       paddingHorizontal: tokens.spacing.lg,
       paddingTop: tokens.spacing.xl,
+      paddingBottom: tokens.spacing.xl,
     },
     cardTitle: {
       fontSize: tokens.typography.title,
@@ -221,6 +222,7 @@ const createStyles = (tokens, layout, variants) =>
       flexDirection: "row",
       gap: tokens.spacing.md,
       marginBottom: tokens.spacing.xl,
+      justifyContent: "center",
     },
     otpInput: {
       width: 60,
@@ -254,6 +256,7 @@ const createStyles = (tokens, layout, variants) =>
     },
     resendContainer: {
       alignItems: "center",
+      marginBottom: tokens.spacing.lg,
     },
     resendText: {
       fontSize: tokens.typography.body,

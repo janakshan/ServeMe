@@ -44,8 +44,10 @@ const ForgotPasswordScreen = () => {
         <View style={styles.headerSection}>
           <SafeAreaView style={styles.headerSafeArea}>
             <View style={styles.headerContent}>
-                <Text style={styles.title}>Check Your Email</Text>
-              <Text style={styles.description}>We've sent you password reset instructions.</Text>
+              <Text style={styles.title}>Check Your Email</Text>
+              <Text style={styles.description}>
+                We've sent you password reset instructions.
+              </Text>
             </View>
           </SafeAreaView>
         </View>
@@ -71,7 +73,9 @@ const ForgotPasswordScreen = () => {
         <SafeAreaView style={styles.headerSafeArea}>
           <View style={styles.headerContent}>
             <Text style={styles.title}>Reset Password</Text>
-            <Text style={styles.description}>Don't worry, we'll help you recover your account securely.</Text>
+            <Text style={styles.description}>
+              Don't worry, we'll help you recover your account securely.
+            </Text>
           </View>
         </SafeAreaView>
       </View>
@@ -93,28 +97,26 @@ const ForgotPasswordScreen = () => {
           placeholderTextColor={styles.input.placeholderTextColor}
         />
 
-        <View style={styles.buttonRow}>
-          <TouchableOpacity
-            style={styles.backBtn}
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel="Go Back"
-          >
-            <Text style={styles.backBtnText}>Back</Text>
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.resetBtn}
+          onPress={handleResetPassword}
+          disabled={loading}
+          accessibilityRole="button"
+          accessibilityLabel="Send Reset Email"
+        >
+          <Text style={styles.resetBtnText}>
+            {loading ? "Sending..." : "Send Reset Email"}
+          </Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.resetBtn}
-            onPress={handleResetPassword}
-            disabled={loading}
-            accessibilityRole="button"
-            accessibilityLabel="Send Reset Email"
-          >
-            <Text style={styles.resetBtnText}>
-              {loading ? "Sending..." : "Send Reset Email"}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="Go Back"
+        >
+          <Text style={styles.backBtnText}>Back</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -198,18 +200,13 @@ const createStyles = (tokens, layout, variants) =>
       width: "100%",
       placeholderTextColor: tokens.colors.placeholder,
     },
-    buttonRow: {
-      flexDirection: "row",
-      gap: tokens.spacing.md,
-      marginTop: tokens.spacing.md,
-      marginBottom: tokens.spacing.lg,
-    },
     resetBtn: {
       backgroundColor: tokens.colors.primaryDark,
       paddingVertical: tokens.spacing.buttonPadding.vertical,
       borderRadius: tokens.borderRadius.button,
       alignItems: "center",
-      flex: 2,
+      marginBottom: tokens.spacing.lg,
+      marginTop: tokens.spacing.xxs,
       ...tokens.shadows.sm,
     },
     resetBtnText: {
@@ -224,7 +221,7 @@ const createStyles = (tokens, layout, variants) =>
       paddingVertical: tokens.spacing.buttonPadding.vertical,
       borderRadius: tokens.borderRadius.button,
       alignItems: "center",
-      flex: 1,
+      marginBottom: tokens.spacing.lg,
     },
     backBtnText: {
       color: tokens.colors.primaryLight,
