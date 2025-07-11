@@ -1,10 +1,10 @@
 // app/(app)/(tabs)/index.tsx - Home/Services List
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
-import { router } from 'expo-router';
-import { useServices } from '@/hooks/useServices';
-import { ServiceCard } from '@/components/service/ServiceCard';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { ServiceCard } from "@/components/service/ServiceCard";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { useServices } from "@/hooks/useServices";
+import { router } from "expo-router";
+import React, { useEffect } from "react";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 
 export default function HomeScreen() {
   const { services, isLoading, fetchServices } = useServices();
@@ -19,7 +19,7 @@ export default function HomeScreen() {
   };
 
   const renderServiceItem = ({ item }: { item: any }) => (
-    <ServiceCard 
+    <ServiceCard
       service={item}
       onPress={() => handleServicePress(item.id, item.type)}
     />
@@ -51,23 +51,23 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     padding: 20,
-    color: '#333',
+    color: "#333",
   },
   listContainer: {
     padding: 10,
   },
   row: {
-    justifyContent: 'space-around',
+    justifyContent: "space-around",
   },
 });
