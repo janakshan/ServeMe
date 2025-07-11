@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import {
   Alert,
   Animated,
+  Dimensions,
   FlatList,
   Image,
   StyleSheet,
@@ -89,7 +90,6 @@ const useServiceCardAnimation = (index: number, isVisible: boolean) => {
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const translateYAnim = useRef(new Animated.Value(30)).current;
   const pressScaleAnim = useRef(new Animated.Value(1)).current;
-  const shadowElevationAnim = useRef(new Animated.Value(2)).current;
 
   useEffect(() => {
     if (isVisible) {
@@ -121,35 +121,21 @@ const useServiceCardAnimation = (index: number, isVisible: boolean) => {
   }, [isVisible, index]);
 
   const handlePressIn = () => {
-    Animated.parallel([
-      Animated.spring(pressScaleAnim, {
-        toValue: 0.95,
-        tension: 300,
-        friction: 10,
-        useNativeDriver: true,
-      }),
-      Animated.timing(shadowElevationAnim, {
-        toValue: 8,
-        duration: 150,
-        useNativeDriver: false,
-      }),
-    ]).start();
+    Animated.spring(pressScaleAnim, {
+      toValue: 0.95,
+      tension: 300,
+      friction: 10,
+      useNativeDriver: true,
+    }).start();
   };
 
   const handlePressOut = () => {
-    Animated.parallel([
-      Animated.spring(pressScaleAnim, {
-        toValue: 1,
-        tension: 300,
-        friction: 10,
-        useNativeDriver: true,
-      }),
-      Animated.timing(shadowElevationAnim, {
-        toValue: 2,
-        duration: 150,
-        useNativeDriver: false,
-      }),
-    ]).start();
+    Animated.spring(pressScaleAnim, {
+      toValue: 1,
+      tension: 300,
+      friction: 10,
+      useNativeDriver: true,
+    }).start();
   };
 
   return {
@@ -160,7 +146,6 @@ const useServiceCardAnimation = (index: number, isVisible: boolean) => {
         { translateY: translateYAnim },
       ],
     },
-    shadowElevation: shadowElevationAnim,
     handlePressIn,
     handlePressOut,
   };
@@ -177,7 +162,7 @@ function ServiceCard({
 }) {
   const cardStyles = useThemedStyles(createServiceCardStyles);
   const { tokens } = useServiceTheme();
-  const { animatedStyles, shadowElevation, handlePressIn, handlePressOut } = 
+  const { animatedStyles, handlePressIn, handlePressOut } = 
     useServiceCardAnimation(index, true);
 
   return (
@@ -185,10 +170,7 @@ function ServiceCard({
       <TouchableOpacity
         style={[
           cardStyles.container,
-          {
-            ...tokens.shadows.sm,
-            elevation: shadowElevation,
-          }
+          tokens.shadows.sm,
         ]}
         onPress={onPress}
         onPressIn={handlePressIn}
@@ -300,16 +282,16 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        <FlatList
-          data={services.slice(0, 6)}
-          renderItem={renderServiceItem}
-          keyExtractor={(item) => item.id}
-          numColumns={3}
-          columnWrapperStyle={styles.row}
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-          scrollEnabled={false}
-        />
+        <View style={styles.gridContainer}>
+          {services.slice(0, 6).map((item, index) => (
+            <ServiceCard
+              key={item.id}
+              service={item}
+              index={index}
+              onPress={() => handleServicePress(item.id, item.type)}
+            />
+          ))}
+        </View>
       </View>
     </View>
   );
@@ -353,33 +335,44 @@ const createStyles = (tokens, layout, variants) =>
       padding: tokens.spacing.md,
       paddingTop: 0,
     },
-    row: {
-      justifyContent: "space-around",
+    gridContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      paddingHorizontal: tokens.spacing.md,
+      justifyContent: 'space-between',
     },
   });
 
-const createServiceCardStyles = (tokens, layout, variants) =>
-  StyleSheet.create({
+const createServiceCardStyles = (tokens, layout, variants) => {
+  const { width: screenWidth } = Dimensions.get('window');
+  const horizontalPadding = tokens.spacing.md * 2; // Container padding both sides
+  const cardSpacing = tokens.spacing.sm; // Space between cards
+  const availableWidth = screenWidth - horizontalPadding;
+  const cardWidth = (availableWidth - (cardSpacing * 2)) / 3; // 3 columns with spacing
+  
+  return StyleSheet.create({
     container: {
       backgroundColor: tokens.colors.surface,
       borderRadius: tokens.borderRadius.md,
-      padding: tokens.spacing.lg,
-      margin: tokens.spacing.xs,
+      padding: tokens.spacing.md,
+      marginBottom: tokens.spacing.md,
       alignItems: "center",
       justifyContent: "center",
-      minHeight: 100,
-      flex: 1,
+      width: cardWidth,
+      height: cardWidth, // Square cards
+      borderWidth: 1,
+      borderColor: tokens.colors.border,
     },
     iconContainer: {
       width: 64,
       height: 64,
       justifyContent: "center",
       alignItems: "center",
-      marginBottom: tokens.spacing.md,
+      marginBottom: tokens.spacing.sm,
     },
     serviceImage: {
-      width: 48,
-      height: 48,
+      width: 56,
+      height: 56,
     },
     title: {
       fontSize: tokens.typography.caption,
@@ -388,3 +381,4 @@ const createServiceCardStyles = (tokens, layout, variants) =>
       textAlign: "center",
     },
   });
+};
