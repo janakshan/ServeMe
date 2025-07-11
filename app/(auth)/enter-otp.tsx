@@ -1,5 +1,5 @@
 import { useThemedStyles } from "@/contexts/ServiceThemeContext";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useRef, useState } from "react";
 import {
   SafeAreaView,
@@ -11,6 +11,7 @@ import {
 } from "react-native";
 
 const EnterOTPScreen = () => {
+  const { email, flow } = useLocalSearchParams();
   const [otp, setOtp] = useState(["", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -18,6 +19,10 @@ const EnterOTPScreen = () => {
   const inputRefs = useRef([]);
 
   const styles = useThemedStyles(createStyles);
+  
+  // Determine if this is for forgot password or signup flow
+  const isForgotPasswordFlow = flow === "forgot-password";
+  const displayEmail = email || "admin@serveme.sg";
 
   const handleOtpChange = (index, value) => {
     if (value.length > 1) return;
@@ -52,8 +57,15 @@ const EnterOTPScreen = () => {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Navigate to success screen
-      router.push("/(auth)/signup-success");
+      // Navigate based on the flow type
+      if (isForgotPasswordFlow) {
+        router.push({
+          pathname: "/(auth)/reset-password",
+          params: { email: displayEmail }
+        });
+      } else {
+        router.push("/(auth)/signup-success");
+      }
     } catch (e) {
       setError("Invalid OTP. Please try again.");
     } finally {
@@ -84,17 +96,21 @@ const EnterOTPScreen = () => {
       <View style={styles.headerSection}>
         <SafeAreaView style={styles.headerSafeArea}>
           <View style={styles.headerContent}>
-            <Text style={styles.title}>Verification Code</Text>
+            <Text style={styles.title}>
+              {isForgotPasswordFlow ? "Reset Password" : "Verification Code"}
+            </Text>
             <Text style={styles.description}>
-              Enter the 5-digit code we sent to your phone to verify your
-              identity.
+              {isForgotPasswordFlow 
+                ? "Enter the 5-digit code we sent to your email to reset your password."
+                : "Enter the 5-digit code we sent to your phone to verify your identity."
+              }
             </Text>
           </View>
         </SafeAreaView>
       </View>
       <View style={styles.contentSection}>
         <Text style={styles.contentDescription}>
-          A verification code has been sent to admin@serveme.sg
+          A verification code has been sent to {displayEmail}
         </Text>
 
         {error ? <Text style={styles.error}>{error}</Text> : null}

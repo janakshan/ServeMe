@@ -1,7 +1,9 @@
 import { useThemedStyles } from "@/contexts/ServiceThemeContext";
-import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
+  Pressable,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -9,67 +11,49 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { authApi } from "../../services/api/auth";
 
-const ForgotPasswordScreen = () => {
-  const [email, setEmail] = useState("");
+const ResetPasswordScreen = () => {
+  const { email } = useLocalSearchParams();
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const styles = useThemedStyles(createStyles);
 
   const handleResetPassword = async () => {
     setError("");
 
-    if (!email.trim()) {
-      setError("Please enter your email address");
+    if (!password.trim()) {
+      setError("Please enter a new password");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords don't match");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
       return;
     }
 
     setLoading(true);
     try {
-      await authApi.forgotPassword(email);
-      // Navigate to OTP verification with email parameter
-      router.push({
-        pathname: "/(auth)/enter-otp",
-        params: { email, flow: "forgot-password" }
-      });
+      // Simulate API call for password reset
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      
+      // Navigate to login with success message
+      router.replace("/(auth)/login");
     } catch (e) {
-      setError("Failed to send reset email. Please try again.");
+      setError("Failed to reset password. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-
-  if (success) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.headerSection}>
-          <SafeAreaView style={styles.headerSafeArea}>
-            <View style={styles.headerContent}>
-              <Text style={styles.title}>Check Your Email</Text>
-              <Text style={styles.description}>
-                We've sent you password reset instructions.
-              </Text>
-            </View>
-          </SafeAreaView>
-        </View>
-        <View style={styles.contentSection}>
-          <Text style={styles.cardTitle}>Email Sent!</Text>
-          <Text style={styles.contentDescription}>
-            We've sent password reset instructions to {email}
-          </Text>
-          <TouchableOpacity
-            style={styles.resetBtn}
-            onPress={() => router.push("/(auth)/login")}
-          >
-            <Text style={styles.resetBtnText}>Back to Login</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -78,38 +62,71 @@ const ForgotPasswordScreen = () => {
           <View style={styles.headerContent}>
             <Text style={styles.title}>Reset Password</Text>
             <Text style={styles.description}>
-              Don't worry, we'll help you recover your account securely.
+              Create a new password for your account to regain access.
             </Text>
           </View>
         </SafeAreaView>
       </View>
       <View style={styles.contentSection}>
         <Text style={styles.contentDescription}>
-          Enter your email address and we'll send you instructions to reset your
-          password.
+          Enter your new password below. Make sure it's secure and easy to remember.
         </Text>
+        
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your email"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          placeholderTextColor={styles.input.placeholderTextColor}
-        />
+        <Text style={styles.label}>New Password</Text>
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="Enter new password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            placeholderTextColor={styles.passwordInput.placeholderTextColor}
+          />
+          <Pressable
+            style={styles.eyeBtn}
+            onPress={() => setShowPassword((v) => !v)}
+          >
+            <Ionicons
+              name={showPassword ? "eye-off-outline" : "eye-outline"}
+              size={22}
+              color={styles.eyeIcon.color}
+            />
+          </Pressable>
+        </View>
+
+        <Text style={styles.label}>Confirm Password</Text>
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="Confirm new password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry={!showConfirmPassword}
+            placeholderTextColor={styles.passwordInput.placeholderTextColor}
+          />
+          <Pressable
+            style={styles.eyeBtn}
+            onPress={() => setShowConfirmPassword((v) => !v)}
+          >
+            <Ionicons
+              name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
+              size={22}
+              color={styles.eyeIcon.color}
+            />
+          </Pressable>
+        </View>
 
         <TouchableOpacity
           style={styles.resetBtn}
           onPress={handleResetPassword}
           disabled={loading}
           accessibilityRole="button"
-          accessibilityLabel="Send Reset Email"
+          accessibilityLabel="Reset Password"
         >
           <Text style={styles.resetBtnText}>
-            {loading ? "Sending..." : "Send Reset Email"}
+            {loading ? "Resetting..." : "Reset Password"}
           </Text>
         </TouchableOpacity>
 
@@ -170,13 +187,7 @@ const createStyles = (tokens, layout, variants) =>
       backgroundColor: tokens.colors.surface,
       paddingHorizontal: tokens.spacing.lg,
       paddingTop: tokens.spacing.xl,
-    },
-    cardTitle: {
-      fontSize: tokens.typography.title,
-      fontWeight: tokens.typography.bold,
-      color: tokens.colors.onSurface,
-      marginBottom: tokens.spacing.lg,
-      textAlign: "center",
+      paddingBottom: tokens.spacing.xl,
     },
     contentDescription: {
       fontSize: tokens.typography.body,
@@ -192,17 +203,34 @@ const createStyles = (tokens, layout, variants) =>
       marginTop: tokens.spacing.sm,
       fontWeight: tokens.typography.semibold,
     },
-    input: {
+    passwordContainer: {
+      position: "relative",
+      width: "100%",
+      marginBottom: tokens.spacing.md,
+    },
+    passwordInput: {
       backgroundColor: tokens.colors.inputBackground,
       borderWidth: 2,
       borderColor: tokens.colors.inputBorder,
       borderRadius: tokens.borderRadius.input,
       padding: tokens.spacing.inputPadding.vertical,
+      paddingRight: 50,
       fontSize: tokens.typography.body,
       color: tokens.colors.onBackground,
-      marginBottom: tokens.spacing.md,
       width: "100%",
       placeholderTextColor: tokens.colors.placeholder,
+    },
+    eyeBtn: {
+      position: "absolute",
+      right: tokens.spacing.md,
+      top: 0,
+      bottom: 0,
+      justifyContent: "center",
+      alignItems: "center",
+      width: 40,
+    },
+    eyeIcon: {
+      color: tokens.colors.primaryLight,
     },
     resetBtn: {
       backgroundColor: tokens.colors.primaryDark,
@@ -210,7 +238,7 @@ const createStyles = (tokens, layout, variants) =>
       borderRadius: tokens.borderRadius.button,
       alignItems: "center",
       marginBottom: tokens.spacing.lg,
-      marginTop: tokens.spacing.xxs,
+      marginTop: tokens.spacing.sm,
       ...tokens.shadows.sm,
     },
     resetBtnText: {
@@ -240,4 +268,4 @@ const createStyles = (tokens, layout, variants) =>
     },
   });
 
-export default ForgotPasswordScreen;
+export default ResetPasswordScreen;
