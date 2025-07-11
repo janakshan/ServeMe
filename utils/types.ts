@@ -10,7 +10,7 @@ export interface User {
 export interface Service {
   id: string;
   name: string;
-  type: 'booking' | 'education' | 'healthcare' | 'entertainment' | 'carpenter' | 'cleaner' | 'painter' | 'electrician' | 'beauty';
+  type: 'education' | 'men_saloon' | 'vehicle_repair' | 'cleaning' | 'parcel' | 'food_delivery';
   description: string;
   shortDescription: string;
   icon: string;
@@ -22,7 +22,7 @@ export interface Service {
   priority: 'high' | 'medium' | 'low';
   rating: number;
   userCount: number;
-  category: 'professional' | 'lifestyle' | 'wellness' | 'digital';
+  category: 'professional' | 'lifestyle' | 'wellness' | 'digital' | 'automotive' | 'logistics' | 'food';
 }
 
 export interface NavigationState {

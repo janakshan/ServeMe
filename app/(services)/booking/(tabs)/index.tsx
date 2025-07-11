@@ -7,10 +7,10 @@ import { router } from 'expo-router';
 
 export default function BookingHomeScreen() {
   const bookingCategories = [
-    { id: '1', name: 'Restaurant', icon: '🍽️', color: '#FF6B6B' },
-    { id: '2', name: 'Hotel', icon: '🏨', color: '#4ECDC4' },
-    { id: '3', name: 'Spa', icon: '💆‍♀️', color: '#45B7D1' },
-    { id: '4', name: 'Salon', icon: '💇‍♀️', color: '#96CEB4' },
+    { id: '1', name: 'Restaurant', color: '#FF6B6B' },
+    { id: '2', name: 'Hotel', color: '#4ECDC4' },
+    { id: '3', name: 'Spa', color: '#45B7D1' },
+    { id: '4', name: 'Salon', color: '#96CEB4' },
   ];
 
   const handleBooking = (categoryName: string) => {
@@ -28,7 +28,6 @@ export default function BookingHomeScreen() {
       <View style={styles.categoriesContainer}>
         {bookingCategories.map((category) => (
           <Card key={category.id} style={styles.categoryCard}>
-            <Text style={styles.categoryIcon}>{category.icon}</Text>
             <Text style={styles.categoryName}>{category.name}</Text>
             <Button
               title="Book Now"
