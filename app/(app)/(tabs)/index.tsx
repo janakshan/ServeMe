@@ -226,16 +226,23 @@ export default function HomeScreen() {
     if (serviceType === "booking") {
       // Navigate to booking service
       router.push("/(services)/booking/(tabs)");
+    } else if (serviceType === "education") {
+      // Navigate to education service
+      router.push("/(services)/education/(tabs)");
     } else {
       // Show alert for other services (not implemented yet)
       Alert.alert(
         `${serviceType.charAt(0).toUpperCase() + serviceType.slice(1)} Service`,
-        `The ${serviceType} service will be available soon!\n\nCurrently only booking service is implemented.`,
+        `The ${serviceType} service will be available soon!\n\nCurrently booking and education services are implemented.`,
         [
           { text: "OK" },
           {
             text: "Go to Booking",
             onPress: () => router.push("/(services)/booking/(tabs)"),
+          },
+          {
+            text: "Go to Education",
+            onPress: () => router.push("/(services)/education/(tabs)"),
           },
         ]
       );
