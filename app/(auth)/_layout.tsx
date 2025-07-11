@@ -40,6 +40,18 @@ export default function AuthLayout() {
         name="forgot-password" 
         options={{ headerShown: false }} 
       />
+      <Stack.Screen 
+        name="confirm-phone" 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="enter-otp" 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="signup-success" 
+        options={{ headerShown: false }} 
+      />
     </Stack>
   );
 }

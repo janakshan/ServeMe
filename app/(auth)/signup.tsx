@@ -1,3 +1,4 @@
+import { useThemedStyles } from "@/contexts/ServiceThemeContext";
 import { useAuth } from "@/hooks/useAuth";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -23,6 +24,8 @@ const SignupScreen = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { signup } = useAuth();
 
+  const styles = useThemedStyles(createStyles);
+
   const handleSignup = async () => {
     setError("");
 
@@ -38,8 +41,8 @@ const SignupScreen = () => {
 
     setLoading(true);
     try {
-      await signup(email, password, name);
-      router.replace("/(app)/(tabs)");
+      // First, navigate to confirm phone screen
+      router.push("/(auth)/confirm-phone");
     } catch (e) {
       setError(e.message || "Signup failed");
     } finally {
@@ -48,250 +51,285 @@ const SignupScreen = () => {
   };
 
   return (
-    <View style={styles.bgWrap}>
-      <View style={styles.blueBg} />
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.headerWrap}>
-          <Text style={styles.logoipsum}>ServeMe</Text>
-          <Text style={styles.title}>Create your Account</Text>
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Sign Up</Text>
-          {error ? <Text style={styles.error}>{error}</Text> : null}
-
-          <Text style={styles.label}>Full Name</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your full name"
-            value={name}
-            onChangeText={setName}
-            placeholderTextColor="#546E7A"
-          />
-
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your email"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            placeholderTextColor="#546E7A"
-          />
-
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              placeholderTextColor="#546E7A"
-            />
-            <Pressable
-              style={styles.eyeBtn}
-              onPress={() => setShowPassword((v) => !v)}
-            >
-              <Ionicons
-                name={showPassword ? "eye-off-outline" : "eye-outline"}
-                size={22}
-                color="#42A5F5"
-              />
-            </Pressable>
+    <View style={styles.container}>
+      <View style={styles.headerSection}>
+        <SafeAreaView style={styles.headerSafeArea}>
+          <View style={styles.headerContent}>
+            <Text style={styles.title}>Create Account</Text>
+            <Text style={styles.description}>
+              Join thousands of users who trust ServeMe for their service needs.
+            </Text>
           </View>
+        </SafeAreaView>
+      </View>
+      <View style={styles.contentSection}>
+        {error ? <Text style={styles.error}>{error}</Text> : null}
 
-          <Text style={styles.label}>Confirm Password</Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="Confirm Password"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry={!showConfirmPassword}
-              placeholderTextColor="#546E7A"
-            />
-            <Pressable
-              style={styles.eyeBtn}
-              onPress={() => setShowConfirmPassword((v) => !v)}
-            >
-              <Ionicons
-                name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
-                size={22}
-                color="#42A5F5"
-              />
-            </Pressable>
-          </View>
+        <Text style={styles.label}>Full Name</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your full name"
+          value={name}
+          onChangeText={setName}
+          placeholderTextColor={styles.input.placeholderTextColor}
+        />
 
-          <TouchableOpacity
-            style={styles.signupBtn}
-            onPress={handleSignup}
-            disabled={loading}
-            accessibilityRole="button"
-            accessibilityLabel="Sign Up"
+        <Text style={styles.label}>Email</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your email"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          placeholderTextColor={styles.input.placeholderTextColor}
+        />
+
+        <Text style={styles.label}>Password</Text>
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            placeholderTextColor={styles.input.placeholderTextColor}
+          />
+          <Pressable
+            style={styles.eyeBtn}
+            onPress={() => setShowPassword((v) => !v)}
           >
-            <Text style={styles.signupBtnText}>
-              {loading ? "Creating Account..." : "Sign Up"}
-            </Text>
-          </TouchableOpacity>
+            <Ionicons
+              name={showPassword ? "eye-off-outline" : "eye-outline"}
+              size={22}
+              color={styles.eyeIcon.color}
+            />
+          </Pressable>
+        </View>
 
-          <View style={styles.spacer} />
-          <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
-            <Text style={styles.loginLink}>
-              <Text style={{ color: "#666666" }}>Already have an account?</Text>{" "}
-              <Text style={{ color: "#42A5F5", fontWeight: "bold" }}>
-                Sign in
-              </Text>
-            </Text>
+        <Text style={styles.label}>Confirm Password</Text>
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry={!showConfirmPassword}
+            placeholderTextColor={styles.input.placeholderTextColor}
+          />
+          <Pressable
+            style={styles.eyeBtn}
+            onPress={() => setShowConfirmPassword((v) => !v)}
+          >
+            <Ionicons
+              name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
+              size={22}
+              color={styles.eyeIcon.color}
+            />
+          </Pressable>
+        </View>
+
+        <TouchableOpacity
+          style={styles.signupBtn}
+          onPress={handleSignup}
+          disabled={loading}
+          accessibilityRole="button"
+          accessibilityLabel="Sign Up"
+        >
+          <Text style={styles.signupBtnText}>
+            {loading ? "Creating Account..." : "Sign Up"}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
+          <Text style={styles.signinPrompt}>
+            Already have an account?{" "}
+            <Text style={styles.signinLinkText}>Sign In</Text>
+          </Text>
+        </TouchableOpacity>
+
+        {/* <Text style={styles.orSignupWith}>Or signup with</Text> */}
+
+        <View style={styles.socialButtonsContainer}>
+          <TouchableOpacity style={styles.socialButton}>
+            <View style={styles.socialButtonContent}>
+              <Ionicons name="logo-google" size={20} color="#4285F4" />
+              <Text style={styles.socialButtonText}>Google</Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.socialButton}>
+            <View style={styles.socialButtonContent}>
+              <Ionicons name="logo-facebook" size={20} color="#1877F2" />
+              <Text style={styles.socialButtonText}>Facebook</Text>
+            </View>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  bgWrap: {
-    flex: 1,
-    backgroundColor: "#F8FCFF",
-  },
-  blueBg: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 260,
-    backgroundColor: "#0D47A1",
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-    zIndex: 0,
-  },
-  safeArea: {
-    flex: 1,
-    alignItems: "center",
-    backgroundColor: "transparent",
-    zIndex: 1,
-  },
-  headerWrap: {
-    width: "100%",
-    alignItems: "center",
-    marginTop: 18,
-    marginBottom: 12,
-  },
-  logoipsum: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 32,
-    marginBottom: 10,
-    marginTop: 10,
-  },
-  title: {
-    color: "#fff",
-    fontWeight: "normal",
-    fontSize: 18,
-    textAlign: "center",
-    marginBottom: 0,
-    lineHeight: 22,
-  },
-  card: {
-    flex: 1,
-    width: "100%",
-    alignSelf: "center",
-    backgroundColor: "#fff",
-    borderRadius: 32,
-    marginTop: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 28,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 24,
-    elevation: 12,
-  },
-  cardTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#1A237E",
-    marginBottom: 18,
-    textAlign: "center",
-  },
-  label: {
-    fontSize: 15,
-    color: "#1A237E",
-    marginBottom: 6,
-    marginTop: 8,
-    fontWeight: "600",
-  },
-  input: {
-    backgroundColor: "#E8F4FD",
-    borderWidth: 2,
-    borderColor: "#42A5F5",
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: "#111827",
-    marginBottom: 14,
-    width: "100%",
-  },
-  passwordContainer: {
-    position: "relative",
-    width: "100%",
-    marginBottom: 14,
-  },
-  passwordInput: {
-    backgroundColor: "#E8F4FD",
-    borderWidth: 2,
-    borderColor: "#42A5F5",
-    borderRadius: 12,
-    padding: 16,
-    paddingRight: 50,
-    fontSize: 16,
-    color: "#111827",
-    width: "100%",
-  },
-  eyeBtn: {
-    position: "absolute",
-    right: 12,
-    top: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    width: 40,
-  },
-  signupBtn: {
-    backgroundColor: "#1565C0",
-    paddingVertical: 18,
-    borderRadius: 14,
-    alignItems: "center",
-    marginBottom: 18,
-    marginTop: 14,
-    shadowColor: "#1565C0",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  signupBtnText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 18,
-  },
-  spacer: {
-    flex: 1,
-  },
-  loginLink: {
-    color: "#546E7A",
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 12,
-    fontWeight: "500",
-  },
-  error: {
-    color: "#EF4444",
-    marginBottom: 10,
-    textAlign: "center",
-    fontSize: 15,
-  },
-});
+const createStyles = (tokens, layout, variants) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: tokens.colors.background,
+    },
+    headerSection: {
+      backgroundColor: tokens.colors.primary,
+      paddingBottom: tokens.spacing.lg,
+      minHeight: 220,
+    },
+    headerSafeArea: {
+      backgroundColor: "transparent",
+      flex: 1,
+      justifyContent: "center",
+    },
+    headerContent: {
+      width: "100%",
+      alignItems: "center",
+      paddingHorizontal: tokens.spacing.lg,
+    },
+    title: {
+      color: tokens.colors.onPrimary,
+      fontWeight: tokens.typography.bold,
+      fontSize: tokens.typography.display,
+      marginBottom: tokens.spacing.sm,
+      lineHeight: tokens.typography.display * tokens.typography.tight,
+      textAlign: "center",
+    },
+    description: {
+      color: tokens.colors.onPrimary,
+      fontWeight: tokens.typography.light,
+      fontSize: tokens.typography.body,
+      marginBottom: 0,
+      lineHeight: tokens.typography.body * 1.3,
+      textAlign: "center",
+      opacity: 0.9,
+      paddingHorizontal: tokens.spacing.lg,
+    },
+    contentSection: {
+      flex: 1,
+      backgroundColor: tokens.colors.surface,
+      paddingHorizontal: tokens.spacing.lg,
+      paddingTop: tokens.spacing.lg,
+    },
+    cardTitle: {
+      fontSize: tokens.typography.title,
+      fontWeight: tokens.typography.bold,
+      color: tokens.colors.onSurface,
+      marginBottom: tokens.spacing.lg,
+      textAlign: "center",
+    },
+    label: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurface,
+      marginBottom: tokens.spacing.xs,
+      marginTop: tokens.spacing.sm,
+      fontWeight: tokens.typography.semibold,
+    },
+    input: {
+      backgroundColor: tokens.colors.inputBackground,
+      borderWidth: 2,
+      borderColor: tokens.colors.inputBorder,
+      borderRadius: tokens.borderRadius.input,
+      padding: tokens.spacing.inputPadding.vertical,
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onBackground,
+      marginBottom: tokens.spacing.md,
+      width: "100%",
+      placeholderTextColor: tokens.colors.placeholder,
+    },
+    passwordContainer: {
+      position: "relative",
+      width: "100%",
+      marginBottom: tokens.spacing.md,
+    },
+    passwordInput: {
+      backgroundColor: tokens.colors.inputBackground,
+      borderWidth: 2,
+      borderColor: tokens.colors.inputBorder,
+      borderRadius: tokens.borderRadius.input,
+      padding: tokens.spacing.inputPadding.vertical,
+      paddingRight: 50,
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onBackground,
+      width: "100%",
+      placeholderTextColor: tokens.colors.placeholder,
+    },
+    eyeBtn: {
+      position: "absolute",
+      right: tokens.spacing.md,
+      top: 0,
+      bottom: 0,
+      justifyContent: "center",
+      alignItems: "center",
+      width: 40,
+    },
+    eyeIcon: {
+      color: tokens.colors.primaryLight,
+    },
+    signupBtn: {
+      backgroundColor: tokens.colors.primaryDark,
+      paddingVertical: tokens.spacing.buttonPadding.vertical,
+      borderRadius: tokens.borderRadius.button,
+      alignItems: "center",
+      marginBottom: tokens.spacing.lg,
+      marginTop: tokens.spacing.sm,
+      ...tokens.shadows.sm,
+    },
+    signupBtnText: {
+      color: tokens.colors.onPrimary,
+      fontWeight: tokens.typography.bold,
+      fontSize: tokens.typography.subtitle,
+    },
+    signinPrompt: {
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onSurfaceVariant,
+      textAlign: "center",
+      marginVertical: tokens.spacing.sm,
+    },
+    signinLinkText: {
+      color: tokens.colors.primaryLight,
+      fontWeight: tokens.typography.bold,
+    },
+    error: {
+      color: tokens.colors.error,
+      marginBottom: tokens.spacing.sm,
+      textAlign: "center",
+      fontSize: tokens.typography.caption,
+    },
+    orSignupWith: {
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onSurfaceVariant,
+      textAlign: "center",
+      marginVertical: tokens.spacing.md,
+    },
+    socialButtonsContainer: {
+      flexDirection: "row",
+      gap: tokens.spacing.md,
+      marginTop: tokens.spacing.lg,
+      marginBottom: tokens.spacing.lg,
+    },
+    socialButton: {
+      flex: 1,
+      paddingVertical: tokens.spacing.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.outline,
+      borderRadius: tokens.borderRadius.button,
+      alignItems: "center",
+      backgroundColor: tokens.colors.surface,
+    },
+    socialButtonContent: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: tokens.spacing.sm,
+    },
+    socialButtonText: {
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onSurface,
+      fontWeight: tokens.typography.medium,
+    },
+  });
 
 export default SignupScreen;
