@@ -17,6 +17,13 @@ import {
 import { ScreenHeader } from "../../../components/ui/ScreenHeader";
 import { useServices } from "../../../hooks/useServices";
 
+// Preload service images
+const preloadImages = (imageUrls: string[]) => {
+  imageUrls.forEach((url) => {
+    Image.prefetch(url);
+  });
+};
+
 // Loading skeleton component
 const ServiceCardSkeleton = ({ index }: { index: number }) => {
   const { tokens } = useServiceTheme();
@@ -101,7 +108,7 @@ const useServiceCardAnimation = (index: number, isVisible: boolean) => {
   useEffect(() => {
     if (isVisible) {
       // Staggered entrance animation
-      const delay = index * 100; // 100ms delay between cards
+      const delay = index * 50; // 50ms delay between cards
 
       Animated.parallel([
         Animated.timing(opacityAnim, {
@@ -205,6 +212,14 @@ export default function HomeScreen() {
     fetchServices();
   }, []);
 
+  // Preload images when services are loaded
+  useEffect(() => {
+    if (services.length > 0) {
+      const imageUrls = services.map(service => service.imageUrl);
+      preloadImages(imageUrls);
+    }
+  }, [services]);
+
   const handleServicePress = (serviceId: string, serviceType: string) => {
     console.log("🎯 Service pressed:", { serviceId, serviceType });
 
@@ -237,7 +252,7 @@ export default function HomeScreen() {
 
   if (isLoading) {
     // Show skeleton cards while loading
-    const skeletonData = Array.from({ length: 6 }, (_, index) => ({
+    const skeletonData = Array.from({ length: 4 }, (_, index) => ({
       id: `skeleton-${index}`,
     }));
 
@@ -256,17 +271,10 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.listContainer}>
-            <View style={styles.row}>
-              {skeletonData.slice(0, 3).map((_, index) => (
-                <ServiceCardSkeleton key={index} index={index} />
-              ))}
-            </View>
-            <View style={styles.row}>
-              {skeletonData.slice(3, 6).map((_, index) => (
-                <ServiceCardSkeleton key={index + 3} index={index + 3} />
-              ))}
-            </View>
+          <View style={styles.gridContainer}>
+            {skeletonData.map((_, index) => (
+              <ServiceCardSkeleton key={index} index={index} />
+            ))}
           </View>
         </View>
       </View>

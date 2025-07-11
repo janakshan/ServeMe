@@ -172,7 +172,7 @@ export const servicesApi = {
       // return response.json();
 
       // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 300));
       return MOCK_SERVICES;
     } catch (error) {
       console.error('Error fetching services:', error);
