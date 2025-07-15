@@ -1,4 +1,4 @@
-import { useThemedStyles } from "@/contexts/ServiceThemeContext";
+import { useThemedStyles, useServiceTheme } from "@/contexts/ServiceThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 
 const ResetPasswordScreen = () => {
   const { email } = useLocalSearchParams();
@@ -21,7 +22,12 @@ const ResetPasswordScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const { getGradient } = useServiceTheme();
   const styles = useThemedStyles(createStyles);
+  
+  const headerGradient = getGradient('header');
+  const buttonGradient = getGradient('button');
+  const backgroundGradient = getGradient('background');
 
   const handleResetPassword = async () => {
     setError("");
@@ -56,8 +62,18 @@ const ResetPasswordScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerSection}>
+    <LinearGradient
+      colors={backgroundGradient.colors}
+      start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}
+    >
+      <LinearGradient
+        colors={headerGradient.colors}
+        start={{ x: headerGradient.direction.x, y: headerGradient.direction.y }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerSection}
+      >
         <SafeAreaView style={styles.headerSafeArea}>
           <View style={styles.headerContent}>
             <Text style={styles.title}>Reset Password</Text>
@@ -66,7 +82,7 @@ const ResetPasswordScreen = () => {
             </Text>
           </View>
         </SafeAreaView>
-      </View>
+      </LinearGradient>
       <View style={styles.contentSection}>
         <Text style={styles.contentDescription}>
           Enter your new password below. Make sure it's secure and easy to remember.
@@ -125,9 +141,16 @@ const ResetPasswordScreen = () => {
           accessibilityRole="button"
           accessibilityLabel="Reset Password"
         >
-          <Text style={styles.resetBtnText}>
-            {loading ? "Resetting..." : "Reset Password"}
-          </Text>
+          <LinearGradient
+            colors={buttonGradient.colors}
+            start={{ x: buttonGradient.direction.x, y: buttonGradient.direction.y }}
+            end={{ x: 1, y: 1 }}
+            style={styles.resetBtnGradient}
+          >
+            <Text style={styles.resetBtnText}>
+              {loading ? "Resetting..." : "Reset Password"}
+            </Text>
+          </LinearGradient>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -139,18 +162,55 @@ const ResetPasswordScreen = () => {
           <Text style={styles.backBtnText}>Back</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </LinearGradient>
   );
 };
 
-const createStyles = (tokens, layout, variants) =>
-  StyleSheet.create({
+const createStyles = (tokens, layout, variants) => {
+  // Create soft blue-tinted backgrounds for better eye comfort
+  const getSoftTintedColors = () => {
+    const primaryColor = tokens.colors.primary;
+
+    if (primaryColor === "#0D47A1") {
+      // Professional blue theme - soft blue tints
+      return {
+        softBackground: "#F8FAFE", // Very light blue tint
+        softSurface: "#F0F6FF", // Light blue tint for cards/surfaces
+      };
+    } else if (primaryColor === "#7B1FA2") {
+      // Purple theme - soft purple tints
+      return {
+        softBackground: "#FDFAFF", // Very light purple tint
+        softSurface: "#F9F2FF", // Light purple tint
+      };
+    } else if (primaryColor === "#2E7D32") {
+      // Green theme - soft green tints
+      return {
+        softBackground: "#F9FDF9", // Very light green tint
+        softSurface: "#F2F8F2", // Light green tint
+      };
+    } else if (primaryColor === "#E91E63") {
+      // Pink theme - soft pink tints
+      return {
+        softBackground: "#FFFAFC", // Very light pink tint
+        softSurface: "#FFF2F7", // Light pink tint
+      };
+    } else {
+      // Default soft blue tints
+      return {
+        softBackground: "#F8FAFE",
+        softSurface: "#F0F6FF",
+      };
+    }
+  };
+
+  const tintedColors = getSoftTintedColors();
+
+  return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: tokens.colors.background,
     },
     headerSection: {
-      backgroundColor: tokens.colors.primary,
       paddingBottom: tokens.spacing.xxl,
       minHeight: 280,
     },
@@ -184,10 +244,13 @@ const createStyles = (tokens, layout, variants) =>
     },
     contentSection: {
       flex: 1,
-      backgroundColor: tokens.colors.surface,
+      backgroundColor: tintedColors.softSurface,
       paddingHorizontal: tokens.spacing.lg,
       paddingTop: tokens.spacing.xl,
       paddingBottom: tokens.spacing.xl,
+      marginTop: -tokens.spacing.md, // Overlap with header for smoother transition
+      borderTopLeftRadius: tokens.borderRadius.xl,
+      borderTopRightRadius: tokens.borderRadius.xl,
     },
     contentDescription: {
       fontSize: tokens.typography.body,
@@ -233,13 +296,15 @@ const createStyles = (tokens, layout, variants) =>
       color: tokens.colors.primaryLight,
     },
     resetBtn: {
-      backgroundColor: tokens.colors.primaryDark,
-      paddingVertical: tokens.spacing.buttonPadding.vertical,
       borderRadius: tokens.borderRadius.button,
-      alignItems: "center",
       marginBottom: tokens.spacing.lg,
       marginTop: tokens.spacing.sm,
       ...tokens.shadows.sm,
+    },
+    resetBtnGradient: {
+      paddingVertical: tokens.spacing.buttonPadding.vertical,
+      borderRadius: tokens.borderRadius.button,
+      alignItems: "center",
     },
     resetBtnText: {
       color: tokens.colors.onPrimary,
@@ -267,5 +332,6 @@ const createStyles = (tokens, layout, variants) =>
       fontSize: tokens.typography.caption,
     },
   });
+};
 
 export default ResetPasswordScreen;

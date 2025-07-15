@@ -1,4 +1,7 @@
-import { useThemedStyles } from "@/contexts/ServiceThemeContext";
+import {
+  useThemedStyles,
+  useServiceTheme,
+} from "@/contexts/ServiceThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -12,12 +15,17 @@ import {
   View,
   Image,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "../../../hooks/useAuth";
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const [darkMode, setDarkMode] = useState(false);
+  const { getGradient } = useServiceTheme();
   const styles = useThemedStyles(createStyles);
+
+  const headerGradient = getGradient("header");
+  const backgroundGradient = getGradient("background");
 
   const handleLogout = async () => {
     await logout();
@@ -25,20 +33,33 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerSection}>
+    <LinearGradient
+      colors={backgroundGradient.colors}
+      start={{
+        x: backgroundGradient.direction.x,
+        y: backgroundGradient.direction.y,
+      }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}
+    >
+      <LinearGradient
+        colors={headerGradient.colors}
+        start={{ x: headerGradient.direction.x, y: headerGradient.direction.y }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerSection}
+      >
         <SafeAreaView style={styles.headerSafeArea}>
           <View style={styles.headerContent}>
             <Text style={styles.title}>My Profile</Text>
           </View>
         </SafeAreaView>
-      </View>
+      </LinearGradient>
       <ScrollView style={styles.contentSection}>
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
             <Image
               source={{
-                uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
+                uri: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
               }}
               style={styles.profileImage}
             />
@@ -116,7 +137,10 @@ export default function ProfileScreen() {
             />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(app)/payments')}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push("/(app)/payments")}
+          >
             <View style={styles.menuItemLeft}>
               <Ionicons
                 name="card-outline"
@@ -132,7 +156,10 @@ export default function ProfileScreen() {
             />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(app)/settings')}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push("/(app)/settings")}
+          >
             <View style={styles.menuItemLeft}>
               <Ionicons
                 name="settings-outline"
@@ -209,18 +236,54 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </View>
+    </LinearGradient>
   );
 }
 
-const createStyles = (tokens, layout, variants) =>
-  StyleSheet.create({
+const createStyles = (tokens, layout, variants) => {
+  // Create soft theme-tinted backgrounds for better eye comfort
+  const getSoftTintedColors = () => {
+    const primaryColor = tokens.colors.primary;
+    if (primaryColor === "#0D47A1") {
+      // Professional blue theme - soft blue tints
+      return {
+        softBackground: "#F8FAFE", // Very light blue tint
+        softSurface: "#F0F6FF", // Light blue tint for cards/surfaces
+      };
+    } else if (primaryColor === "#7B1FA2") {
+      // Purple theme - soft purple tints
+      return {
+        softBackground: "#FDFAFF", // Very light purple tint
+        softSurface: "#F9F2FF", // Light purple tint
+      };
+    } else if (primaryColor === "#2E7D32") {
+      // Green theme - soft green tints
+      return {
+        softBackground: "#F9FDF9", // Very light green tint
+        softSurface: "#F2F8F2", // Light green tint
+      };
+    } else if (primaryColor === "#E91E63") {
+      // Pink theme - soft pink tints
+      return {
+        softBackground: "#FFFAFC", // Very light pink tint
+        softSurface: "#FFF2F7", // Light pink tint
+      };
+    } else {
+      // Default soft blue tints
+      return {
+        softBackground: "#F8FAFE",
+        softSurface: "#F0F6FF",
+      };
+    }
+  };
+
+  const tintedColors = getSoftTintedColors();
+
+  return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: tokens.colors.background,
     },
     headerSection: {
-      backgroundColor: tokens.colors.primary,
       paddingBottom: tokens.spacing.lg,
       minHeight: 150,
     },
@@ -242,7 +305,11 @@ const createStyles = (tokens, layout, variants) =>
     },
     contentSection: {
       flex: 1,
-      backgroundColor: tokens.colors.surface,
+      backgroundColor: tintedColors.softSurface,
+      marginTop: -tokens.spacing.md, // Overlap with header for smoother transition
+      borderTopLeftRadius: tokens.borderRadius.xl,
+      borderTopRightRadius: tokens.borderRadius.xl,
+      paddingTop: tokens.spacing.lg,
     },
     profileSection: {
       alignItems: "center",
@@ -252,6 +319,7 @@ const createStyles = (tokens, layout, variants) =>
       marginTop: tokens.spacing.md,
       marginBottom: tokens.spacing.md,
       borderRadius: tokens.borderRadius.lg,
+      ...tokens.shadows.sm,
     },
     profileImageContainer: {
       position: "relative",
@@ -283,9 +351,10 @@ const createStyles = (tokens, layout, variants) =>
     },
     menuSection: {
       backgroundColor: tokens.colors.surface,
-      // marginHorizontal: tokens.spacing.lg,
+      marginHorizontal: tokens.spacing.lg,
       marginBottom: tokens.spacing.xl,
       borderRadius: tokens.borderRadius.lg,
+      ...tokens.shadows.sm,
     },
     menuItem: {
       flexDirection: "row",
@@ -324,3 +393,4 @@ const createStyles = (tokens, layout, variants) =>
       color: tokens.colors.error,
     },
   });
+};

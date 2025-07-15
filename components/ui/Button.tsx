@@ -1,13 +1,16 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
 
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  style?: any;
+  style?: ViewStyle;
   disabled?: boolean;
   loading?: boolean;
   variant?: 'primary' | 'secondary' | 'outline';
+  useGradient?: boolean;
 }
 
 export function Button({ 
@@ -16,14 +19,13 @@ export function Button({
   style, 
   disabled = false, 
   loading = false,
-  variant = 'primary' 
+  variant = 'primary',
+  useGradient = true
 }: ButtonProps) {
-  const buttonStyle = [
-    styles.button,
-    styles[variant],
-    disabled && styles.disabled,
-    style,
-  ];
+  const { getGradient } = useServiceTheme();
+  const styles = useThemedStyles(createStyles);
+
+  const buttonGradient = getGradient('button');
 
   const textStyle = [
     styles.text,
@@ -31,59 +33,95 @@ export function Button({
     disabled && styles.disabledText,
   ];
 
+  const buttonContent = (
+    <>
+      {loading ? (
+        <ActivityIndicator color={variant === 'primary' ? styles.primaryText.color : styles.outlineText.color} />
+      ) : (
+        <Text style={textStyle}>{title}</Text>
+      )}
+    </>
+  );
+
+  if (variant === 'primary' && useGradient && !disabled) {
+    return (
+      <TouchableOpacity
+        onPress={onPress}
+        disabled={disabled || loading}
+        activeOpacity={0.8}
+        style={[styles.button, style]}
+      >
+        <LinearGradient
+          colors={buttonGradient.colors}
+          start={{ x: buttonGradient.direction.x, y: buttonGradient.direction.y }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.gradientButton, disabled && styles.disabled]}
+        >
+          {buttonContent}
+        </LinearGradient>
+      </TouchableOpacity>
+    );
+  }
+
   return (
     <TouchableOpacity
-      style={buttonStyle}
+      style={[styles.button, styles[variant], disabled && styles.disabled, style]}
       onPress={onPress}
       disabled={disabled || loading}
       activeOpacity={0.8}
     >
-      {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? '#fff' : '#007AFF'} />
-      ) : (
-        <Text style={textStyle}>{title}</Text>
-      )}
+      {buttonContent}
     </TouchableOpacity>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (tokens: any) => StyleSheet.create({
   button: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+    paddingVertical: tokens.spacing.buttonPadding.vertical,
+    paddingHorizontal: tokens.spacing.buttonPadding.horizontal,
+    borderRadius: tokens.borderRadius.button,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
+  },
+  gradientButton: {
+    paddingVertical: tokens.spacing.buttonPadding.vertical,
+    paddingHorizontal: tokens.spacing.buttonPadding.horizontal,
+    borderRadius: tokens.borderRadius.button,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 48,
   },
   primary: {
-    backgroundColor: '#007AFF',
+    backgroundColor: tokens.colors.primary,
   },
   secondary: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: tokens.colors.surface,
+    borderWidth: 1,
+    borderColor: tokens.colors.border,
   },
   outline: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: tokens.colors.primary,
   },
   disabled: {
     opacity: 0.5,
   },
   text: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: tokens.typography.body,
+    fontWeight: tokens.typography.semibold,
   },
   primaryText: {
-    color: '#fff',
+    color: tokens.colors.onPrimary,
   },
   secondaryText: {
-    color: '#333',
+    color: tokens.colors.onSurface,
   },
   outlineText: {
-    color: '#007AFF',
+    color: tokens.colors.primary,
   },
   disabledText: {
-    color: '#999',
+    color: tokens.colors.onSurfaceVariant,
   },
 });

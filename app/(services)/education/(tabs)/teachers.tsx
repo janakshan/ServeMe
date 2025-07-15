@@ -10,6 +10,7 @@ import {
   Modal,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useServiceTheme, useThemedStyles } from "@/contexts/ServiceThemeContext";
 
 const MOCK_TEACHERS = [
@@ -297,7 +298,10 @@ export default function TeachersScreen() {
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const styles = useThemedStyles(createStyles);
-  const { tokens } = useServiceTheme();
+  const { tokens, getGradient } = useServiceTheme();
+  
+  const backgroundGradient = getGradient('background');
+  const cardGradient = getGradient('card');
 
   const filteredTeachers = MOCK_TEACHERS.filter(teacher => {
     const matchesSearch = teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -319,7 +323,12 @@ export default function TeachersScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={backgroundGradient.colors}
+      start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}
+    >
       <View style={styles.searchSection}>
         <View style={styles.searchBar}>
           <Ionicons name="search" size={20} color={tokens.colors.onSurfaceVariant} />
@@ -390,7 +399,7 @@ export default function TeachersScreen() {
         visible={modalVisible}
         onClose={handleCloseModal}
       />
-    </View>
+    </LinearGradient>
   );
 }
 
