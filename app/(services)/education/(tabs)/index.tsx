@@ -9,10 +9,10 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { EducationHeader } from "../components/headers";
 
 const MOCK_COURSES = [
   // Primary Education (Grades 1-5)
@@ -365,63 +365,28 @@ export default function CoursesScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchSection}>
-        <View style={styles.searchBar}>
-          <Ionicons
-            name="search"
-            size={20}
-            color={tokens.colors.onSurfaceVariant}
-          />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search courses..."
-            placeholderTextColor={tokens.colors.onSurfaceVariant}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
-      </View>
-
-      <View style={styles.filtersSection}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.categoriesContainer}
-          contentContainerStyle={styles.categoriesContent}
-        >
-          {CATEGORIES.map((category) => (
-            <TouchableOpacity
-              key={category}
-              style={[
-                styles.categoryButton,
-                selectedCategory === category && styles.categoryButtonActive,
-              ]}
-              onPress={() => setSelectedCategory(category)}
-            >
-              <Text
-                style={[
-                  styles.categoryButtonText,
-                  selectedCategory === category &&
-                    styles.categoryButtonTextActive,
-                ]}
-              >
-                {category}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>
-            {selectedCategory === "All"
-              ? "All Courses"
-              : `${selectedCategory} Courses`}
-          </Text>
-          <Text style={styles.courseCount}>
-            {filteredCourses.length} courses
-          </Text>
-        </View>
-      </View>
+      <EducationHeader
+        variant="courses"
+        search={{
+          value: searchQuery,
+          onChangeText: setSearchQuery,
+          placeholder: "Search courses...",
+        }}
+        filters={{
+          options: CATEGORIES.map((category) => ({
+            id: category,
+            label: category,
+            value: category,
+          })),
+          selectedValue: selectedCategory,
+          onSelect: setSelectedCategory,
+        }}
+        section={{
+          title: selectedCategory === "All" ? "All Courses" : `${selectedCategory} Courses`,
+          count: filteredCourses.length,
+          countLabel: "courses",
+        }}
+      />
 
       <ScrollView
         style={styles.coursesContainer}
@@ -446,79 +411,9 @@ const createStyles = (tokens: any) =>
       flex: 1,
       backgroundColor: tokens.colors.background,
     },
-    searchSection: {
-      padding: tokens.spacing.md,
-      backgroundColor: tokens.colors.surface,
-    },
-    searchBar: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: tokens.colors.surfaceVariant,
-      borderRadius: tokens.borderRadius.lg,
-      paddingHorizontal: tokens.spacing.md,
-      paddingVertical: tokens.spacing.sm,
-    },
-    searchInput: {
-      flex: 1,
-      marginLeft: tokens.spacing.sm,
-      fontSize: tokens.typography.body,
-      color: tokens.colors.onSurface,
-    },
-    filtersSection: {
-      backgroundColor: tokens.colors.surface,
-    },
-    categoriesContainer: {
-      backgroundColor: tokens.colors.surface,
-    },
-    categoriesContent: {
-      paddingHorizontal: tokens.spacing.md,
-      paddingBottom: tokens.spacing.sm,
-    },
-    categoryButton: {
-      paddingHorizontal: tokens.spacing.md,
-      paddingVertical: tokens.spacing.sm,
-      borderRadius: 20,
-      borderWidth: 1,
-      borderColor: tokens.colors.border,
-      marginRight: tokens.spacing.sm,
-      height: 36,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    categoryButtonActive: {
-      backgroundColor: tokens.colors.primary,
-      borderColor: tokens.colors.primary,
-    },
-    categoryButtonText: {
-      fontSize: tokens.typography.body,
-      color: tokens.colors.onSurface,
-      fontWeight: "500",
-    },
-    categoryButtonTextActive: {
-      color: tokens.colors.onPrimary,
-    },
     coursesContainer: {
       flex: 1,
       paddingHorizontal: tokens.spacing.md,
-    },
-    sectionHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingHorizontal: tokens.spacing.md,
-      paddingTop: tokens.spacing.md,
-      paddingBottom: tokens.spacing.sm,
-      backgroundColor: tokens.colors.surface,
-      marginTop: tokens.spacing.sm,
-    },
-    sectionTitle: {
-      fontSize: tokens.typography.title,
-      fontWeight: tokens.typography.bold,
-      color: tokens.colors.onSurface,
-    },
-    courseCount: {
-      fontSize: tokens.typography.caption,
-      color: tokens.colors.onSurfaceVariant,
     },
   });
 

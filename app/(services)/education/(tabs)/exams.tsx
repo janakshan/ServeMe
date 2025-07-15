@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useServiceTheme, useThemedStyles } from "@/contexts/ServiceThemeContext";
+import { EducationHeader } from "../components/headers";
 
 const MOCK_EXAMS = [
   {
@@ -532,72 +533,39 @@ export default function ExamsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.filtersSection}>
-        <Text style={styles.filterLabel}>Difficulty:</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.filterContainer}
-        >
-          {DIFFICULTY_FILTERS.map((filter) => (
-            <TouchableOpacity
-              key={filter}
-              style={[
-                styles.filterButton,
-                selectedDifficulty === filter && styles.filterButtonActive
-              ]}
-              onPress={() => setSelectedDifficulty(filter)}
-            >
-              <Text
-                style={[
-                  styles.filterButtonText,
-                  selectedDifficulty === filter && styles.filterButtonTextActive
-                ]}
-              >
-                {filter}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        <Text style={styles.filterLabel}>Subject:</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.filterContainer}
-        >
-          {SUBJECT_FILTERS.map((filter) => (
-            <TouchableOpacity
-              key={filter}
-              style={[
-                styles.filterButton,
-                selectedSubject === filter && styles.filterButtonActive
-              ]}
-              onPress={() => setSelectedSubject(filter)}
-            >
-              <Text
-                style={[
-                  styles.filterButtonText,
-                  selectedSubject === filter && styles.filterButtonTextActive
-                ]}
-              >
-                {filter}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
+      <EducationHeader
+        variant="exams"
+        filters={{
+          options: DIFFICULTY_FILTERS.map((filter) => ({
+            id: filter,
+            label: filter,
+            value: filter,
+          })),
+          selectedValue: selectedDifficulty,
+          onSelect: setSelectedDifficulty,
+          label: "Difficulty:",
+        }}
+        secondaryFilters={{
+          options: SUBJECT_FILTERS.map((filter) => ({
+            id: filter,
+            label: filter,
+            value: filter,
+          })),
+          selectedValue: selectedSubject,
+          onSelect: setSelectedSubject,
+          label: "Subject:",
+        }}
+        section={{
+          title: "Available Exams",
+          count: filteredExams.length,
+          countLabel: "exams",
+        }}
+      />
 
       <ScrollView
         style={styles.examsContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Available Exams</Text>
-          <Text style={styles.examCount}>
-            {filteredExams.length} exams
-          </Text>
-        </View>
 
         {filteredExams.map((exam) => (
           <ExamCard
@@ -623,58 +591,9 @@ const createStyles = (tokens: any) =>
       flex: 1,
       backgroundColor: tokens.colors.background,
     },
-    filtersSection: {
-      padding: tokens.spacing.md,
-      backgroundColor: tokens.colors.surface,
-    },
-    filterLabel: {
-      fontSize: tokens.typography.body,
-      fontWeight: tokens.typography.semiBold,
-      color: tokens.colors.onSurface,
-      marginBottom: tokens.spacing.sm,
-      marginTop: tokens.spacing.sm,
-    },
-    filterContainer: {
-      marginBottom: tokens.spacing.sm,
-    },
-    filterButton: {
-      paddingHorizontal: tokens.spacing.md,
-      paddingVertical: tokens.spacing.sm,
-      borderRadius: tokens.borderRadius.full,
-      borderWidth: 1,
-      borderColor: tokens.colors.border,
-      marginRight: tokens.spacing.sm,
-    },
-    filterButtonActive: {
-      backgroundColor: tokens.colors.primary,
-      borderColor: tokens.colors.primary,
-    },
-    filterButtonText: {
-      fontSize: tokens.typography.body,
-      color: tokens.colors.onSurface,
-      fontWeight: "500",
-    },
-    filterButtonTextActive: {
-      color: tokens.colors.onPrimary,
-    },
     examsContainer: {
       flex: 1,
       padding: tokens.spacing.md,
-    },
-    sectionHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: tokens.spacing.md,
-    },
-    sectionTitle: {
-      fontSize: tokens.typography.title,
-      fontWeight: tokens.typography.bold,
-      color: tokens.colors.onSurface,
-    },
-    examCount: {
-      fontSize: tokens.typography.caption,
-      color: tokens.colors.onSurfaceVariant,
     },
   });
 

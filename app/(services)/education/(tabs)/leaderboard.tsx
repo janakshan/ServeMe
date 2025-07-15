@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useServiceTheme, useThemedStyles } from "@/contexts/ServiceThemeContext";
+import { EducationHeader, InfoHeader, FilterHeader, SectionHeader } from "../components/headers";
 
 const MOCK_LEADERBOARD_DATA = [
   {
@@ -283,15 +284,18 @@ export default function LeaderboardScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerSection}>
-        <Text style={styles.headerTitle}>Leaderboard</Text>
-        <Text style={styles.headerSubtitle}>Compete with other learners</Text>
-      </View>
+      <InfoHeader
+        title="Leaderboard"
+        subtitle="Compete with other learners"
+        variant="centered"
+      />
 
       {currentUser && (
-        <View style={styles.currentUserCard}>
+        <InfoHeader
+          title="Your Position"
+          variant="card"
+        >
           <View style={styles.currentUserHeader}>
-            <Text style={styles.currentUserTitle}>Your Position</Text>
             <View style={styles.currentUserRank}>
               <Text style={styles.currentUserRankText}>#{currentUser.rank}</Text>
             </View>
@@ -310,64 +314,30 @@ export default function LeaderboardScreen() {
               <Text style={styles.statLabel}>Average Score</Text>
             </View>
           </View>
-        </View>
+        </InfoHeader>
       )}
 
-      <View style={styles.filtersSection}>
-        <Text style={styles.filterLabel}>Category:</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.filterContainer}
-        >
-          {LEADERBOARD_FILTERS.map((filter) => (
-            <TouchableOpacity
-              key={filter}
-              style={[
-                styles.filterButton,
-                selectedFilter === filter && styles.filterButtonActive
-              ]}
-              onPress={() => setSelectedFilter(filter)}
-            >
-              <Text
-                style={[
-                  styles.filterButtonText,
-                  selectedFilter === filter && styles.filterButtonTextActive
-                ]}
-              >
-                {filter}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+      <FilterHeader
+        options={LEADERBOARD_FILTERS.map((filter) => ({
+          id: filter,
+          label: filter,
+          value: filter,
+        }))}
+        selectedValue={selectedFilter}
+        onSelect={setSelectedFilter}
+        label="Category:"
+      />
 
-        <Text style={styles.filterLabel}>Time Period:</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.filterContainer}
-        >
-          {TIME_FILTERS.map((filter) => (
-            <TouchableOpacity
-              key={filter}
-              style={[
-                styles.filterButton,
-                selectedTime === filter && styles.filterButtonActive
-              ]}
-              onPress={() => setSelectedTime(filter)}
-            >
-              <Text
-                style={[
-                  styles.filterButtonText,
-                  selectedTime === filter && styles.filterButtonTextActive
-                ]}
-              >
-                {filter}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
+      <FilterHeader
+        options={TIME_FILTERS.map((filter) => ({
+          id: filter,
+          label: filter,
+          value: filter,
+        }))}
+        selectedValue={selectedTime}
+        onSelect={setSelectedTime}
+        label="Time Period:"
+      />
 
       <View style={styles.podiumSection}>
         <View style={styles.podium}>
@@ -392,14 +362,12 @@ export default function LeaderboardScreen() {
         style={styles.leaderboardContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>
-            {selectedFilter} Rankings
-          </Text>
-          <Text style={styles.participantCount}>
-            {filteredData.length} participants
-          </Text>
-        </View>
+        <SectionHeader
+          title={`${selectedFilter} Rankings`}
+          count={filteredData.length}
+          countLabel="participants"
+          variant="minimal"
+        />
 
         {filteredData.map((user) => (
           <LeaderboardRow
@@ -419,37 +387,11 @@ const createStyles = (tokens: any) =>
       flex: 1,
       backgroundColor: tokens.colors.background,
     },
-    headerSection: {
-      padding: tokens.spacing.md,
-      backgroundColor: tokens.colors.surface,
-      alignItems: "center",
-    },
-    headerTitle: {
-      fontSize: tokens.typography.title,
-      fontWeight: tokens.typography.bold,
-      color: tokens.colors.onSurface,
-      marginBottom: tokens.spacing.xs,
-    },
-    headerSubtitle: {
-      fontSize: tokens.typography.body,
-      color: tokens.colors.onSurfaceVariant,
-    },
-    currentUserCard: {
-      backgroundColor: tokens.colors.primaryContainer,
-      margin: tokens.spacing.md,
-      borderRadius: tokens.borderRadius.md,
-      padding: tokens.spacing.md,
-    },
     currentUserHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
       marginBottom: tokens.spacing.md,
-    },
-    currentUserTitle: {
-      fontSize: tokens.typography.subtitle,
-      fontWeight: tokens.typography.semiBold,
-      color: tokens.colors.onPrimaryContainer,
     },
     currentUserRank: {
       backgroundColor: tokens.colors.primary,
@@ -478,40 +420,6 @@ const createStyles = (tokens: any) =>
       fontSize: tokens.typography.caption,
       color: tokens.colors.onPrimaryContainer,
       marginTop: tokens.spacing.xs,
-    },
-    filtersSection: {
-      padding: tokens.spacing.md,
-      backgroundColor: tokens.colors.surface,
-    },
-    filterLabel: {
-      fontSize: tokens.typography.body,
-      fontWeight: tokens.typography.semiBold,
-      color: tokens.colors.onSurface,
-      marginBottom: tokens.spacing.sm,
-      marginTop: tokens.spacing.sm,
-    },
-    filterContainer: {
-      marginBottom: tokens.spacing.sm,
-    },
-    filterButton: {
-      paddingHorizontal: tokens.spacing.md,
-      paddingVertical: tokens.spacing.sm,
-      borderRadius: tokens.borderRadius.full,
-      borderWidth: 1,
-      borderColor: tokens.colors.border,
-      marginRight: tokens.spacing.sm,
-    },
-    filterButtonActive: {
-      backgroundColor: tokens.colors.primary,
-      borderColor: tokens.colors.primary,
-    },
-    filterButtonText: {
-      fontSize: tokens.typography.body,
-      color: tokens.colors.onSurface,
-      fontWeight: "500",
-    },
-    filterButtonTextActive: {
-      color: tokens.colors.onPrimary,
     },
     podiumSection: {
       backgroundColor: tokens.colors.surface,
@@ -567,21 +475,6 @@ const createStyles = (tokens: any) =>
     leaderboardContainer: {
       flex: 1,
       padding: tokens.spacing.md,
-    },
-    sectionHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: tokens.spacing.md,
-    },
-    sectionTitle: {
-      fontSize: tokens.typography.title,
-      fontWeight: tokens.typography.bold,
-      color: tokens.colors.onSurface,
-    },
-    participantCount: {
-      fontSize: tokens.typography.caption,
-      color: tokens.colors.onSurfaceVariant,
     },
   });
 

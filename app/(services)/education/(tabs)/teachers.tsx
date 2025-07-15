@@ -12,6 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useServiceTheme, useThemedStyles } from "@/contexts/ServiceThemeContext";
+import { EducationHeader } from "../components/headers";
 
 const MOCK_TEACHERS = [
   {
@@ -329,56 +330,28 @@ export default function TeachersScreen() {
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
-      <View style={styles.searchSection}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color={tokens.colors.onSurfaceVariant} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search teachers..."
-            placeholderTextColor={tokens.colors.onSurfaceVariant}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
-      </View>
-
-      <View style={styles.filtersSection}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.filtersContainer}
-          contentContainerStyle={styles.filtersContent}
-        >
-          {SUBJECT_FILTERS.map((filter) => (
-            <TouchableOpacity
-              key={filter}
-              style={[
-                styles.filterButton,
-                selectedFilter === filter && styles.filterButtonActive
-              ]}
-              onPress={() => setSelectedFilter(filter)}
-            >
-              <Text
-                style={[
-                  styles.filterButtonText,
-                  selectedFilter === filter && styles.filterButtonTextActive
-                ]}
-              >
-                {filter}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>
-            {selectedFilter === "All" ? "All Teachers" : `${selectedFilter} Teachers`}
-          </Text>
-          <Text style={styles.teacherCount}>
-            {filteredTeachers.length} teachers
-          </Text>
-        </View>
-      </View>
+      <EducationHeader
+        variant="teachers"
+        search={{
+          value: searchQuery,
+          onChangeText: setSearchQuery,
+          placeholder: "Search teachers...",
+        }}
+        filters={{
+          options: SUBJECT_FILTERS.map((filter) => ({
+            id: filter,
+            label: filter,
+            value: filter,
+          })),
+          selectedValue: selectedFilter,
+          onSelect: setSelectedFilter,
+        }}
+        section={{
+          title: selectedFilter === "All" ? "All Teachers" : `${selectedFilter} Teachers`,
+          count: filteredTeachers.length,
+          countLabel: "teachers",
+        }}
+      />
 
       <ScrollView
         style={styles.teachersContainer}
@@ -409,79 +382,9 @@ const createStyles = (tokens: any) =>
       flex: 1,
       backgroundColor: tokens.colors.background,
     },
-    searchSection: {
-      padding: tokens.spacing.md,
-      backgroundColor: tokens.colors.surface,
-    },
-    searchBar: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: tokens.colors.surfaceVariant,
-      borderRadius: tokens.borderRadius.lg,
-      paddingHorizontal: tokens.spacing.md,
-      paddingVertical: tokens.spacing.sm,
-    },
-    searchInput: {
-      flex: 1,
-      marginLeft: tokens.spacing.sm,
-      fontSize: tokens.typography.body,
-      color: tokens.colors.onSurface,
-    },
-    filtersSection: {
-      backgroundColor: tokens.colors.surface,
-    },
-    filtersContainer: {
-      backgroundColor: tokens.colors.surface,
-    },
-    filtersContent: {
-      paddingHorizontal: tokens.spacing.md,
-      paddingBottom: tokens.spacing.sm,
-    },
-    filterButton: {
-      paddingHorizontal: tokens.spacing.md,
-      paddingVertical: tokens.spacing.sm,
-      borderRadius: 20,
-      borderWidth: 1,
-      borderColor: tokens.colors.border,
-      marginRight: tokens.spacing.sm,
-      height: 36,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    filterButtonActive: {
-      backgroundColor: tokens.colors.primary,
-      borderColor: tokens.colors.primary,
-    },
-    filterButtonText: {
-      fontSize: tokens.typography.body,
-      color: tokens.colors.onSurface,
-      fontWeight: "500",
-    },
-    filterButtonTextActive: {
-      color: tokens.colors.onPrimary,
-    },
     teachersContainer: {
       flex: 1,
       paddingHorizontal: tokens.spacing.md,
-    },
-    sectionHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingHorizontal: tokens.spacing.md,
-      paddingTop: tokens.spacing.md,
-      paddingBottom: tokens.spacing.sm,
-      backgroundColor: tokens.colors.surface,
-      marginTop: tokens.spacing.sm,
-    },
-    sectionTitle: {
-      fontSize: tokens.typography.title,
-      fontWeight: tokens.typography.bold,
-      color: tokens.colors.onSurface,
-    },
-    teacherCount: {
-      fontSize: tokens.typography.caption,
-      color: tokens.colors.onSurfaceVariant,
     },
   });
 
