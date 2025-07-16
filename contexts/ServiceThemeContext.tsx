@@ -125,35 +125,54 @@ const serviceThemeConfigs: Record<string, ServiceThemeOverride> = {
   
   [ServiceTypes.EDUCATION]: {
     colors: {
-      primary: '#7B1FA2',
+      primary: '#6A1B9A',
       primaryDark: '#4A148C',
-      primaryLight: '#BA68C8',
-      accent: '#9C27B0',
-      info: '#673AB7',
+      primaryLight: '#9C27B0',
+      accent: '#8E24AA',
+      secondary: '#AB47BC',
+      info: '#5E35B1',
+      success: '#43A047',
+      warning: '#FB8C00',
+      error: '#E53935',
+      background: '#FEFBFF',
+      surface: '#FFFFFF',
+      onPrimary: '#FFFFFF',
+      onSecondary: '#FFFFFF',
+      onSurface: '#1C1B1F',
+      onBackground: '#1C1B1F',
+      onSurfaceVariant: '#49454F',
+      outline: '#79747E',
+      outlineVariant: '#CAC4D0',
+      primaryContainer: '#F2E7FF',
+      onPrimaryContainer: '#21005D',
+      secondaryContainer: '#F2E7FF',
+      onSecondaryContainer: '#1D192B',
+      tertiaryContainer: '#FFE0E6',
+      onTertiaryContainer: '#31111D',
     },
     gradients: {
       header: {
-        colors: ['#8E24AA', '#7B1FA2', '#6A1B9A'],
+        colors: ['#8E24AA', '#6A1B9A', '#4A148C'],
         direction: { x: 0, y: 1 }
       },
       card: {
-        colors: ['#F3E5F5', '#FAF0FF', '#FFFFFF'],
+        colors: ['#F2E7FF', '#F8F4FF', '#FFFFFF'],
         direction: { x: 0, y: 1 }
       },
       button: {
-        colors: ['#BA68C8', '#7B1FA2', '#6A1B9A'],
+        colors: ['#9C27B0', '#6A1B9A', '#4A148C'],
         direction: { x: 0, y: 1 }
       },
       background: {
-        colors: ['#FDFAFF', '#F9F2FF'],
+        colors: ['#FEFBFF', '#F8F4FF'],
         direction: { x: 0, y: 1 }
       },
       surface: {
-        colors: ['#FFFFFF', '#FDFAFF'],
+        colors: ['#FFFFFF', '#FEFBFF'],
         direction: { x: 0, y: 1 }
       },
       accent: {
-        colors: ['#CE93D8', '#9C27B0', '#7B1FA2'],
+        colors: ['#CE93D8', '#8E24AA', '#6A1B9A'],
         direction: { x: 0, y: 1 }
       }
     },

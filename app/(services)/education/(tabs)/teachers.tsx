@@ -5,14 +5,11 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  TextInput,
-  Alert,
   Modal,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useServiceTheme, useThemedStyles } from "@/contexts/ServiceThemeContext";
-import { EducationHeader } from "../components/headers";
+import { EducationHeader, EducationScreenHeader } from "../components/headers";
 
 const MOCK_TEACHERS = [
   {
@@ -299,10 +296,6 @@ export default function TeachersScreen() {
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const styles = useThemedStyles(createStyles);
-  const { tokens, getGradient } = useServiceTheme();
-  
-  const backgroundGradient = getGradient('background');
-  const cardGradient = getGradient('card');
 
   const filteredTeachers = MOCK_TEACHERS.filter(teacher => {
     const matchesSearch = teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -324,12 +317,18 @@ export default function TeachersScreen() {
   };
 
   return (
-    <LinearGradient
-      colors={backgroundGradient.colors}
-      start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <EducationScreenHeader
+        title="Find Teachers"
+        subtitle="Connect with qualified educators"
+        rightAction={{
+          icon: "filter",
+          onPress: () => {
+            // TODO: Implement filter action
+          },
+        }}
+      />
+      
       <EducationHeader
         variant="teachers"
         search={{
@@ -372,7 +371,7 @@ export default function TeachersScreen() {
         visible={modalVisible}
         onClose={handleCloseModal}
       />
-    </LinearGradient>
+    </View>
   );
 }
 

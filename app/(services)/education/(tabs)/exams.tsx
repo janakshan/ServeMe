@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useServiceTheme, useThemedStyles } from "@/contexts/ServiceThemeContext";
-import { EducationHeader } from "../components/headers";
+import { EducationHeader, EducationScreenHeader } from "../components/headers";
 
 const MOCK_EXAMS = [
   {
@@ -533,6 +533,17 @@ export default function ExamsScreen() {
 
   return (
     <View style={styles.container}>
+      <EducationScreenHeader
+        title="Practice Exams"
+        subtitle="Test your knowledge and track progress"
+        rightAction={{
+          icon: "stats-chart",
+          onPress: () => {
+            // TODO: Implement stats action
+          },
+        }}
+      />
+      
       <EducationHeader
         variant="exams"
         filters={{

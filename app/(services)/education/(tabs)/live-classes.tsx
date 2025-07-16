@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useServiceTheme, useThemedStyles } from "@/contexts/ServiceThemeContext";
-import { EducationHeader } from "../components/headers";
+import { EducationHeader, EducationScreenHeader } from "../components/headers";
 
 const MOCK_LIVE_CLASSES = [
   {
@@ -291,6 +291,17 @@ export default function LiveClassesScreen() {
 
   return (
     <View style={styles.container}>
+      <EducationScreenHeader
+        title="Live Classes"
+        subtitle="Join live sessions with expert teachers"
+        rightAction={{
+          icon: "calendar",
+          onPress: () => {
+            // TODO: Implement schedule action
+          },
+        }}
+      />
+      
       <EducationHeader
         variant="live-classes"
         stats={{

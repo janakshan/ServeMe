@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { EducationHeader } from "../components/headers";
+import { EducationHeader, EducationScreenHeader } from "../components/headers";
 
 const MOCK_COURSES = [
   // Primary Education (Grades 1-5)
@@ -365,6 +365,17 @@ export default function CoursesScreen() {
 
   return (
     <View style={styles.container}>
+      <EducationScreenHeader
+        title="Browse Courses"
+        subtitle="Discover quality education for all levels"
+        rightAction={{
+          icon: "search",
+          onPress: () => {
+            // TODO: Implement search action
+          },
+        }}
+      />
+      
       <EducationHeader
         variant="courses"
         search={{

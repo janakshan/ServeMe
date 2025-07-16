@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useServiceTheme, useThemedStyles } from "@/contexts/ServiceThemeContext";
-import { EducationHeader, InfoHeader, FilterHeader, SectionHeader } from "../components/headers";
+import { EducationHeader, EducationScreenHeader, InfoHeader, FilterHeader, SectionHeader } from "../components/headers";
 
 const MOCK_LEADERBOARD_DATA = [
   {
@@ -284,10 +284,15 @@ export default function LeaderboardScreen() {
 
   return (
     <View style={styles.container}>
-      <InfoHeader
+      <EducationScreenHeader
         title="Leaderboard"
         subtitle="Compete with other learners"
-        variant="centered"
+        rightAction={{
+          icon: "time",
+          onPress: () => {
+            // TODO: Implement time period selector
+          },
+        }}
       />
 
       {currentUser && (
