@@ -178,6 +178,106 @@ interface LeaderboardRowProps {
   onPress: (user: any) => void;
 }
 
+const createLeaderboardRowStyles = (tokens: any) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: tokens.colors.surface,
+      borderRadius: tokens.borderRadius.md,
+      padding: tokens.spacing.md,
+      marginBottom: tokens.spacing.sm,
+      borderWidth: 1,
+      borderColor: tokens.colors.border,
+    },
+    currentUserRow: {
+      backgroundColor: tokens.colors.primaryContainer,
+      borderColor: tokens.colors.primary,
+      borderWidth: 2,
+    },
+    topThreeRow: {
+      backgroundColor: tokens.colors.surfaceVariant,
+    },
+    rankContainer: {
+      width: 40,
+      alignItems: "center",
+      marginRight: tokens.spacing.sm,
+    },
+    rankText: {
+      fontSize: tokens.typography.subtitle,
+      fontWeight: tokens.typography.bold,
+    },
+    avatarContainer: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: tokens.colors.primary,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: tokens.spacing.md,
+    },
+    avatarText: {
+      fontSize: 14,
+      fontWeight: "bold",
+      color: tokens.colors.onPrimary,
+    },
+    userInfo: {
+      flex: 1,
+    },
+    userName: {
+      fontSize: tokens.typography.body,
+      fontWeight: tokens.typography.semiBold,
+      color: tokens.colors.onSurface,
+      marginBottom: tokens.spacing.xs,
+    },
+    currentUserName: {
+      color: tokens.colors.onPrimaryContainer,
+    },
+    userStats: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    statText: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+      marginRight: tokens.spacing.sm,
+    },
+    streakBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: tokens.colors.warningContainer,
+      paddingHorizontal: tokens.spacing.xs,
+      paddingVertical: 2,
+      borderRadius: tokens.borderRadius.sm,
+    },
+    streakText: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onWarningContainer,
+      marginLeft: 2,
+      fontWeight: "600",
+    },
+    badgesContainer: {
+      flexDirection: "row",
+      marginRight: tokens.spacing.md,
+    },
+    badge: {
+      fontSize: 16,
+      marginRight: tokens.spacing.xs,
+    },
+    scoreContainer: {
+      alignItems: "flex-end",
+    },
+    scoreText: {
+      fontSize: tokens.typography.subtitle,
+      fontWeight: tokens.typography.bold,
+      color: tokens.colors.primary,
+    },
+    scoreLabel: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+    },
+  });
+
 const LeaderboardRow: React.FC<LeaderboardRowProps> = ({ user, onPress }) => {
   const styles = useThemedStyles(createLeaderboardRowStyles);
   const { tokens } = useServiceTheme();
@@ -386,11 +486,49 @@ export default function LeaderboardScreen() {
   );
 }
 
-const createStyles = (tokens: any) =>
-  StyleSheet.create({
+const createStyles = (tokens: any) => {
+  const getSoftTintedColors = () => {
+    const primaryColor = tokens.colors.primary;
+
+    if (primaryColor === "#6A1B9A") {
+      // Purple theme - soft purple tints
+      return {
+        softBackground: "#FDFAFF", // Very light purple tint
+        softSurface: "#F9F2FF", // Light purple tint
+      };
+    } else if (primaryColor === "#0D47A1") {
+      // Professional blue theme - soft blue tints
+      return {
+        softBackground: "#F8FAFE", // Very light blue tint
+        softSurface: "#F0F6FF", // Light blue tint for cards/surfaces
+      };
+    } else if (primaryColor === "#2E7D32") {
+      // Green theme - soft green tints
+      return {
+        softBackground: "#F9FDF9", // Very light green tint
+        softSurface: "#F2F8F2", // Light green tint
+      };
+    } else if (primaryColor === "#E91E63") {
+      // Pink theme - soft pink tints
+      return {
+        softBackground: "#FFFAFC", // Very light pink tint
+        softSurface: "#FFF2F7", // Light pink tint
+      };
+    } else {
+      // Default soft blue tints
+      return {
+        softBackground: "#F8FAFE",
+        softSurface: "#F0F6FF",
+      };
+    }
+  };
+
+  const tintedColors = getSoftTintedColors();
+
+  return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: tokens.colors.background,
+      backgroundColor: tintedColors.softSurface,
     },
     currentUserHeader: {
       flexDirection: "row",
@@ -482,103 +620,4 @@ const createStyles = (tokens: any) =>
       padding: tokens.spacing.md,
     },
   });
-
-const createLeaderboardRowStyles = (tokens: any) =>
-  StyleSheet.create({
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: tokens.colors.surface,
-      borderRadius: tokens.borderRadius.md,
-      padding: tokens.spacing.md,
-      marginBottom: tokens.spacing.sm,
-      borderWidth: 1,
-      borderColor: tokens.colors.border,
-    },
-    currentUserRow: {
-      backgroundColor: tokens.colors.primaryContainer,
-      borderColor: tokens.colors.primary,
-      borderWidth: 2,
-    },
-    topThreeRow: {
-      backgroundColor: tokens.colors.surfaceVariant,
-    },
-    rankContainer: {
-      width: 40,
-      alignItems: "center",
-      marginRight: tokens.spacing.sm,
-    },
-    rankText: {
-      fontSize: tokens.typography.subtitle,
-      fontWeight: tokens.typography.bold,
-    },
-    avatarContainer: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: tokens.colors.primary,
-      justifyContent: "center",
-      alignItems: "center",
-      marginRight: tokens.spacing.md,
-    },
-    avatarText: {
-      fontSize: 14,
-      fontWeight: "bold",
-      color: tokens.colors.onPrimary,
-    },
-    userInfo: {
-      flex: 1,
-    },
-    userName: {
-      fontSize: tokens.typography.body,
-      fontWeight: tokens.typography.semiBold,
-      color: tokens.colors.onSurface,
-      marginBottom: tokens.spacing.xs,
-    },
-    currentUserName: {
-      color: tokens.colors.onPrimaryContainer,
-    },
-    userStats: {
-      flexDirection: "row",
-      alignItems: "center",
-    },
-    statText: {
-      fontSize: tokens.typography.caption,
-      color: tokens.colors.onSurfaceVariant,
-      marginRight: tokens.spacing.sm,
-    },
-    streakBadge: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: tokens.colors.warningContainer,
-      paddingHorizontal: tokens.spacing.xs,
-      paddingVertical: 2,
-      borderRadius: tokens.borderRadius.sm,
-    },
-    streakText: {
-      fontSize: tokens.typography.caption,
-      color: tokens.colors.onWarningContainer,
-      marginLeft: 2,
-      fontWeight: "600",
-    },
-    badgesContainer: {
-      flexDirection: "row",
-      marginRight: tokens.spacing.md,
-    },
-    badge: {
-      fontSize: 16,
-      marginRight: tokens.spacing.xs,
-    },
-    scoreContainer: {
-      alignItems: "flex-end",
-    },
-    scoreText: {
-      fontSize: tokens.typography.subtitle,
-      fontWeight: tokens.typography.bold,
-      color: tokens.colors.primary,
-    },
-    scoreLabel: {
-      fontSize: tokens.typography.caption,
-      color: tokens.colors.onSurfaceVariant,
-    },
-  });
+};

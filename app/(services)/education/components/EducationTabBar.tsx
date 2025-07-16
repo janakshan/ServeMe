@@ -92,17 +92,6 @@ export function EducationTabBar({ state, descriptors, navigation }: EducationTab
         colors={[tokens.colors.surface + 'F8', tokens.colors.surface + 'FF']}
         style={styles.gradient}
       >
-          {/* Active Tab Indicator */}
-          <Animated.View
-            style={[
-              styles.activeIndicator,
-              {
-                transform: [{ translateX: indicatorTranslateX }],
-                backgroundColor: tokens.colors.primary + '20',
-              },
-            ]}
-          />
-          
           {/* Tab Items */}
           <View style={styles.tabsContainer}>
             {TAB_ITEMS.map((item, index) => {
@@ -118,22 +107,17 @@ export function EducationTabBar({ state, descriptors, navigation }: EducationTab
                   activeOpacity={0.7}
                 >
                   <View style={styles.tabContent}>
-                    <View style={[
-                      styles.iconContainer,
-                      isActive && { backgroundColor: tokens.colors.primary + '15' }
-                    ]}>
-                      <Ionicons
-                        name={isActive ? (tabItem.activeIcon || tabItem.icon) : tabItem.icon}
-                        size={22}
-                        color={isActive ? tokens.colors.primary : tokens.colors.onSurfaceVariant}
-                      />
-                    </View>
+                    <Ionicons
+                      name={isActive ? (tabItem.activeIcon || tabItem.icon) : tabItem.icon}
+                      size={24}
+                      color={isActive ? tokens.colors.primary : tokens.colors.onSurfaceVariant}
+                    />
                     <Text
                       style={[
                         styles.tabLabel,
                         {
                           color: isActive ? tokens.colors.primary : tokens.colors.onSurfaceVariant,
-                          fontWeight: isActive ? '600' : '500',
+                          fontWeight: isActive ? '700' : '500',
                         },
                       ]}
                     >
@@ -164,18 +148,8 @@ const styles = StyleSheet.create({
   },
   gradient: {
     flex: 1,
-    paddingTop: 8,
+    paddingTop: 12,
     paddingBottom: 34, // Account for home indicator
-  },
-  activeIndicator: {
-    position: 'absolute',
-    top: 12,
-    left: 0,
-    width: TAB_WIDTH,
-    height: 48,
-    borderRadius: 24,
-    marginHorizontal: 8,
-    width: TAB_WIDTH - 16,
   },
   tabsContainer: {
     flexDirection: 'row',
@@ -191,25 +165,17 @@ const styles = StyleSheet.create({
   tabContent: {
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 48,
-  },
-  iconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
+    minHeight: 52,
   },
   tabLabel: {
-    fontSize: 11,
+    fontSize: 12,
     textAlign: 'center',
-    marginTop: 2,
+    marginTop: 4,
   },
   activeIndicatorDot: {
     width: 4,
     height: 4,
     borderRadius: 2,
-    marginTop: 2,
+    marginTop: 4,
   },
 });

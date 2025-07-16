@@ -416,17 +416,56 @@ export default function CoursesScreen() {
   );
 }
 
-const createStyles = (tokens: any) =>
-  StyleSheet.create({
+const createStyles = (tokens: any) => {
+  const getSoftTintedColors = () => {
+    const primaryColor = tokens.colors.primary;
+
+    if (primaryColor === "#6A1B9A") {
+      // Purple theme - soft purple tints
+      return {
+        softBackground: "#FDFAFF", // Very light purple tint
+        softSurface: "#F9F2FF", // Light purple tint
+      };
+    } else if (primaryColor === "#0D47A1") {
+      // Professional blue theme - soft blue tints
+      return {
+        softBackground: "#F8FAFE", // Very light blue tint
+        softSurface: "#F0F6FF", // Light blue tint for cards/surfaces
+      };
+    } else if (primaryColor === "#2E7D32") {
+      // Green theme - soft green tints
+      return {
+        softBackground: "#F9FDF9", // Very light green tint
+        softSurface: "#F2F8F2", // Light green tint
+      };
+    } else if (primaryColor === "#E91E63") {
+      // Pink theme - soft pink tints
+      return {
+        softBackground: "#FFFAFC", // Very light pink tint
+        softSurface: "#FFF2F7", // Light pink tint
+      };
+    } else {
+      // Default soft blue tints
+      return {
+        softBackground: "#F8FAFE",
+        softSurface: "#F0F6FF",
+      };
+    }
+  };
+
+  const tintedColors = getSoftTintedColors();
+
+  return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: tokens.colors.background,
+      backgroundColor: tintedColors.softSurface,
     },
     coursesContainer: {
       flex: 1,
       paddingHorizontal: tokens.spacing.md,
     },
   });
+};
 
 const createCourseCardStyles = (tokens: any) =>
   StyleSheet.create({

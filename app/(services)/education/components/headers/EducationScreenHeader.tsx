@@ -23,7 +23,7 @@ interface EducationScreenHeaderProps {
 export function EducationScreenHeader({ 
   title, 
   subtitle, 
-  minHeight = 180,
+  minHeight = 200,
   showBackButton = true,
   showBranding = true,
   rightAction,
@@ -46,7 +46,7 @@ export function EducationScreenHeader({
         colors={backgroundGradient.colors}
         start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
         end={{ x: 1, y: 1 }}
-        style={[styles.headerSection, { minHeight }]}
+        style={[styles.headerSection, { height: minHeight }]}
       >
         <SafeAreaView style={styles.headerSafeArea}>
           <View style={styles.headerContent}>
@@ -119,12 +119,15 @@ const createStyles = (tokens: any) => StyleSheet.create({
   headerSafeArea: {
     backgroundColor: 'transparent',
     flex: 1,
-    justifyContent: 'center',
   },
   headerContent: {
     width: '100%',
     paddingHorizontal: tokens.spacing.lg,
-    paddingTop: tokens.spacing.xl,
+    position: 'absolute',
+    top: 80,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
   },
   headerTop: {
     flexDirection: 'row',
