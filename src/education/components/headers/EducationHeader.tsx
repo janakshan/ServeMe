@@ -197,6 +197,6 @@ export const EducationHeader: React.FC<EducationHeaderProps> = ({
 const createStyles = (tokens: any) =>
   StyleSheet.create({
     container: {
-      backgroundColor: tokens.colors.background,
+      backgroundColor: 'transparent',
     },
   });

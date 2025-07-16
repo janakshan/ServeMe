@@ -7,9 +7,10 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from "@expo/vector-icons";
 import { useServiceTheme, useThemedStyles } from "@/contexts/ServiceThemeContext";
-import { EducationHeader, EducationScreenHeader } from "../components/headers";
+import { EducationHeader, EducationScreenHeader } from "@/src/education/components/headers";
 
 const MOCK_LIVE_CLASSES = [
   {
@@ -271,7 +272,7 @@ const LiveClassCard: React.FC<LiveClassCardProps> = ({ liveClass, onPress }) => 
 export default function LiveClassesScreen() {
   const [selectedFilter, setSelectedFilter] = useState("All");
   const styles = useThemedStyles(createStyles);
-  const { tokens } = useServiceTheme();
+  const { tokens, getGradient } = useServiceTheme();
 
   const filteredClasses = MOCK_LIVE_CLASSES.filter(liveClass => {
     if (selectedFilter === "All") return true;
@@ -289,73 +290,89 @@ export default function LiveClassesScreen() {
   const liveClassesCount = MOCK_LIVE_CLASSES.filter(c => c.status === "live").length;
   const upcomingClassesCount = MOCK_LIVE_CLASSES.filter(c => c.status === "upcoming").length;
 
+  // Create a subtle gradient background that transitions from header
+  const backgroundGradient = getGradient('background');
+
   return (
     <View style={styles.container}>
-      <EducationScreenHeader
-        title="Live Classes"
-        subtitle="Join live sessions with expert teachers"
-        rightAction={{
-          icon: "calendar",
-          onPress: () => {
-            // TODO: Implement schedule action
-          },
-        }}
-      />
-      
-      <EducationHeader
-        variant="live-classes"
-        stats={{
-          items: [
-            {
-              id: "live",
-              label: "Live Now",
-              value: liveClassesCount,
-              color: tokens.colors.error,
-            },
-            {
-              id: "upcoming",
-              label: "Upcoming",
-              value: upcomingClassesCount,
-              color: tokens.colors.primary,
-            },
-            {
-              id: "week",
-              label: "This Week",
-              value: 12,
-              color: tokens.colors.success,
-            },
-          ],
-          variant: "cards",
-        }}
-        filters={{
-          options: STATUS_FILTERS.map((filter) => ({
-            id: filter,
-            label: filter,
-            value: filter,
-          })),
-          selectedValue: selectedFilter,
-          onSelect: setSelectedFilter,
-        }}
-        section={{
-          title: selectedFilter === "All" ? "All Classes" : `${selectedFilter} Classes`,
-          count: filteredClasses.length,
-          countLabel: "classes",
-        }}
-      />
-
-      <ScrollView
-        style={styles.classesContainer}
-        showsVerticalScrollIndicator={false}
+      <LinearGradient
+        colors={backgroundGradient.colors}
+        start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientBackground}
       >
-
-        {filteredClasses.map((liveClass) => (
-          <LiveClassCard
-            key={liveClass.id}
-            liveClass={liveClass}
-            onPress={handleClassPress}
+        <EducationScreenHeader
+          title="Live Classes"
+          subtitle="Join live sessions with expert teachers"
+          rightAction={{
+            icon: "calendar",
+            onPress: () => {
+              // TODO: Implement schedule action
+            },
+          }}
+        />
+        
+        <View style={styles.contentWrapper}>
+          <EducationHeader
+            variant="live-classes"
+            stats={{
+              items: [
+                {
+                  id: "live",
+                  label: "Live Now",
+                  value: liveClassesCount,
+                  color: tokens.colors.error,
+                },
+                {
+                  id: "upcoming",
+                  label: "Upcoming",
+                  value: upcomingClassesCount,
+                  color: tokens.colors.primary,
+                },
+                {
+                  id: "week",
+                  label: "This Week",
+                  value: 12,
+                  color: tokens.colors.success,
+                },
+              ],
+              variant: "cards",
+            }}
+            filters={{
+              options: STATUS_FILTERS.map((filter) => ({
+                id: filter,
+                label: filter,
+                value: filter,
+              })),
+              selectedValue: selectedFilter,
+              onSelect: setSelectedFilter,
+            }}
+            section={{
+              title: selectedFilter === "All" ? "All Classes" : `${selectedFilter} Classes`,
+              count: filteredClasses.length,
+              countLabel: "classes",
+            }}
           />
-        ))}
-      </ScrollView>
+
+          <ScrollView
+            style={styles.classesContainer}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+
+            {filteredClasses.map((liveClass) => (
+              <LiveClassCard
+                key={liveClass.id}
+                liveClass={liveClass}
+                onPress={handleClassPress}
+              />
+            ))}
+            
+            {/* Bottom spacing for tab bar */}
+            <View style={styles.bottomSpacing} />
+          </ScrollView>
+        </View>
+      </LinearGradient>
     </View>
   );
 }
@@ -397,16 +414,34 @@ const createStyles = (tokens: any) => {
     }
   };
 
-  const tintedColors = getSoftTintedColors();
+  const backgroundColors = getSoftTintedColors();
 
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: tintedColors.softSurface,
+      backgroundColor: 'transparent',
+    },
+    gradientBackground: {
+      flex: 1,
+    },
+    contentWrapper: {
+      flex: 1,
+      backgroundColor: backgroundColors.softSurface,
+      marginTop: -tokens.spacing.lg, // Overlap with header for smooth transition
+      borderTopLeftRadius: tokens.borderRadius.xl,
+      borderTopRightRadius: tokens.borderRadius.xl,
     },
     classesContainer: {
       flex: 1,
+      backgroundColor: 'transparent',
+    },
+    scrollContent: {
       paddingHorizontal: tokens.spacing.md,
+      paddingTop: tokens.spacing.lg,
+      backgroundColor: 'transparent',
+    },
+    bottomSpacing: {
+      height: 100, // Space for tab bar
     },
   });
 };

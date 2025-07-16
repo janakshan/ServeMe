@@ -60,7 +60,7 @@ const createStyles = (tokens: any) =>
   StyleSheet.create({
     container: {
       padding: tokens.spacing.md,
-      backgroundColor: tokens.colors.surface,
+      backgroundColor: 'transparent',
     },
     searchBar: {
       flexDirection: "row",

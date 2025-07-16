@@ -7,9 +7,10 @@ import {
   StyleSheet,
   Modal,
 } from "react-native";
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from "@expo/vector-icons";
 import { useServiceTheme, useThemedStyles } from "@/contexts/ServiceThemeContext";
-import { EducationHeader, EducationScreenHeader } from "../components/headers";
+import { EducationHeader, EducationScreenHeader } from "@/src/education/components/headers";
 
 const MOCK_TEACHERS = [
   {
@@ -296,6 +297,7 @@ export default function TeachersScreen() {
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const styles = useThemedStyles(createStyles);
+  const { tokens, getGradient } = useServiceTheme();
 
   const filteredTeachers = MOCK_TEACHERS.filter(teacher => {
     const matchesSearch = teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -316,55 +318,71 @@ export default function TeachersScreen() {
     setSelectedTeacher(null);
   };
 
+  // Create a subtle gradient background that transitions from header
+  const backgroundGradient = getGradient('background');
+
   return (
     <View style={styles.container}>
-      <EducationScreenHeader
-        title="Find Teachers"
-        subtitle="Connect with qualified educators"
-        rightAction={{
-          icon: "filter",
-          onPress: () => {
-            // TODO: Implement filter action
-          },
-        }}
-      />
-      
-      <EducationHeader
-        variant="teachers"
-        search={{
-          value: searchQuery,
-          onChangeText: setSearchQuery,
-          placeholder: "Search teachers...",
-        }}
-        filters={{
-          options: SUBJECT_FILTERS.map((filter) => ({
-            id: filter,
-            label: filter,
-            value: filter,
-          })),
-          selectedValue: selectedFilter,
-          onSelect: setSelectedFilter,
-        }}
-        section={{
-          title: selectedFilter === "All" ? "All Teachers" : `${selectedFilter} Teachers`,
-          count: filteredTeachers.length,
-          countLabel: "teachers",
-        }}
-      />
-
-      <ScrollView
-        style={styles.teachersContainer}
-        showsVerticalScrollIndicator={false}
+      <LinearGradient
+        colors={backgroundGradient.colors}
+        start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientBackground}
       >
-
-        {filteredTeachers.map((teacher) => (
-          <TeacherCard
-            key={teacher.id}
-            teacher={teacher}
-            onPress={handleTeacherPress}
+        <EducationScreenHeader
+          title="Find Teachers"
+          subtitle="Connect with qualified educators"
+          rightAction={{
+            icon: "filter",
+            onPress: () => {
+              // TODO: Implement filter action
+            },
+          }}
+        />
+        
+        <View style={styles.contentWrapper}>
+          <EducationHeader
+            variant="teachers"
+            search={{
+              value: searchQuery,
+              onChangeText: setSearchQuery,
+              placeholder: "Search teachers...",
+            }}
+            filters={{
+              options: SUBJECT_FILTERS.map((filter) => ({
+                id: filter,
+                label: filter,
+                value: filter,
+              })),
+              selectedValue: selectedFilter,
+              onSelect: setSelectedFilter,
+            }}
+            section={{
+              title: selectedFilter === "All" ? "All Teachers" : `${selectedFilter} Teachers`,
+              count: filteredTeachers.length,
+              countLabel: "teachers",
+            }}
           />
-        ))}
-      </ScrollView>
+
+          <ScrollView
+            style={styles.teachersContainer}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+
+            {filteredTeachers.map((teacher) => (
+              <TeacherCard
+                key={teacher.id}
+                teacher={teacher}
+                onPress={handleTeacherPress}
+              />
+            ))}
+            
+            {/* Bottom spacing for tab bar */}
+            <View style={styles.bottomSpacing} />
+          </ScrollView>
+        </View>
+      </LinearGradient>
 
       <TeacherModal
         teacher={selectedTeacher}
@@ -412,16 +430,34 @@ const createStyles = (tokens: any) => {
     }
   };
 
-  const tintedColors = getSoftTintedColors();
+  const backgroundColors = getSoftTintedColors();
 
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: tintedColors.softSurface,
+      backgroundColor: 'transparent',
+    },
+    gradientBackground: {
+      flex: 1,
+    },
+    contentWrapper: {
+      flex: 1,
+      backgroundColor: backgroundColors.softSurface,
+      marginTop: -tokens.spacing.lg, // Overlap with header for smooth transition
+      borderTopLeftRadius: tokens.borderRadius.xl,
+      borderTopRightRadius: tokens.borderRadius.xl,
     },
     teachersContainer: {
       flex: 1,
+      backgroundColor: 'transparent',
+    },
+    scrollContent: {
       paddingHorizontal: tokens.spacing.md,
+      paddingTop: tokens.spacing.lg,
+      backgroundColor: 'transparent',
+    },
+    bottomSpacing: {
+      height: 100, // Space for tab bar
     },
   });
 };

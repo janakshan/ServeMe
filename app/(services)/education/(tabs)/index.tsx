@@ -12,7 +12,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { EducationHeader, EducationScreenHeader } from "../components/headers";
+import { LinearGradient } from 'expo-linear-gradient';
+import { EducationHeader, EducationScreenHeader } from "@/src/education/components/headers";
 
 const MOCK_COURSES = [
   // Primary Education (Grades 1-5)
@@ -344,7 +345,7 @@ export default function CoursesScreen() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const styles = useThemedStyles(createStyles);
-  const { tokens } = useServiceTheme();
+  const { tokens, getGradient } = useServiceTheme();
 
   const filteredCourses = MOCK_COURSES.filter((course) => {
     const matchesCategory =
@@ -363,106 +364,130 @@ export default function CoursesScreen() {
     );
   };
 
+  // Create a subtle gradient background that transitions from header
+  const backgroundGradient = getGradient('background');
+
   return (
     <View style={styles.container}>
-      <EducationScreenHeader
-        title="Browse Courses"
-        subtitle="Discover quality education for all levels"
-        rightAction={{
-          icon: "search",
-          onPress: () => {
-            // TODO: Implement search action
-          },
-        }}
-      />
-      
-      <EducationHeader
-        variant="courses"
-        search={{
-          value: searchQuery,
-          onChangeText: setSearchQuery,
-          placeholder: "Search courses...",
-        }}
-        filters={{
-          options: CATEGORIES.map((category) => ({
-            id: category,
-            label: category,
-            value: category,
-          })),
-          selectedValue: selectedCategory,
-          onSelect: setSelectedCategory,
-        }}
-        section={{
-          title: selectedCategory === "All" ? "All Courses" : `${selectedCategory} Courses`,
-          count: filteredCourses.length,
-          countLabel: "courses",
-        }}
-      />
-
-      <ScrollView
-        style={styles.coursesContainer}
-        showsVerticalScrollIndicator={false}
+      <LinearGradient
+        colors={backgroundGradient.colors}
+        start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientBackground}
       >
-
-        {filteredCourses.map((course) => (
-          <CourseCard
-            key={course.id}
-            course={course}
-            onPress={handleCoursePress}
+        <EducationScreenHeader
+          title="Browse Courses"
+          subtitle="Discover quality education for all levels"
+          rightAction={{
+            icon: "search",
+            onPress: () => {
+              // TODO: Implement search action
+            },
+          }}
+        />
+        
+        <View style={styles.contentWrapper}>
+          <EducationHeader
+            variant="courses"
+            search={{
+              value: searchQuery,
+              onChangeText: setSearchQuery,
+              placeholder: "Search courses...",
+            }}
+            filters={{
+              options: CATEGORIES.map((category) => ({
+                id: category,
+                label: category,
+                value: category,
+              })),
+              selectedValue: selectedCategory,
+              onSelect: setSelectedCategory,
+            }}
+            section={{
+              title: selectedCategory === "All" ? "All Courses" : `${selectedCategory} Courses`,
+              count: filteredCourses.length,
+              countLabel: "courses",
+            }}
           />
-        ))}
-      </ScrollView>
+
+          <ScrollView
+            style={styles.coursesContainer}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+
+            {filteredCourses.map((course) => (
+              <CourseCard
+                key={course.id}
+                course={course}
+                onPress={handleCoursePress}
+              />
+            ))}
+            
+            {/* Bottom spacing for tab bar */}
+            <View style={styles.bottomSpacing} />
+          </ScrollView>
+        </View>
+      </LinearGradient>
     </View>
   );
 }
 
 const createStyles = (tokens: any) => {
-  const getSoftTintedColors = () => {
+  const getSmoothBackgroundColors = () => {
     const primaryColor = tokens.colors.primary;
 
     if (primaryColor === "#6A1B9A") {
-      // Purple theme - soft purple tints
       return {
-        softBackground: "#FDFAFF", // Very light purple tint
-        softSurface: "#F9F2FF", // Light purple tint
+        contentBackground: "#F9F2FF", // Light purple tint for content area
       };
     } else if (primaryColor === "#0D47A1") {
-      // Professional blue theme - soft blue tints
       return {
-        softBackground: "#F8FAFE", // Very light blue tint
-        softSurface: "#F0F6FF", // Light blue tint for cards/surfaces
+        contentBackground: "#F0F6FF", // Light blue tint for content area
       };
     } else if (primaryColor === "#2E7D32") {
-      // Green theme - soft green tints
       return {
-        softBackground: "#F9FDF9", // Very light green tint
-        softSurface: "#F2F8F2", // Light green tint
+        contentBackground: "#F2F8F2", // Light green tint for content area
       };
     } else if (primaryColor === "#E91E63") {
-      // Pink theme - soft pink tints
       return {
-        softBackground: "#FFFAFC", // Very light pink tint
-        softSurface: "#FFF2F7", // Light pink tint
+        contentBackground: "#FFF2F7", // Light pink tint for content area
       };
     } else {
-      // Default soft blue tints
       return {
-        softBackground: "#F8FAFE",
-        softSurface: "#F0F6FF",
+        contentBackground: "#F0F6FF", // Default content background
       };
     }
   };
 
-  const tintedColors = getSoftTintedColors();
+  const backgroundColors = getSmoothBackgroundColors();
 
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: tintedColors.softSurface,
+      backgroundColor: 'transparent',
+    },
+    gradientBackground: {
+      flex: 1,
+    },
+    contentWrapper: {
+      flex: 1,
+      backgroundColor: backgroundColors.contentBackground,
+      marginTop: -tokens.spacing.lg, // Overlap with header for smooth transition
+      borderTopLeftRadius: tokens.borderRadius.xl,
+      borderTopRightRadius: tokens.borderRadius.xl,
     },
     coursesContainer: {
       flex: 1,
+      backgroundColor: 'transparent',
+    },
+    scrollContent: {
       paddingHorizontal: tokens.spacing.md,
+      paddingTop: tokens.spacing.lg,
+      backgroundColor: 'transparent',
+    },
+    bottomSpacing: {
+      height: 100, // Space for tab bar
     },
   });
 };

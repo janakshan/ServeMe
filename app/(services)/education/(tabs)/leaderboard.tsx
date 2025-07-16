@@ -7,9 +7,10 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from "@expo/vector-icons";
 import { useServiceTheme, useThemedStyles } from "@/contexts/ServiceThemeContext";
-import { EducationHeader, EducationScreenHeader, InfoHeader, FilterHeader, SectionHeader } from "../components/headers";
+import { EducationHeader, EducationScreenHeader, InfoHeader, FilterHeader, SectionHeader } from "@/src/education/components/headers";
 
 const MOCK_LEADERBOARD_DATA = [
   {
@@ -365,7 +366,7 @@ export default function LeaderboardScreen() {
   const [selectedFilter, setSelectedFilter] = useState("Overall");
   const [selectedTime, setSelectedTime] = useState("All Time");
   const styles = useThemedStyles(createStyles);
-  const { tokens } = useServiceTheme();
+  const { tokens, getGradient } = useServiceTheme();
 
   const filteredData = MOCK_LEADERBOARD_DATA.filter(user => {
     if (selectedFilter === "Overall") return true;
@@ -382,8 +383,17 @@ export default function LeaderboardScreen() {
     );
   };
 
+  // Create a subtle gradient background that transitions from header
+  const backgroundGradient = getGradient('background');
+
   return (
     <View style={styles.container}>
+      <LinearGradient
+        colors={backgroundGradient.colors}
+        start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientBackground}
+      >
       <EducationScreenHeader
         title="Leaderboard"
         subtitle="Compete with other learners"
@@ -395,140 +405,157 @@ export default function LeaderboardScreen() {
         }}
       />
 
-      {currentUser && (
-        <InfoHeader
-          title="Your Position"
-          variant="card"
-        >
-          <View style={styles.currentUserHeader}>
-            <View style={styles.currentUserRank}>
-              <Text style={styles.currentUserRankText}>#{currentUser.rank}</Text>
-            </View>
-          </View>
-          <View style={styles.currentUserStats}>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{currentUser.totalScore}</Text>
-              <Text style={styles.statLabel}>Total Points</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{currentUser.examsPassed}</Text>
-              <Text style={styles.statLabel}>Exams Passed</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{currentUser.averageScore}%</Text>
-              <Text style={styles.statLabel}>Average Score</Text>
-            </View>
-          </View>
-        </InfoHeader>
-      )}
-
-      <FilterHeader
-        options={LEADERBOARD_FILTERS.map((filter) => ({
-          id: filter,
-          label: filter,
-          value: filter,
-        }))}
-        selectedValue={selectedFilter}
-        onSelect={setSelectedFilter}
-        label="Category:"
-      />
-
-      <FilterHeader
-        options={TIME_FILTERS.map((filter) => ({
-          id: filter,
-          label: filter,
-          value: filter,
-        }))}
-        selectedValue={selectedTime}
-        onSelect={setSelectedTime}
-        label="Time Period:"
-      />
-
-      <View style={styles.podiumSection}>
-        <View style={styles.podium}>
-          {filteredData.slice(0, 3).map((user, index) => (
-            <View key={user.id} style={styles.podiumPosition}>
-              <View style={styles.podiumAvatar}>
-                <Text style={styles.podiumAvatarText}>{user.avatar}</Text>
-              </View>
-              <Text style={styles.podiumName}>{user.name}</Text>
-              <Text style={styles.podiumScore}>{user.totalScore}</Text>
-              <View style={styles.podiumRank}>
-                <Text style={styles.podiumRankText}>
-                  {user.rank === 1 ? "🏆" : user.rank === 2 ? "🥈" : "🥉"}
-                </Text>
+      <View style={styles.contentWrapper}>
+        {currentUser && (
+          <InfoHeader
+            title="Your Position"
+            variant="card"
+          >
+            <View style={styles.currentUserHeader}>
+              <View style={styles.currentUserRank}>
+                <Text style={styles.currentUserRankText}>#{currentUser.rank}</Text>
               </View>
             </View>
-          ))}
-        </View>
-      </View>
+            <View style={styles.currentUserStats}>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{currentUser.totalScore}</Text>
+                <Text style={styles.statLabel}>Total Points</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{currentUser.examsPassed}</Text>
+                <Text style={styles.statLabel}>Exams Passed</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{currentUser.averageScore}%</Text>
+                <Text style={styles.statLabel}>Average Score</Text>
+              </View>
+            </View>
+          </InfoHeader>
+        )}
 
-      <ScrollView
-        style={styles.leaderboardContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        <SectionHeader
-          title={`${selectedFilter} Rankings`}
-          count={filteredData.length}
-          countLabel="participants"
-          variant="minimal"
+        <FilterHeader
+          options={LEADERBOARD_FILTERS.map((filter) => ({
+            id: filter,
+            label: filter,
+            value: filter,
+          }))}
+          selectedValue={selectedFilter}
+          onSelect={setSelectedFilter}
+          label="Category:"
         />
 
-        {filteredData.map((user) => (
-          <LeaderboardRow
-            key={user.id}
-            user={user}
-            onPress={handleUserPress}
+        <FilterHeader
+          options={TIME_FILTERS.map((filter) => ({
+            id: filter,
+            label: filter,
+            value: filter,
+          }))}
+          selectedValue={selectedTime}
+          onSelect={setSelectedTime}
+          label="Time Period:"
+        />
+
+        <View style={styles.podiumSection}>
+          <View style={styles.podium}>
+            {filteredData.slice(0, 3).map((user, index) => (
+              <View key={user.id} style={styles.podiumPosition}>
+                <View style={styles.podiumAvatar}>
+                  <Text style={styles.podiumAvatarText}>{user.avatar}</Text>
+                </View>
+                <Text style={styles.podiumName}>{user.name}</Text>
+                <Text style={styles.podiumScore}>{user.totalScore}</Text>
+                <View style={styles.podiumRank}>
+                  <Text style={styles.podiumRankText}>
+                    {user.rank === 1 ? "🏆" : user.rank === 2 ? "🥈" : "🥉"}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        <ScrollView
+          style={styles.leaderboardContainer}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          <SectionHeader
+            title={`${selectedFilter} Rankings`}
+            count={filteredData.length}
+            countLabel="participants"
+            variant="minimal"
           />
-        ))}
-      </ScrollView>
+
+          {filteredData.map((user) => (
+            <LeaderboardRow
+              key={user.id}
+              user={user}
+              onPress={handleUserPress}
+            />
+          ))}
+          
+          {/* Bottom spacing for tab bar */}
+          <View style={styles.bottomSpacing} />
+        </ScrollView>
+      </View>
+      </LinearGradient>
     </View>
   );
 }
 
 const createStyles = (tokens: any) => {
-  const getSoftTintedColors = () => {
+  const getSmoothBackgroundColors = () => {
     const primaryColor = tokens.colors.primary;
 
     if (primaryColor === "#6A1B9A") {
-      // Purple theme - soft purple tints
       return {
-        softBackground: "#FDFAFF", // Very light purple tint
-        softSurface: "#F9F2FF", // Light purple tint
+        containerBackground: "#FDFAFF", // Very light purple tint
+        contentBackground: "#F9F2FF", // Light purple tint for content area
+        cardBackground: "#FFFFFF", // Pure white for cards
       };
     } else if (primaryColor === "#0D47A1") {
-      // Professional blue theme - soft blue tints
       return {
-        softBackground: "#F8FAFE", // Very light blue tint
-        softSurface: "#F0F6FF", // Light blue tint for cards/surfaces
+        containerBackground: "#F8FAFE", // Very light blue tint
+        contentBackground: "#F0F6FF", // Light blue tint for content area
+        cardBackground: "#FFFFFF", // Pure white for cards
       };
     } else if (primaryColor === "#2E7D32") {
-      // Green theme - soft green tints
       return {
-        softBackground: "#F9FDF9", // Very light green tint
-        softSurface: "#F2F8F2", // Light green tint
+        containerBackground: "#F9FDF9", // Very light green tint
+        contentBackground: "#F2F8F2", // Light green tint for content area
+        cardBackground: "#FFFFFF", // Pure white for cards
       };
     } else if (primaryColor === "#E91E63") {
-      // Pink theme - soft pink tints
       return {
-        softBackground: "#FFFAFC", // Very light pink tint
-        softSurface: "#FFF2F7", // Light pink tint
+        containerBackground: "#FFFAFC", // Very light pink tint
+        contentBackground: "#FFF2F7", // Light pink tint for content area
+        cardBackground: "#FFFFFF", // Pure white for cards
       };
     } else {
-      // Default soft blue tints
       return {
-        softBackground: "#F8FAFE",
-        softSurface: "#F0F6FF",
+        containerBackground: "#F8FAFE", // Default light blue tint
+        contentBackground: "#F0F6FF", // Default content background
+        cardBackground: "#FFFFFF", // Pure white for cards
       };
     }
   };
 
-  const tintedColors = getSoftTintedColors();
+  const backgroundColors = getSmoothBackgroundColors();
 
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: tintedColors.softSurface,
+      backgroundColor: 'transparent',
+    },
+    gradientBackground: {
+      flex: 1,
+    },
+    contentWrapper: {
+      flex: 1,
+      backgroundColor: backgroundColors.contentBackground,
+      marginTop: -tokens.spacing.lg, // Overlap with header for smooth transition
+      borderTopLeftRadius: tokens.borderRadius.xl,
+      borderTopRightRadius: tokens.borderRadius.xl,
     },
     currentUserHeader: {
       flexDirection: "row",
@@ -617,7 +644,15 @@ const createStyles = (tokens: any) => {
     },
     leaderboardContainer: {
       flex: 1,
-      padding: tokens.spacing.md,
+      backgroundColor: 'transparent',
+    },
+    scrollContent: {
+      paddingHorizontal: tokens.spacing.md,
+      paddingTop: tokens.spacing.lg,
+      backgroundColor: 'transparent',
+    },
+    bottomSpacing: {
+      height: 100, // Space for tab bar
     },
   });
 };

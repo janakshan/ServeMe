@@ -154,7 +154,7 @@ const createStyles = (tokens: any) =>
     defaultContainer: {
       flexDirection: "row",
       padding: tokens.spacing.md,
-      backgroundColor: tokens.colors.surface,
+      backgroundColor: 'transparent',
     },
     defaultStat: {
       alignItems: "center",
@@ -179,7 +179,7 @@ const createStyles = (tokens: any) =>
     cardsContainer: {
       flexDirection: "row",
       padding: tokens.spacing.md,
-      backgroundColor: tokens.colors.surface,
+      backgroundColor: 'transparent',
     },
     cardsStat: {
       alignItems: "center",

@@ -566,8 +566,8 @@ export default function HomeScreen() {
       // Navigate to booking service
       router.push("/(services)/booking/(tabs)");
     } else if (serviceType === "education") {
-      // Navigate to education service
-      router.push("/(services)/education/(tabs)");
+      // Navigate to education home screen
+      router.push("/(services)/education");
     } else {
       // Show alert for other services (not implemented yet)
       Alert.alert(
@@ -581,7 +581,7 @@ export default function HomeScreen() {
           },
           {
             text: "Go to Education",
-            onPress: () => router.push("/(services)/education/(tabs)"),
+            onPress: () => router.push("/(services)/education"),
           },
         ]
       );

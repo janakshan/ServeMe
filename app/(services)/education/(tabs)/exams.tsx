@@ -8,9 +8,10 @@ import {
   Alert,
   Modal,
 } from "react-native";
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from "@expo/vector-icons";
 import { useServiceTheme, useThemedStyles } from "@/contexts/ServiceThemeContext";
-import { EducationHeader, EducationScreenHeader } from "../components/headers";
+import { EducationHeader, EducationScreenHeader } from "@/src/education/components/headers";
 
 const MOCK_EXAMS = [
   {
@@ -513,6 +514,7 @@ export default function ExamsScreen() {
   const [selectedExam, setSelectedExam] = useState(null);
   const [examModalVisible, setExamModalVisible] = useState(false);
   const styles = useThemedStyles(createStyles);
+  const { tokens, getGradient } = useServiceTheme();
 
   const filteredExams = MOCK_EXAMS.filter(exam => {
     const matchesDifficulty = selectedDifficulty === "All" || 
@@ -531,61 +533,77 @@ export default function ExamsScreen() {
     setSelectedExam(null);
   };
 
+  // Create a subtle gradient background that transitions from header
+  const backgroundGradient = getGradient('background');
+
   return (
     <View style={styles.container}>
-      <EducationScreenHeader
-        title="Practice Exams"
-        subtitle="Test your knowledge and track progress"
-        rightAction={{
-          icon: "stats-chart",
-          onPress: () => {
-            // TODO: Implement stats action
-          },
-        }}
-      />
-      
-      <EducationHeader
-        variant="exams"
-        filters={{
-          options: DIFFICULTY_FILTERS.map((filter) => ({
-            id: filter,
-            label: filter,
-            value: filter,
-          })),
-          selectedValue: selectedDifficulty,
-          onSelect: setSelectedDifficulty,
-          label: "Difficulty:",
-        }}
-        secondaryFilters={{
-          options: SUBJECT_FILTERS.map((filter) => ({
-            id: filter,
-            label: filter,
-            value: filter,
-          })),
-          selectedValue: selectedSubject,
-          onSelect: setSelectedSubject,
-          label: "Subject:",
-        }}
-        section={{
-          title: "Available Exams",
-          count: filteredExams.length,
-          countLabel: "exams",
-        }}
-      />
-
-      <ScrollView
-        style={styles.examsContainer}
-        showsVerticalScrollIndicator={false}
+      <LinearGradient
+        colors={backgroundGradient.colors}
+        start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientBackground}
       >
-
-        {filteredExams.map((exam) => (
-          <ExamCard
-            key={exam.id}
-            exam={exam}
-            onPress={handleExamPress}
+        <EducationScreenHeader
+          title="Practice Exams"
+          subtitle="Test your knowledge and track progress"
+          rightAction={{
+            icon: "stats-chart",
+            onPress: () => {
+              // TODO: Implement stats action
+            },
+          }}
+        />
+        
+        <View style={styles.contentWrapper}>
+          <EducationHeader
+            variant="exams"
+            filters={{
+              options: DIFFICULTY_FILTERS.map((filter) => ({
+                id: filter,
+                label: filter,
+                value: filter,
+              })),
+              selectedValue: selectedDifficulty,
+              onSelect: setSelectedDifficulty,
+              label: "Difficulty:",
+            }}
+            secondaryFilters={{
+              options: SUBJECT_FILTERS.map((filter) => ({
+                id: filter,
+                label: filter,
+                value: filter,
+              })),
+              selectedValue: selectedSubject,
+              onSelect: setSelectedSubject,
+              label: "Subject:",
+            }}
+            section={{
+              title: "Available Exams",
+              count: filteredExams.length,
+              countLabel: "exams",
+            }}
           />
-        ))}
-      </ScrollView>
+
+          <ScrollView
+            style={styles.examsContainer}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+
+            {filteredExams.map((exam) => (
+              <ExamCard
+                key={exam.id}
+                exam={exam}
+                onPress={handleExamPress}
+              />
+            ))}
+            
+            {/* Bottom spacing for tab bar */}
+            <View style={styles.bottomSpacing} />
+          </ScrollView>
+        </View>
+      </LinearGradient>
 
       <ExamModal
         exam={selectedExam}
@@ -633,16 +651,34 @@ const createStyles = (tokens: any) => {
     }
   };
 
-  const tintedColors = getSoftTintedColors();
+  const backgroundColors = getSoftTintedColors();
 
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: tintedColors.softSurface,
+      backgroundColor: 'transparent',
+    },
+    gradientBackground: {
+      flex: 1,
+    },
+    contentWrapper: {
+      flex: 1,
+      backgroundColor: backgroundColors.softSurface,
+      marginTop: -tokens.spacing.lg, // Overlap with header for smooth transition
+      borderTopLeftRadius: tokens.borderRadius.xl,
+      borderTopRightRadius: tokens.borderRadius.xl,
     },
     examsContainer: {
       flex: 1,
-      padding: tokens.spacing.md,
+      backgroundColor: 'transparent',
+    },
+    scrollContent: {
+      paddingHorizontal: tokens.spacing.md,
+      paddingTop: tokens.spacing.lg,
+      backgroundColor: 'transparent',
+    },
+    bottomSpacing: {
+      height: 100, // Space for tab bar
     },
   });
 };

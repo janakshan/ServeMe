@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { EducationTabBar } from "../components/EducationTabBar";
+import { EducationTabBar } from "@/src/education/components";
 
 export default function EducationTabsLayout() {
   return (
@@ -9,6 +9,12 @@ export default function EducationTabsLayout() {
       }}
       tabBar={(props) => <EducationTabBar {...props} />}
     >
+      <Tabs.Screen
+        name="home"
+        options={{
+          title: "Home",
+        }}
+      />
       <Tabs.Screen
         name="index"
         options={{

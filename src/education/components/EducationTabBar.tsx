@@ -20,6 +20,12 @@ interface EducationTabBarProps {
 
 const TAB_ITEMS: TabItem[] = [
   {
+    name: 'home',
+    title: 'Home',
+    icon: 'home-outline',
+    activeIcon: 'home',
+  },
+  {
     name: 'index',
     title: 'Courses',
     icon: 'book-outline',
@@ -52,7 +58,7 @@ const TAB_ITEMS: TabItem[] = [
 ];
 
 const { width } = Dimensions.get('window');
-const TAB_WIDTH = width / 5;
+const TAB_WIDTH = width / 6;
 
 export function EducationTabBar({ state, descriptors, navigation }: EducationTabBarProps) {
   const { tokens } = useServiceTheme();
@@ -81,8 +87,8 @@ export function EducationTabBar({ state, descriptors, navigation }: EducationTab
   };
 
   const indicatorTranslateX = animatedValue.interpolate({
-    inputRange: [0, 1, 2, 3, 4],
-    outputRange: [0, TAB_WIDTH, TAB_WIDTH * 2, TAB_WIDTH * 3, TAB_WIDTH * 4],
+    inputRange: [0, 1, 2, 3, 4, 5],
+    outputRange: [0, TAB_WIDTH, TAB_WIDTH * 2, TAB_WIDTH * 3, TAB_WIDTH * 4, TAB_WIDTH * 5],
     extrapolate: 'clamp',
   });
 

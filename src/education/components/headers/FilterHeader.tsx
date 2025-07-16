@@ -114,7 +114,7 @@ export const FilterHeader: React.FC<FilterHeaderProps> = ({
 const createStyles = (tokens: any) =>
   StyleSheet.create({
     container: {
-      backgroundColor: tokens.colors.surface,
+      backgroundColor: 'transparent',
     },
     label: {
       fontSize: tokens.typography.body,
@@ -125,7 +125,7 @@ const createStyles = (tokens: any) =>
       marginTop: tokens.spacing.sm,
     },
     scrollContainer: {
-      backgroundColor: tokens.colors.surface,
+      backgroundColor: 'transparent',
     },
     scrollContent: {
       paddingHorizontal: tokens.spacing.md,

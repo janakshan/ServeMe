@@ -109,7 +109,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
 const createStyles = (tokens: any) =>
   StyleSheet.create({
     container: {
-      backgroundColor: tokens.colors.surface,
+      backgroundColor: 'transparent',
     },
     header: {
       flexDirection: "row",
