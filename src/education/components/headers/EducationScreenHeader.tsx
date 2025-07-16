@@ -36,14 +36,15 @@ export function EducationScreenHeader({
 
   const handleBackPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.back();
+    // Navigate back to home tab within education section
+    router.push('/(services)/education/(tabs)/' as any);
   };
 
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       <LinearGradient
-        colors={backgroundGradient.colors}
+        colors={backgroundGradient.colors as any}
         start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
         end={{ x: 1, y: 1 }}
         style={[styles.headerSection, { height: minHeight }]}

@@ -20,13 +20,13 @@ interface EducationTabBarProps {
 
 const TAB_ITEMS: TabItem[] = [
   {
-    name: 'home',
+    name: 'index',
     title: 'Home',
     icon: 'home-outline',
     activeIcon: 'home',
   },
   {
-    name: 'index',
+    name: 'courses',
     title: 'Courses',
     icon: 'book-outline',
     activeIcon: 'book',

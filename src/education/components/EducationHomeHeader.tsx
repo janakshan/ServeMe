@@ -24,7 +24,8 @@ export function EducationHomeHeader({ userData }: EducationHomeHeaderProps) {
 
   const handleBackPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.back();
+    // Navigate back to main app
+    router.push('/(app)/(tabs)/' as any);
   };
 
   const handleNotificationPress = () => {
@@ -43,7 +44,7 @@ export function EducationHomeHeader({ userData }: EducationHomeHeaderProps) {
     <>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       <LinearGradient
-        colors={backgroundGradient.colors}
+        colors={backgroundGradient.colors as any}
         start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
         end={{ x: 1, y: 1 }}
         style={styles.headerContainer}

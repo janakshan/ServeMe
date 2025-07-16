@@ -138,7 +138,7 @@ export function RecommendedContent() {
               activeOpacity={0.8}
             >
               <LinearGradient
-                colors={cardGradient.colors}
+                colors={cardGradient.colors as any}
                 start={{ x: cardGradient.direction.x, y: cardGradient.direction.y }}
                 end={{ x: 1, y: 1 }}
                 style={styles.courseCardGradient}

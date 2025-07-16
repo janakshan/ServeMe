@@ -324,7 +324,7 @@ export default function TeachersScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={backgroundGradient.colors}
+        colors={backgroundGradient.colors as any}
         start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
         end={{ x: 1, y: 1 }}
         style={styles.gradientBackground}

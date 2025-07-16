@@ -10,13 +10,13 @@ export default function EducationTabsLayout() {
       tabBar={(props) => <EducationTabBar {...props} />}
     >
       <Tabs.Screen
-        name="home"
+        name="index"
         options={{
           title: "Home",
         }}
       />
       <Tabs.Screen
-        name="index"
+        name="courses"
         options={{
           title: "Courses",
         }}

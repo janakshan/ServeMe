@@ -25,7 +25,7 @@ const QUICK_ACCESS_ITEMS: QuickAccessItem[] = [
     title: 'Browse Courses',
     subtitle: 'Explore all subjects',
     icon: 'library-outline',
-    route: '/(services)/education/(tabs)',
+    route: '/(services)/education/(tabs)/courses',
     color: '#6A1B9A',
     bgColor: '#F3E5F5',
   },
@@ -89,7 +89,7 @@ export function QuickAccessGrid() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.sectionTitle}>Quick Access</Text>
-        <TouchableOpacity onPress={() => router.push('/(services)/education/(tabs)')}>
+        <TouchableOpacity onPress={() => router.push('/(services)/education/(tabs)/courses')}>
           <Text style={styles.viewAllText}>View All</Text>
         </TouchableOpacity>
       </View>
