@@ -133,6 +133,7 @@ const MOCK_LIVE_CLASSES = [
 ];
 
 const STATUS_FILTERS = ["All", "Live", "Upcoming", "Completed"];
+const TABS = ["All Classes", "My Classes"];
 
 interface LiveClassCardProps {
   liveClass: any;
@@ -215,8 +216,15 @@ const LiveClassCard: React.FC<LiveClassCardProps> = ({ liveClass, onPress }) => 
             {getStatusText(liveClass.status)}
           </Text>
         </View>
-        <View style={styles.subjectBadge}>
-          <Text style={styles.subjectText}>{liveClass.subject}</Text>
+        <View style={styles.rightBadges}>
+          {liveClass.isRegistered && (
+            <View style={styles.subscriptionBadge}>
+              <Ionicons name="bookmark" size={14} color={tokens.colors.primary} />
+            </View>
+          )}
+          <View style={styles.subjectBadge}>
+            <Text style={styles.subjectText}>{liveClass.subject}</Text>
+          </View>
         </View>
       </View>
 
@@ -619,15 +627,33 @@ const CalendarModal = ({ visible, onClose, classes, tokens }) => {
 };
 
 export default function LiveClassesScreen() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTab, setSelectedTab] = useState("All Classes");
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [calendarVisible, setCalendarVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
   const styles = useThemedStyles(createStyles);
   const { tokens, getGradient } = useServiceTheme();
 
   const filteredClasses = MOCK_LIVE_CLASSES.filter(liveClass => {
-    if (selectedFilter === "All") return true;
-    return liveClass.status === selectedFilter.toLowerCase();
+    const matchesSearch = liveClass.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         liveClass.instructor.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         liveClass.subject.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // First filter by tab (All Classes vs My Classes)
+    let matchesTab = true;
+    if (selectedTab === "My Classes") {
+      matchesTab = liveClass.isRegistered === true;
+    }
+    
+    // Then filter by status within the tab
+    let matchesFilter = true;
+    if (selectedFilter !== "All") {
+      matchesFilter = liveClass.status === selectedFilter.toLowerCase();
+    }
+    
+    return matchesSearch && matchesTab && matchesFilter;
   });
 
   const handleClassPress = (classId: string) => {
@@ -644,6 +670,10 @@ export default function LiveClassesScreen() {
 
   const handleCloseCalendar = () => {
     setCalendarVisible(false);
+  };
+
+  const handleFilterToggle = () => {
+    setIsFilterVisible(!isFilterVisible);
   };
 
   // Group classes by date
@@ -674,30 +704,78 @@ export default function LiveClassesScreen() {
         <EducationScreenHeader
           title="Live Classes"
           subtitle="Join live sessions with expert teachers"
-          rightAction={{
-            icon: "calendar",
-            onPress: handleCalendarPress,
-          }}
+          minHeight={240}
+          rightActions={[
+            {
+              icon: "options-outline",
+              onPress: handleFilterToggle,
+            },
+            {
+              icon: "calendar",
+              onPress: handleCalendarPress,
+            }
+          ]}
         />
         
         <View style={styles.contentWrapper}>
-          <EducationHeader
-            variant="live-classes"
-            filters={{
-              options: STATUS_FILTERS.map((filter) => ({
-                id: filter,
-                label: filter,
-                value: filter,
-              })),
-              selectedValue: selectedFilter,
-              onSelect: setSelectedFilter,
-            }}
-            section={{
-              title: selectedFilter === "All" ? "All Classes" : `${selectedFilter} Classes`,
-              count: filteredClasses.length,
-              countLabel: "classes",
-            }}
-          />
+          {/* Tab Navigation */}
+          <View style={styles.tabContainer}>
+            {TABS.map((tab) => (
+              <TouchableOpacity
+                key={tab}
+                style={[
+                  styles.tabButton,
+                  selectedTab === tab && styles.tabButtonActive
+                ]}
+                onPress={() => setSelectedTab(tab)}
+              >
+                <Text style={[
+                  styles.tabText,
+                  selectedTab === tab && styles.tabTextActive
+                ]}>
+                  {tab}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {isFilterVisible && (
+            <EducationHeader
+              variant="live-classes"
+              search={{
+                value: searchQuery,
+                onChangeText: setSearchQuery,
+                placeholder: "Search classes...",
+              }}
+              filters={{
+                options: STATUS_FILTERS.map((filter) => ({
+                  id: filter,
+                  label: filter,
+                  value: filter,
+                })),
+                selectedValue: selectedFilter,
+                onSelect: setSelectedFilter,
+              }}
+              section={{
+                title: selectedFilter === "All" ? selectedTab : 
+                       `${selectedFilter} Classes`,
+                count: filteredClasses.length,
+                countLabel: selectedTab === "My Classes" ? "subscribed classes" : "classes",
+              }}
+            />
+          )}
+          
+          {!isFilterVisible && (
+            <View style={styles.simpleHeader}>
+              <Text style={styles.simpleHeaderTitle}>
+                {selectedFilter === "All" ? selectedTab : 
+                 `${selectedFilter} Classes`}
+              </Text>
+              <Text style={styles.simpleHeaderCount}>
+                {filteredClasses.length} {selectedTab === "My Classes" ? "subscribed classes" : "classes"}
+              </Text>
+            </View>
+          )}
 
           <ScrollView
             style={styles.classesContainer}
@@ -779,7 +857,7 @@ const createStyles = (tokens: any) => {
     contentWrapper: {
       flex: 1,
       backgroundColor: backgroundColors.softSurface,
-      marginTop: -tokens.spacing.sm, // Reduced overlap to show stats
+      marginTop: -tokens.spacing.lg, // Overlap with header for smooth transition
       borderTopLeftRadius: tokens.borderRadius.xl,
       borderTopRightRadius: tokens.borderRadius.xl,
     },
@@ -794,6 +872,53 @@ const createStyles = (tokens: any) => {
     },
     bottomSpacing: {
       height: 100, // Space for tab bar
+    },
+    simpleHeader: {
+      paddingHorizontal: tokens.spacing.lg,
+      paddingTop: tokens.spacing.lg,
+      paddingBottom: tokens.spacing.xs,
+      borderBottomWidth: 1,
+      borderBottomColor: tokens.colors.border + '20',
+    },
+    simpleHeaderTitle: {
+      fontSize: tokens.typography.title,
+      fontWeight: tokens.typography.bold,
+      color: tokens.colors.onSurface,
+      marginBottom: tokens.spacing.xs,
+    },
+    simpleHeaderCount: {
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onSurfaceVariant,
+      fontWeight: '500',
+    },
+    tabContainer: {
+      flexDirection: 'row',
+      backgroundColor: tokens.colors.surface,
+      marginHorizontal: tokens.spacing.md,
+      marginTop: tokens.spacing.md,
+      borderRadius: tokens.borderRadius.md,
+      padding: 4,
+      borderWidth: 1,
+      borderColor: tokens.colors.border,
+    },
+    tabButton: {
+      flex: 1,
+      paddingVertical: tokens.spacing.sm,
+      paddingHorizontal: tokens.spacing.md,
+      borderRadius: tokens.borderRadius.sm,
+      alignItems: 'center',
+    },
+    tabButtonActive: {
+      backgroundColor: tokens.colors.primary,
+    },
+    tabText: {
+      fontSize: tokens.typography.body,
+      fontWeight: '500',
+      color: tokens.colors.onSurfaceVariant,
+    },
+    tabTextActive: {
+      color: tokens.colors.onPrimary,
+      fontWeight: '600',
     },
   });
 };
@@ -823,6 +948,19 @@ const createClassCardStyles = (tokens: any) =>
     statusText: {
       fontSize: tokens.typography.caption,
       fontWeight: "600",
+    },
+    rightBadges: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    subscriptionBadge: {
+      backgroundColor: tokens.colors.primaryContainer,
+      paddingHorizontal: tokens.spacing.xs,
+      paddingVertical: 4,
+      borderRadius: tokens.borderRadius.sm,
+      marginRight: tokens.spacing.xs,
+      borderWidth: 1,
+      borderColor: tokens.colors.primary,
     },
     subjectBadge: {
       backgroundColor: tokens.colors.primaryLight,

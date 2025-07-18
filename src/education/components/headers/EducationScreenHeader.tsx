@@ -17,6 +17,11 @@ interface EducationScreenHeaderProps {
     onPress: () => void;
     label?: string;
   };
+  rightActions?: Array<{
+    icon: keyof typeof Ionicons.glyphMap;
+    onPress: () => void;
+    label?: string;
+  }>;
   children?: React.ReactNode;
 }
 
@@ -27,6 +32,7 @@ export function EducationScreenHeader({
   showBackButton = true,
   showBranding = true,
   rightAction,
+  rightActions,
   children 
 }: EducationScreenHeaderProps) {
   const { tokens, getGradient } = useServiceTheme();
@@ -84,20 +90,41 @@ export function EducationScreenHeader({
                 )}
               </View>
               
-              {rightAction && (
-                <TouchableOpacity
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    rightAction.onPress();
-                  }}
-                  style={styles.rightAction}
-                >
-                  <Ionicons
-                    name={rightAction.icon}
-                    size={24}
-                    color={tokens.colors.onPrimary}
-                  />
-                </TouchableOpacity>
+              {(rightActions || rightAction) && (
+                <View style={styles.rightActionsContainer}>
+                  {rightActions ? (
+                    rightActions.map((action, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        onPress={() => {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          action.onPress();
+                        }}
+                        style={[styles.rightAction, { marginTop: index > 0 ? 8 : 0 }]}
+                      >
+                        <Ionicons
+                          name={action.icon}
+                          size={24}
+                          color={tokens.colors.onPrimary}
+                        />
+                      </TouchableOpacity>
+                    ))
+                  ) : rightAction ? (
+                    <TouchableOpacity
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        rightAction.onPress();
+                      }}
+                      style={styles.rightAction}
+                    >
+                      <Ionicons
+                        name={rightAction.icon}
+                        size={24}
+                        color={tokens.colors.onPrimary}
+                      />
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
               )}
             </View>
             
@@ -132,9 +159,10 @@ const createStyles = (tokens: any) => StyleSheet.create({
   },
   headerTop: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: tokens.spacing.sm,
+    minHeight: 56,
   },
   backButton: {
     padding: tokens.spacing.sm,
@@ -198,5 +226,9 @@ const createStyles = (tokens: any) => StyleSheet.create({
   },
   childrenContainer: {
     marginTop: tokens.spacing.md,
+  },
+  rightActionsContainer: {
+    flexDirection: 'column',
+    alignItems: 'center',
   },
 });
