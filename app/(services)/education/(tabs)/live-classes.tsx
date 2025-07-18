@@ -6,11 +6,16 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  Modal,
+  FlatList,
+  Dimensions,
 } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from "@expo/vector-icons";
 import { useServiceTheme, useThemedStyles } from "@/contexts/ServiceThemeContext";
 import { EducationHeader, EducationScreenHeader } from "@/src/education/components/headers";
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const MOCK_LIVE_CLASSES = [
   {
@@ -269,8 +274,354 @@ const LiveClassCard: React.FC<LiveClassCardProps> = ({ liveClass, onPress }) => 
   );
 };
 
+// Calendar Modal Component
+const CalendarModal = ({ visible, onClose, classes, tokens }) => {
+  const styles = useThemedStyles(createCalendarStyles);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [showYearPicker, setShowYearPicker] = useState(false);
+
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
+    const days = [];
+    
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+    
+    // Add all days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(new Date(year, month, day));
+    }
+    
+    return days;
+  };
+
+
+  const formatDate = (date) => {
+    if (!date) return '';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const getClassesForDate = (date) => {
+    if (!date) return [];
+    const dateString = formatDate(date);
+    return classes.filter(cls => cls.date === dateString);
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "live":
+        return tokens.colors.error;
+      case "upcoming":
+        return tokens.colors.primary;
+      case "completed":
+        return tokens.colors.success;
+      default:
+        return tokens.colors.onSurfaceVariant;
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "live":
+        return "radio-button-on";
+      case "upcoming":
+        return "calendar";
+      case "completed":
+        return "checkmark-circle";
+      default:
+        return "help-circle";
+    }
+  };
+
+  const renderCalendarDay = (date, index) => {
+    if (!date) {
+      return <View key={index} style={styles.emptyDay} />;
+    }
+
+    const dayClasses = getClassesForDate(date);
+    const liveClasses = dayClasses.filter(cls => cls.status === "live");
+    const upcomingClasses = dayClasses.filter(cls => cls.status === "upcoming");
+    const completedClasses = dayClasses.filter(cls => cls.status === "completed");
+    const isSelected = selectedDate && formatDate(selectedDate) === formatDate(date);
+    const isToday = formatDate(date) === formatDate(new Date());
+
+    return (
+      <TouchableOpacity
+        key={index}
+        style={[
+          styles.calendarDay,
+          isSelected && styles.selectedDay,
+          isToday && styles.todayDay,
+        ]}
+        onPress={() => setSelectedDate(date)}
+      >
+        <Text style={[
+          styles.dayNumber,
+          isSelected && styles.selectedDayNumber,
+          isToday && styles.todayDayNumber,
+        ]}>
+          {date.getDate()}
+        </Text>
+        
+        {dayClasses.length > 0 && (
+          <View style={styles.dayIndicators}>
+            {liveClasses.length > 0 && (
+              <View style={[styles.dayIndicator, { backgroundColor: tokens.colors.error }]} />
+            )}
+            {upcomingClasses.length > 0 && (
+              <View style={[styles.dayIndicator, { backgroundColor: tokens.colors.primary }]} />
+            )}
+            {completedClasses.length > 0 && (
+              <View style={[styles.dayIndicator, { backgroundColor: tokens.colors.success }]} />
+            )}
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
+
+  const renderSelectedDateClasses = () => {
+    if (!selectedDate) return null;
+    
+    const dayClasses = getClassesForDate(selectedDate);
+    if (dayClasses.length === 0) return null;
+
+    return (
+      <View style={styles.selectedDateContainer}>
+        <Text style={styles.selectedDateTitle}>
+          {selectedDate.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })}
+        </Text>
+        <ScrollView style={styles.classesScrollView}>
+          {dayClasses.map((cls) => (
+            <View key={cls.id} style={styles.classItem}>
+              <View style={styles.classHeader}>
+                <Ionicons 
+                  name={getStatusIcon(cls.status)}
+                  size={16}
+                  color={getStatusColor(cls.status)}
+                />
+                <Text style={styles.classTime}>{cls.time}</Text>
+                <View style={[styles.statusChip, { backgroundColor: getStatusColor(cls.status) + '20' }]}>
+                  <Text style={[styles.statusChipText, { color: getStatusColor(cls.status) }]}>
+                    {cls.status}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.classTitle} numberOfLines={1}>{cls.title}</Text>
+              <Text style={styles.classInstructor}>{cls.instructor}</Text>
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  };
+
+  const navigateMonth = (direction) => {
+    const newMonth = new Date(currentMonth);
+    newMonth.setMonth(currentMonth.getMonth() + direction);
+    setCurrentMonth(newMonth);
+    setSelectedDate(null); // Reset selected date when month changes
+  };
+
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  const years = [];
+  const currentYear = new Date().getFullYear();
+  for (let i = currentYear - 2; i <= currentYear + 2; i++) {
+    years.push(i);
+  }
+
+  const handleMonthSelect = (monthIndex) => {
+    const newMonth = new Date(currentMonth);
+    newMonth.setMonth(monthIndex);
+    setCurrentMonth(newMonth);
+    setSelectedDate(null); // Reset selected date when month changes
+    setShowMonthPicker(false);
+  };
+
+  const handleYearSelect = (year) => {
+    const newMonth = new Date(currentMonth);
+    newMonth.setFullYear(year);
+    setCurrentMonth(newMonth);
+    setSelectedDate(null); // Reset selected date when year changes
+    setShowYearPicker(false);
+  };
+
+  const renderMonthPicker = () => {
+    if (!showMonthPicker) return null;
+    
+    return (
+      <View style={styles.pickerOverlay}>
+        <View style={styles.pickerContainer}>
+          <View style={styles.pickerHeader}>
+            <Text style={styles.pickerTitle}>Select Month</Text>
+            <TouchableOpacity onPress={() => setShowMonthPicker(false)} style={styles.closeButton}>
+              <Ionicons name="close" size={24} color={tokens.colors.onSurface} />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.monthGrid}>
+            {months.map((month, index) => (
+              <TouchableOpacity
+                key={month}
+                style={[
+                  styles.monthGridItem,
+                  index === currentMonth.getMonth() && styles.monthGridItemSelected
+                ]}
+                onPress={() => handleMonthSelect(index)}
+              >
+                <Text style={[
+                  styles.monthGridItemText,
+                  index === currentMonth.getMonth() && styles.monthGridItemTextSelected
+                ]}>
+                  {month.slice(0, 3)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  const renderYearPicker = () => {
+    if (!showYearPicker) return null;
+    
+    return (
+      <View style={styles.pickerOverlay}>
+        <View style={styles.yearPickerContainer}>
+          <View style={styles.pickerHeader}>
+            <Text style={styles.pickerTitle}>Select Year</Text>
+            <TouchableOpacity onPress={() => setShowYearPicker(false)} style={styles.closeButton}>
+              <Ionicons name="close" size={24} color={tokens.colors.onSurface} />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.yearGrid}>
+            {years.map((year) => (
+              <TouchableOpacity
+                key={year}
+                style={[
+                  styles.yearGridItem,
+                  year === currentMonth.getFullYear() && styles.yearGridItemSelected
+                ]}
+                onPress={() => handleYearSelect(year)}
+              >
+                <Text style={[
+                  styles.yearGridItemText,
+                  year === currentMonth.getFullYear() && styles.yearGridItemTextSelected
+                ]}>
+                  {year}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  const days = getDaysInMonth(currentMonth);
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalTitle}>Class Schedule</Text>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Ionicons name="close" size={24} color={tokens.colors.onSurface} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.legendContainer}>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: tokens.colors.error }]} />
+            <Text style={styles.legendText}>Live</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: tokens.colors.primary }]} />
+            <Text style={styles.legendText}>Upcoming</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: tokens.colors.success }]} />
+            <Text style={styles.legendText}>Completed</Text>
+          </View>
+        </View>
+
+        <View style={styles.calendarContainer}>
+          <View style={styles.monthHeader}>
+            <TouchableOpacity onPress={() => navigateMonth(-1)} style={styles.monthNavButton}>
+              <Ionicons name="chevron-back" size={24} color={tokens.colors.onSurface} />
+            </TouchableOpacity>
+            <View style={styles.monthYearContainer}>
+              <TouchableOpacity onPress={() => setShowMonthPicker(true)} style={styles.monthYearButton}>
+                <Text style={styles.monthText}>
+                  {currentMonth.toLocaleDateString('en-US', { month: 'long' })}
+                </Text>
+                <Ionicons name="chevron-down" size={16} color={tokens.colors.onSurface} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setShowYearPicker(true)} style={styles.monthYearButton}>
+                <Text style={styles.yearText}>
+                  {currentMonth.getFullYear()}
+                </Text>
+                <Ionicons name="chevron-down" size={16} color={tokens.colors.onSurface} />
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity onPress={() => navigateMonth(1)} style={styles.monthNavButton}>
+              <Ionicons name="chevron-forward" size={24} color={tokens.colors.onSurface} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.weekDaysContainer}>
+            {weekDays.map((day) => (
+              <View key={day} style={styles.weekDayCell}>
+                <Text style={styles.weekDayText}>{day}</Text>
+              </View>
+            ))}
+          </View>
+
+          <View style={styles.calendarGrid}>
+            {days.map((date, index) => renderCalendarDay(date, index))}
+          </View>
+        </View>
+
+        {renderSelectedDateClasses()}
+        {renderMonthPicker()}
+        {renderYearPicker()}
+      </View>
+    </Modal>
+  );
+};
+
 export default function LiveClassesScreen() {
   const [selectedFilter, setSelectedFilter] = useState("All");
+  const [calendarVisible, setCalendarVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const styles = useThemedStyles(createStyles);
   const { tokens, getGradient } = useServiceTheme();
 
@@ -285,6 +636,25 @@ export default function LiveClassesScreen() {
       "Class details and interaction features will be implemented soon!",
       [{ text: "OK" }]
     );
+  };
+
+  const handleCalendarPress = () => {
+    setCalendarVisible(true);
+  };
+
+  const handleCloseCalendar = () => {
+    setCalendarVisible(false);
+  };
+
+  // Group classes by date
+  const getClassesForDate = (date: string) => {
+    return MOCK_LIVE_CLASSES.filter(cls => cls.date === date);
+  };
+
+  // Get unique dates from classes
+  const getUniqueDates = () => {
+    const dates = [...new Set(MOCK_LIVE_CLASSES.map(cls => cls.date))];
+    return dates.sort();
   };
 
   const liveClassesCount = MOCK_LIVE_CLASSES.filter(c => c.status === "live").length;
@@ -306,38 +676,13 @@ export default function LiveClassesScreen() {
           subtitle="Join live sessions with expert teachers"
           rightAction={{
             icon: "calendar",
-            onPress: () => {
-              // TODO: Implement schedule action
-            },
+            onPress: handleCalendarPress,
           }}
         />
         
         <View style={styles.contentWrapper}>
           <EducationHeader
             variant="live-classes"
-            stats={{
-              items: [
-                {
-                  id: "live",
-                  label: "Live Now",
-                  value: liveClassesCount,
-                  color: tokens.colors.error,
-                },
-                {
-                  id: "upcoming",
-                  label: "Upcoming",
-                  value: upcomingClassesCount,
-                  color: tokens.colors.primary,
-                },
-                {
-                  id: "week",
-                  label: "This Week",
-                  value: 12,
-                  color: tokens.colors.success,
-                },
-              ],
-              variant: "cards",
-            }}
             filters={{
               options: STATUS_FILTERS.map((filter) => ({
                 id: filter,
@@ -373,6 +718,13 @@ export default function LiveClassesScreen() {
           </ScrollView>
         </View>
       </LinearGradient>
+
+      <CalendarModal
+        visible={calendarVisible}
+        onClose={handleCloseCalendar}
+        classes={MOCK_LIVE_CLASSES}
+        tokens={tokens}
+      />
     </View>
   );
 }
@@ -427,7 +779,7 @@ const createStyles = (tokens: any) => {
     contentWrapper: {
       flex: 1,
       backgroundColor: backgroundColors.softSurface,
-      marginTop: -tokens.spacing.lg, // Overlap with header for smooth transition
+      marginTop: -tokens.spacing.sm, // Reduced overlap to show stats
       borderTopLeftRadius: tokens.borderRadius.xl,
       borderTopRightRadius: tokens.borderRadius.xl,
     },
@@ -437,7 +789,7 @@ const createStyles = (tokens: any) => {
     },
     scrollContent: {
       paddingHorizontal: tokens.spacing.md,
-      paddingTop: tokens.spacing.lg,
+      paddingTop: tokens.spacing.xs,
       backgroundColor: 'transparent',
     },
     bottomSpacing: {
@@ -593,5 +945,334 @@ const createClassCardStyles = (tokens: any) =>
       color: tokens.colors.primary,
       fontWeight: "600",
       marginLeft: tokens.spacing.xs,
+    },
+  });
+
+const createCalendarStyles = (tokens: any) =>
+  StyleSheet.create({
+    modalContainer: {
+      flex: 1,
+      backgroundColor: tokens.colors.surface,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: tokens.spacing.lg,
+      borderBottomWidth: 1,
+      borderBottomColor: tokens.colors.border,
+    },
+    modalTitle: {
+      fontSize: tokens.typography.title,
+      fontWeight: tokens.typography.bold,
+      color: tokens.colors.onSurface,
+    },
+    closeButton: {
+      padding: tokens.spacing.sm,
+    },
+    legendContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      padding: tokens.spacing.md,
+      backgroundColor: tokens.colors.surfaceVariant,
+      borderBottomWidth: 1,
+      borderBottomColor: tokens.colors.border,
+    },
+    legendItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    legendDot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      marginRight: tokens.spacing.sm,
+    },
+    legendText: {
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onSurface,
+    },
+    calendarContainer: {
+      backgroundColor: tokens.colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: tokens.colors.border,
+    },
+    monthHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: tokens.spacing.md,
+      backgroundColor: tokens.colors.surfaceVariant,
+    },
+    monthNavButton: {
+      padding: tokens.spacing.sm,
+    },
+    monthYearContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    monthYearButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: tokens.spacing.sm,
+      paddingVertical: tokens.spacing.xs,
+      marginHorizontal: tokens.spacing.xs,
+      borderRadius: tokens.borderRadius.sm,
+      backgroundColor: tokens.colors.surface,
+      borderWidth: 1,
+      borderColor: tokens.colors.border,
+    },
+    monthText: {
+      fontSize: tokens.typography.body,
+      fontWeight: tokens.typography.semiBold,
+      color: tokens.colors.onSurface,
+      marginRight: tokens.spacing.xs,
+    },
+    yearText: {
+      fontSize: tokens.typography.body,
+      fontWeight: tokens.typography.semiBold,
+      color: tokens.colors.onSurface,
+      marginRight: tokens.spacing.xs,
+    },
+    weekDaysContainer: {
+      flexDirection: 'row',
+      borderBottomWidth: 1,
+      borderBottomColor: tokens.colors.border,
+      backgroundColor: tokens.colors.surfaceVariant,
+    },
+    weekDayCell: {
+      flex: 1,
+      padding: tokens.spacing.sm,
+      alignItems: 'center',
+    },
+    weekDayText: {
+      fontSize: tokens.typography.caption,
+      fontWeight: tokens.typography.semiBold,
+      color: tokens.colors.onSurfaceVariant,
+    },
+    calendarGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      backgroundColor: tokens.colors.surface,
+    },
+    calendarDay: {
+      width: `${100 / 7}%`,
+      minHeight: 50,
+      padding: tokens.spacing.xs,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderBottomWidth: 1,
+      borderRightWidth: 1,
+      borderBottomColor: tokens.colors.border,
+      borderRightColor: tokens.colors.border,
+    },
+    emptyDay: {
+      width: `${100 / 7}%`,
+      minHeight: 50,
+      borderBottomWidth: 1,
+      borderRightWidth: 1,
+      borderBottomColor: tokens.colors.border,
+      borderRightColor: tokens.colors.border,
+    },
+    selectedDay: {
+      backgroundColor: tokens.colors.primary,
+    },
+    todayDay: {
+      backgroundColor: tokens.colors.primaryContainer,
+    },
+    dayNumber: {
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onSurface,
+      fontWeight: tokens.typography.regular,
+    },
+    selectedDayNumber: {
+      color: tokens.colors.onPrimary,
+      fontWeight: tokens.typography.bold,
+    },
+    todayDayNumber: {
+      color: tokens.colors.onPrimaryContainer,
+      fontWeight: tokens.typography.semiBold,
+    },
+    dayIndicators: {
+      flexDirection: 'row',
+      marginTop: 2,
+      justifyContent: 'center',
+    },
+    dayIndicator: {
+      width: 10,
+      height: 10,
+      borderRadius: 3,
+      marginHorizontal: 1,
+    },
+    selectedDateContainer: {
+      flex: 1,
+      padding: tokens.spacing.md,
+      backgroundColor: tokens.colors.surfaceVariant,
+    },
+    selectedDateTitle: {
+      fontSize: tokens.typography.subtitle,
+      fontWeight: tokens.typography.semiBold,
+      color: tokens.colors.onSurface,
+      marginBottom: tokens.spacing.md,
+      textAlign: 'center',
+    },
+    classesScrollView: {
+      flex: 1,
+    },
+    classItem: {
+      backgroundColor: tokens.colors.surface,
+      borderRadius: tokens.borderRadius.sm,
+      padding: tokens.spacing.sm,
+      marginBottom: tokens.spacing.sm,
+      borderWidth: 1,
+      borderColor: tokens.colors.border,
+    },
+    classHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: tokens.spacing.xs,
+    },
+    classTime: {
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onSurface,
+      marginLeft: tokens.spacing.sm,
+      fontWeight: tokens.typography.semiBold,
+    },
+    statusChip: {
+      paddingHorizontal: tokens.spacing.sm,
+      paddingVertical: 2,
+      borderRadius: tokens.borderRadius.sm,
+      marginLeft: 'auto',
+    },
+    statusChipText: {
+      fontSize: tokens.typography.caption,
+      fontWeight: tokens.typography.semiBold,
+      textTransform: 'capitalize',
+    },
+    classTitle: {
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onSurface,
+      fontWeight: tokens.typography.semiBold,
+      marginBottom: tokens.spacing.xs,
+    },
+    classInstructor: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+    },
+    // Picker styles
+    pickerOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000,
+    },
+    pickerContainer: {
+      backgroundColor: tokens.colors.surface,
+      borderRadius: tokens.borderRadius.lg,
+      width: '85%',
+      maxWidth: 340,
+      ...tokens.shadows.lg,
+      overflow: 'hidden',
+    },
+    yearPickerContainer: {
+      backgroundColor: tokens.colors.surface,
+      borderRadius: tokens.borderRadius.lg,
+      width: '70%',
+      maxWidth: 280,
+      ...tokens.shadows.lg,
+      overflow: 'hidden',
+    },
+    pickerHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: tokens.spacing.lg,
+      backgroundColor: tokens.colors.primary,
+      borderBottomWidth: 1,
+      borderBottomColor: tokens.colors.border,
+    },
+    pickerTitle: {
+      fontSize: tokens.typography.title,
+      fontWeight: tokens.typography.bold,
+      color: tokens.colors.onPrimary,
+    },
+    closeButton: {
+      padding: tokens.spacing.xs,
+      borderRadius: tokens.borderRadius.sm,
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    },
+    // Month grid styles
+    monthGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      padding: tokens.spacing.lg,
+      backgroundColor: tokens.colors.surface,
+      justifyContent: 'space-between',
+    },
+    monthGridItem: {
+      width: '30%',
+      aspectRatio: 2.2,
+      marginBottom: tokens.spacing.md,
+      backgroundColor: tokens.colors.surfaceVariant,
+      borderRadius: tokens.borderRadius.md,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: 'transparent',
+      ...tokens.shadows.sm,
+    },
+    monthGridItemSelected: {
+      backgroundColor: tokens.colors.primary,
+      borderColor: tokens.colors.primary,
+      ...tokens.shadows.md,
+    },
+    monthGridItemText: {
+      fontSize: tokens.typography.body,
+      fontWeight: tokens.typography.semiBold,
+      color: tokens.colors.onSurface,
+    },
+    monthGridItemTextSelected: {
+      color: tokens.colors.onPrimary,
+      fontWeight: tokens.typography.bold,
+    },
+    // Year grid styles
+    yearGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      padding: tokens.spacing.lg,
+      backgroundColor: tokens.colors.surface,
+      justifyContent: 'space-around',
+      alignItems: 'center',
+    },
+    yearGridItem: {
+      width: '42%',
+      aspectRatio: 2.2,
+      marginBottom: tokens.spacing.md,
+      backgroundColor: tokens.colors.surfaceVariant,
+      borderRadius: tokens.borderRadius.md,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: 'transparent',
+      ...tokens.shadows.sm,
+    },
+    yearGridItemSelected: {
+      backgroundColor: tokens.colors.primary,
+      borderColor: tokens.colors.primary,
+      ...tokens.shadows.md,
+    },
+    yearGridItemText: {
+      fontSize: tokens.typography.subtitle,
+      fontWeight: tokens.typography.semiBold,
+      color: tokens.colors.onSurface,
+    },
+    yearGridItemTextSelected: {
+      color: tokens.colors.onPrimary,
+      fontWeight: tokens.typography.bold,
     },
   });

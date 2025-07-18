@@ -296,6 +296,7 @@ export default function TeachersScreen() {
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
   const styles = useThemedStyles(createStyles);
   const { tokens, getGradient } = useServiceTheme();
 
@@ -318,6 +319,10 @@ export default function TeachersScreen() {
     setSelectedTeacher(null);
   };
 
+  const handleFilterToggle = () => {
+    setIsFilterVisible(!isFilterVisible);
+  };
+
   // Create a subtle gradient background that transitions from header
   const backgroundGradient = getGradient('background');
 
@@ -333,36 +338,47 @@ export default function TeachersScreen() {
           title="Find Teachers"
           subtitle="Connect with qualified educators"
           rightAction={{
-            icon: "filter",
-            onPress: () => {
-              // TODO: Implement filter action
-            },
+            icon: "options-outline",
+            onPress: handleFilterToggle,
           }}
         />
         
         <View style={styles.contentWrapper}>
-          <EducationHeader
-            variant="teachers"
-            search={{
-              value: searchQuery,
-              onChangeText: setSearchQuery,
-              placeholder: "Search teachers...",
-            }}
-            filters={{
-              options: SUBJECT_FILTERS.map((filter) => ({
-                id: filter,
-                label: filter,
-                value: filter,
-              })),
-              selectedValue: selectedFilter,
-              onSelect: setSelectedFilter,
-            }}
-            section={{
-              title: selectedFilter === "All" ? "All Teachers" : `${selectedFilter} Teachers`,
-              count: filteredTeachers.length,
-              countLabel: "teachers",
-            }}
-          />
+          {isFilterVisible && (
+            <EducationHeader
+              variant="teachers"
+              search={{
+                value: searchQuery,
+                onChangeText: setSearchQuery,
+                placeholder: "Search teachers...",
+              }}
+              filters={{
+                options: SUBJECT_FILTERS.map((filter) => ({
+                  id: filter,
+                  label: filter,
+                  value: filter,
+                })),
+                selectedValue: selectedFilter,
+                onSelect: setSelectedFilter,
+              }}
+              section={{
+                title: selectedFilter === "All" ? "All Teachers" : `${selectedFilter} Teachers`,
+                count: filteredTeachers.length,
+                countLabel: "teachers",
+              }}
+            />
+          )}
+          
+          {!isFilterVisible && (
+            <View style={styles.simpleHeader}>
+              <Text style={styles.simpleHeaderTitle}>
+                {selectedFilter === "All" ? "All Teachers" : `${selectedFilter} Teachers`}
+              </Text>
+              <Text style={styles.simpleHeaderCount}>
+                {filteredTeachers.length} teachers
+              </Text>
+            </View>
+          )}
 
           <ScrollView
             style={styles.teachersContainer}
@@ -453,11 +469,29 @@ const createStyles = (tokens: any) => {
     },
     scrollContent: {
       paddingHorizontal: tokens.spacing.md,
-      paddingTop: tokens.spacing.lg,
+      paddingTop: tokens.spacing.xs,
       backgroundColor: 'transparent',
     },
     bottomSpacing: {
       height: 100, // Space for tab bar
+    },
+    simpleHeader: {
+      paddingHorizontal: tokens.spacing.lg,
+      paddingTop: tokens.spacing.lg,
+      paddingBottom: tokens.spacing.xs,
+      borderBottomWidth: 1,
+      borderBottomColor: tokens.colors.border + '20',
+    },
+    simpleHeaderTitle: {
+      fontSize: tokens.typography.title,
+      fontWeight: tokens.typography.bold,
+      color: tokens.colors.onSurface,
+      marginBottom: tokens.spacing.xs,
+    },
+    simpleHeaderCount: {
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onSurfaceVariant,
+      fontWeight: '500',
     },
   });
 };

@@ -58,6 +58,8 @@ export const StatsHeader: React.FC<StatsHeaderProps> = ({
 
   const getStatNumberStyles = () => {
     switch (variant) {
+      case "cards":
+        return styles.cardsStatNumber;
       case "prominent":
         return styles.prominentStatNumber;
       case "minimal":
@@ -69,6 +71,8 @@ export const StatsHeader: React.FC<StatsHeaderProps> = ({
 
   const getStatLabelStyles = () => {
     switch (variant) {
+      case "cards":
+        return styles.cardsStatLabel;
       case "prominent":
         return styles.prominentStatLabel;
       case "minimal":
@@ -175,6 +179,20 @@ const createStyles = (tokens: any) =>
       textAlign: "center",
     },
     
+    // Cards variant text styles
+    cardsStatNumber: {
+      fontSize: tokens.typography.title,
+      fontWeight: tokens.typography.bold,
+      color: '#000000', // Force black for debugging
+      marginBottom: tokens.spacing.xs,
+    },
+    cardsStatLabel: {
+      fontSize: tokens.typography.caption,
+      color: '#333333', // Force dark gray for debugging
+      textAlign: "center",
+      fontWeight: '600',
+    },
+    
     // Cards variant styles
     cardsContainer: {
       flexDirection: "row",
@@ -190,6 +208,7 @@ const createStyles = (tokens: any) =>
       borderWidth: 1,
       borderColor: tokens.colors.border,
       ...tokens.shadows.sm,
+      minHeight: 80,
     },
     
     // Minimal variant styles
