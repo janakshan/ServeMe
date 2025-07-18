@@ -235,7 +235,7 @@ const createStyles = (tokens: any) => StyleSheet.create({
     paddingRight: tokens.spacing.md,
   },
   courseCard: {
-    width: 200,
+    width: 300,
     marginRight: tokens.spacing.md,
   },
   courseCardGradient: {

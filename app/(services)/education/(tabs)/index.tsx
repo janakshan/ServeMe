@@ -9,7 +9,7 @@ import {
 
 // Mock user data
 const MOCK_USER_DATA = {
-  name: 'Alex',
+  name: 'Janakshan',
   currentStreak: 12,
   completedCourses: 8,
   currentLevel: 'Intermediate',
