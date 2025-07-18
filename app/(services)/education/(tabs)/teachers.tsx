@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
+  Image,
 } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from "@expo/vector-icons";
@@ -25,6 +26,66 @@ const MOCK_TEACHERS = [
     experience: "15 years",
     location: "Jaffna, Sri Lanka",
     isFollowed: true,
+    currentInstitution: "University of Jaffna",
+    institutionType: "University",
+    teachingHistory: [
+      {
+        institution: "University of Jaffna",
+        position: "Professor of Mathematics",
+        years: "2018-Present",
+        department: "Mathematics Department"
+      },
+      {
+        institution: "University of Jaffna",
+        position: "Senior Lecturer",
+        years: "2012-2018",
+        department: "Mathematics Department"
+      },
+      {
+        institution: "Royal College Jaffna",
+        position: "Mathematics Teacher",
+        years: "2009-2012",
+        department: "Science Faculty"
+      }
+    ],
+    qualifications: [
+      {
+        degree: "Ph.D. in Pure Mathematics",
+        institution: "University of Jaffna",
+        year: "2015"
+      },
+      {
+        degree: "M.Sc. in Mathematics",
+        institution: "University of Colombo",
+        year: "2008"
+      }
+    ],
+    studentRecommendations: [
+      {
+        id: "1",
+        studentName: "Aravind Kumar",
+        studentImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+        comment: "Prof. Sivasubramaniam's teaching methods are exceptional. His clear explanations of complex mathematical concepts helped me achieve A+ in A/L Combined Mathematics. Highly recommended!",
+        rating: 5,
+        date: "2024-12-15"
+      },
+      {
+        id: "2",
+        studentName: "Priya Rajaratnam",
+        studentImage: "https://images.unsplash.com/photo-1494790108755-2616b612b90c?w=100&h=100&fit=crop&crop=face",
+        comment: "Amazing teacher! His problem-solving techniques and practical approach made A/L mathematics much easier to understand. Thanks to him, I got selected for Engineering at University of Moratuwa.",
+        rating: 5,
+        date: "2024-11-28"
+      },
+      {
+        id: "3",
+        studentName: "Dinesh Selvam",
+        studentImage: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+        comment: "Excellent teacher with great patience. He always made sure every student understood the concepts before moving forward. His classes were always engaging and productive.",
+        rating: 5,
+        date: "2024-11-10"
+      }
+    ]
   },
   {
     id: "2",
@@ -38,6 +99,52 @@ const MOCK_TEACHERS = [
     experience: "12 years",
     location: "Jaffna, Sri Lanka",
     isFollowed: true,
+    currentInstitution: "University of Jaffna",
+    institutionType: "University",
+    teachingHistory: [
+      {
+        institution: "University of Jaffna",
+        position: "Senior Lecturer in Botany",
+        years: "2016-Present",
+        department: "Department of Botany"
+      },
+      {
+        institution: "Jaffna College",
+        position: "Biology Teacher",
+        years: "2012-2016",
+        department: "Science Department"
+      }
+    ],
+    qualifications: [
+      {
+        degree: "Ph.D. in Botany",
+        institution: "University of Jaffna",
+        year: "2014"
+      },
+      {
+        degree: "M.Sc. in Botany",
+        institution: "University of Peradeniya",
+        year: "2010"
+      }
+    ],
+    studentRecommendations: [
+      {
+        id: "1",
+        studentName: "Meera Thangarajah",
+        studentImage: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
+        comment: "Dr. Priya's biology classes were incredibly informative and well-structured. Her practical approach to teaching botany helped me understand plant biology thoroughly. Got A+ in A/L Biology!",
+        rating: 5,
+        date: "2024-12-10"
+      },
+      {
+        id: "2",
+        studentName: "Karthik Mohan",
+        studentImage: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
+        comment: "Best biology teacher ever! Her field work sessions and lab demonstrations made learning so much more interesting. Highly recommend her classes.",
+        rating: 5,
+        date: "2024-11-25"
+      }
+    ]
   },
   {
     id: "3",
@@ -51,6 +158,52 @@ const MOCK_TEACHERS = [
     experience: "18 years",
     location: "Jaffna, Sri Lanka",
     isFollowed: false,
+    currentInstitution: "St. John's College Jaffna",
+    institutionType: "College",
+    teachingHistory: [
+      {
+        institution: "St. John's College Jaffna",
+        position: "Senior Mathematics Teacher",
+        years: "2010-Present",
+        department: "Mathematics Department"
+      },
+      {
+        institution: "Jaffna Hindu College",
+        position: "Mathematics Teacher",
+        years: "2006-2010",
+        department: "Mathematics Department"
+      }
+    ],
+    qualifications: [
+      {
+        degree: "B.Ed. in Mathematics",
+        institution: "University of Jaffna",
+        year: "2005"
+      },
+      {
+        degree: "B.Sc. in Mathematics",
+        institution: "University of Jaffna",
+        year: "2003"
+      }
+    ],
+    studentRecommendations: [
+      {
+        id: "1",
+        studentName: "Vishnu Pradeep",
+        studentImage: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop&crop=face",
+        comment: "Sir Ravi's teaching style is perfect for O/L students. He makes difficult mathematics topics very easy to understand. My son improved from C to A grade thanks to his classes.",
+        rating: 5,
+        date: "2024-12-05"
+      },
+      {
+        id: "2",
+        studentName: "Sangeetha Rajesh",
+        studentImage: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face",
+        comment: "Excellent teacher with great patience. He explains each step clearly and provides plenty of practice problems. Highly recommend for O/L mathematics preparation.",
+        rating: 5,
+        date: "2024-11-18"
+      }
+    ]
   },
   {
     id: "4",
@@ -64,6 +217,34 @@ const MOCK_TEACHERS = [
     experience: "14 years",
     location: "Jaffna, Sri Lanka",
     isFollowed: true,
+    currentInstitution: "Vembadi Girls' High School",
+    institutionType: "School",
+    teachingHistory: [
+      {
+        institution: "Vembadi Girls' High School",
+        position: "Head of Science Department",
+        years: "2015-Present",
+        department: "Science Department"
+      },
+      {
+        institution: "Chundikuli Girls' College",
+        position: "Science Teacher",
+        years: "2010-2015",
+        department: "Science Department"
+      }
+    ],
+    qualifications: [
+      {
+        degree: "M.Sc. in Chemistry",
+        institution: "University of Jaffna",
+        year: "2012"
+      },
+      {
+        degree: "B.Sc. in Chemistry",
+        institution: "University of Jaffna",
+        year: "2008"
+      }
+    ]
   },
   {
     id: "5",
@@ -77,6 +258,34 @@ const MOCK_TEACHERS = [
     experience: "20 years",
     location: "Jaffna, Sri Lanka",
     isFollowed: false,
+    currentInstitution: "Jaffna Hindu College",
+    institutionType: "College",
+    teachingHistory: [
+      {
+        institution: "Jaffna Hindu College",
+        position: "Head of Tamil Department",
+        years: "2008-Present",
+        department: "Tamil Department"
+      },
+      {
+        institution: "Hartley College Point Pedro",
+        position: "Tamil Teacher",
+        years: "2004-2008",
+        department: "Languages Department"
+      }
+    ],
+    qualifications: [
+      {
+        degree: "M.A. in Tamil Literature",
+        institution: "University of Jaffna",
+        year: "2006"
+      },
+      {
+        degree: "B.A. in Tamil",
+        institution: "University of Jaffna",
+        year: "2002"
+      }
+    ]
   },
   {
     id: "6",
@@ -90,6 +299,40 @@ const MOCK_TEACHERS = [
     experience: "22 years",
     location: "Jaffna, Sri Lanka",
     isFollowed: true,
+    currentInstitution: "University of Jaffna",
+    institutionType: "University",
+    teachingHistory: [
+      {
+        institution: "University of Jaffna",
+        position: "Professor of History",
+        years: "2015-Present",
+        department: "Department of History"
+      },
+      {
+        institution: "University of Jaffna",
+        position: "Head of History Department",
+        years: "2010-2015",
+        department: "Department of History"
+      },
+      {
+        institution: "University of Jaffna",
+        position: "Senior Lecturer",
+        years: "2005-2010",
+        department: "Department of History"
+      }
+    ],
+    qualifications: [
+      {
+        degree: "Ph.D. in History",
+        institution: "University of Cambridge",
+        year: "2008"
+      },
+      {
+        degree: "M.A. in History",
+        institution: "University of Jaffna",
+        year: "2000"
+      }
+    ]
   },
   {
     id: "7",
@@ -103,6 +346,34 @@ const MOCK_TEACHERS = [
     experience: "13 years",
     location: "Jaffna, Sri Lanka",
     isFollowed: false,
+    currentInstitution: "University of Jaffna",
+    institutionType: "University",
+    teachingHistory: [
+      {
+        institution: "University of Jaffna",
+        position: "Senior Lecturer in Physics",
+        years: "2016-Present",
+        department: "Department of Physics"
+      },
+      {
+        institution: "St. Patrick's College Jaffna",
+        position: "Physics Teacher",
+        years: "2011-2016",
+        department: "Science Department"
+      }
+    ],
+    qualifications: [
+      {
+        degree: "Ph.D. in Applied Physics",
+        institution: "University of Jaffna",
+        year: "2015"
+      },
+      {
+        degree: "M.Sc. in Physics",
+        institution: "University of Colombo",
+        year: "2009"
+      }
+    ]
   },
   {
     id: "8",
@@ -116,6 +387,34 @@ const MOCK_TEACHERS = [
     experience: "16 years",
     location: "Jaffna, Sri Lanka",
     isFollowed: true,
+    currentInstitution: "Holy Family Convent Jaffna",
+    institutionType: "School",
+    teachingHistory: [
+      {
+        institution: "Holy Family Convent Jaffna",
+        position: "Head of English Department",
+        years: "2012-Present",
+        department: "English Department"
+      },
+      {
+        institution: "Jaffna Central College",
+        position: "English Teacher",
+        years: "2008-2012",
+        department: "Languages Department"
+      }
+    ],
+    qualifications: [
+      {
+        degree: "B.A. in English Literature",
+        institution: "University of Jaffna",
+        year: "2006"
+      },
+      {
+        degree: "Diploma in TESOL",
+        institution: "British Council Sri Lanka",
+        year: "2007"
+      }
+    ]
   },
 ];
 
@@ -129,6 +428,19 @@ interface TeacherCardProps {
 const TeacherCard: React.FC<TeacherCardProps> = ({ teacher, onPress }) => {
   const styles = useThemedStyles(createTeacherCardStyles);
   const { tokens } = useServiceTheme();
+
+  const getInstitutionIcon = (type: string) => {
+    switch (type) {
+      case "University":
+        return "school";
+      case "College":
+        return "library";
+      case "School":
+        return "home";
+      default:
+        return "business";
+    }
+  };
 
   return (
     <TouchableOpacity
@@ -145,6 +457,14 @@ const TeacherCard: React.FC<TeacherCardProps> = ({ teacher, onPress }) => {
         <View style={styles.headerInfo}>
           <Text style={styles.name}>{teacher.name}</Text>
           <Text style={styles.specialization}>{teacher.specialization}</Text>
+          <View style={styles.institutionRow}>
+            <Ionicons 
+              name={getInstitutionIcon(teacher.institutionType)} 
+              size={14} 
+              color={tokens.colors.onSurfaceVariant} 
+            />
+            <Text style={styles.institutionText}>{teacher.currentInstitution}</Text>
+          </View>
           <View style={styles.ratingRow}>
             <Ionicons name="star" size={16} color={tokens.colors.warning} />
             <Text style={styles.rating}>{teacher.rating}</Text>
@@ -238,23 +558,7 @@ const TeacherModal: React.FC<TeacherModalProps> = ({ teacher, visible, onClose }
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>About</Text>
-            <Text style={styles.bio}>{teacher.bio}</Text>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Subjects</Text>
-            <View style={styles.subjectsGrid}>
-              {teacher.subjects.map((subject: string, index: number) => (
-                <View key={index} style={styles.subjectTagLarge}>
-                  <Text style={styles.subjectTextLarge}>{subject}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Statistics</Text>
+            {/* <Text style={styles.sectionTitle}>Statistics</Text> */}
             <View style={styles.statsGrid}>
               <View style={styles.statCard}>
                 <Ionicons name="book" size={24} color={tokens.colors.primary} />
@@ -273,6 +577,99 @@ const TeacherModal: React.FC<TeacherModalProps> = ({ teacher, visible, onClose }
               </View>
             </View>
           </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>About</Text>
+            <Text style={styles.bio}>{teacher.bio}</Text>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Subjects</Text>
+            <View style={styles.subjectsGrid}>
+              {teacher.subjects.map((subject: string, index: number) => (
+                <View key={index} style={styles.subjectTagLarge}>
+                  <Text style={styles.subjectTextLarge}>{subject}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Teaching History</Text>
+            <View style={styles.historyContainer}>
+              {teacher.teachingHistory.map((history: any, index: number) => (
+                <View key={index} style={styles.historyItem}>
+                  <View style={styles.historyHeader}>
+                    <Ionicons 
+                      name={history.institution.includes("University") ? "school" : 
+                            history.institution.includes("College") ? "library" : "home"} 
+                      size={16} 
+                      color={tokens.colors.primary} 
+                    />
+                    <Text style={styles.historyInstitution}>{history.institution}</Text>
+                  </View>
+                  <Text style={styles.historyPosition}>{history.position}</Text>
+                  <Text style={styles.historyDepartment}>{history.department}</Text>
+                  <Text style={styles.historyYears}>{history.years}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Qualifications</Text>
+            <View style={styles.qualificationsContainer}>
+              {teacher.qualifications.map((qualification: any, index: number) => (
+                <View key={index} style={styles.qualificationItem}>
+                  <View style={styles.qualificationHeader}>
+                    <Ionicons name="school" size={16} color={tokens.colors.primary} />
+                    <Text style={styles.qualificationDegree}>{qualification.degree}</Text>
+                  </View>
+                  <Text style={styles.qualificationInstitution}>{qualification.institution}</Text>
+                  <Text style={styles.qualificationYear}>{qualification.year}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {teacher.studentRecommendations && teacher.studentRecommendations.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Student Recommendations</Text>
+              <View style={styles.recommendationsContainer}>
+                {teacher.studentRecommendations.map((recommendation: any) => (
+                  <View key={recommendation.id} style={styles.recommendationCard}>
+                    <View style={styles.recommendationHeader}>
+                      <Image
+                        source={{ uri: recommendation.studentImage }}
+                        style={styles.studentImage}
+                      />
+                      <View style={styles.studentInfo}>
+                        <Text style={styles.studentName}>{recommendation.studentName}</Text>
+                        <View style={styles.recommendationRating}>
+                          {[...Array(5)].map((_, index) => (
+                            <Ionicons
+                              key={index}
+                              name="star"
+                              size={12}
+                              color={index < recommendation.rating ? tokens.colors.warning : tokens.colors.border}
+                            />
+                          ))}
+                        </View>
+                      </View>
+                      <Text style={styles.recommendationDate}>
+                        {new Date(recommendation.date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </Text>
+                    </View>
+                    <Text style={styles.recommendationComment}>{recommendation.comment}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
         </ScrollView>
 
         <View style={styles.footer}>
@@ -539,6 +936,17 @@ const createTeacherCardStyles = (tokens: any) =>
       color: tokens.colors.onSurfaceVariant,
       marginBottom: tokens.spacing.xs,
     },
+    institutionRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: tokens.spacing.xs,
+    },
+    institutionText: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+      marginLeft: tokens.spacing.xs,
+      fontWeight: "500",
+    },
     ratingRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -677,10 +1085,11 @@ const createModalStyles = (tokens: any) =>
       marginBottom: tokens.spacing.xl,
     },
     sectionTitle: {
-      fontSize: tokens.typography.subtitle,
-      fontWeight: tokens.typography.semiBold,
+      fontSize: tokens.typography.title,
+      fontWeight: tokens.typography.bold,
       color: tokens.colors.onSurface,
-      marginBottom: tokens.spacing.md,
+      marginBottom: tokens.spacing.lg,
+      letterSpacing: -0.5,
     },
     bio: {
       fontSize: tokens.typography.body,
@@ -728,37 +1137,157 @@ const createModalStyles = (tokens: any) =>
     },
     footer: {
       flexDirection: "row",
-      padding: tokens.spacing.md,
+      padding: tokens.spacing.lg,
       backgroundColor: tokens.colors.surface,
       borderTopWidth: 1,
       borderTopColor: tokens.colors.border,
+      gap: tokens.spacing.md,
     },
     followButtonLarge: {
       flex: 1,
       backgroundColor: tokens.colors.primary,
       paddingVertical: tokens.spacing.md,
+      paddingHorizontal: tokens.spacing.sm,
       borderRadius: tokens.borderRadius.md,
       alignItems: "center",
-      marginRight: tokens.spacing.sm,
+      justifyContent: "center",
     },
     followButtonText: {
-      fontSize: tokens.typography.body,
+      fontSize: tokens.typography.caption,
       color: tokens.colors.onPrimary,
       fontWeight: "600",
     },
     messageButton: {
       flexDirection: "row",
       alignItems: "center",
+      justifyContent: "center",
       paddingHorizontal: tokens.spacing.md,
       paddingVertical: tokens.spacing.md,
       borderRadius: tokens.borderRadius.md,
       borderWidth: 1,
       borderColor: tokens.colors.primary,
+      backgroundColor: "transparent",
     },
     messageButtonText: {
-      fontSize: tokens.typography.body,
+      fontSize: tokens.typography.caption,
       color: tokens.colors.primary,
       fontWeight: "600",
       marginLeft: tokens.spacing.xs,
+    },
+    // Teaching History Styles
+    historyContainer: {
+      gap: tokens.spacing.md,
+    },
+    historyItem: {
+      backgroundColor: tokens.colors.surface,
+      borderRadius: tokens.borderRadius.md,
+      padding: tokens.spacing.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.border,
+    },
+    historyHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: tokens.spacing.xs,
+    },
+    historyInstitution: {
+      fontSize: tokens.typography.body,
+      fontWeight: tokens.typography.semiBold,
+      color: tokens.colors.onSurface,
+      marginLeft: tokens.spacing.xs,
+    },
+    historyPosition: {
+      fontSize: tokens.typography.body,
+      fontWeight: tokens.typography.semiBold,
+      color: tokens.colors.primary,
+      marginBottom: tokens.spacing.xs,
+    },
+    historyDepartment: {
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onSurfaceVariant,
+      marginBottom: tokens.spacing.xs,
+    },
+    historyYears: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+      fontWeight: '500',
+    },
+    // Qualifications Styles
+    qualificationsContainer: {
+      gap: tokens.spacing.md,
+    },
+    qualificationItem: {
+      backgroundColor: tokens.colors.surface,
+      borderRadius: tokens.borderRadius.md,
+      padding: tokens.spacing.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.border,
+    },
+    qualificationHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: tokens.spacing.xs,
+    },
+    qualificationDegree: {
+      fontSize: tokens.typography.body,
+      fontWeight: tokens.typography.semiBold,
+      color: tokens.colors.onSurface,
+      marginLeft: tokens.spacing.xs,
+    },
+    qualificationInstitution: {
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onSurfaceVariant,
+      marginBottom: tokens.spacing.xs,
+    },
+    qualificationYear: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+      fontWeight: '500',
+    },
+    // Student Recommendations Styles
+    recommendationsContainer: {
+      gap: tokens.spacing.md,
+    },
+    recommendationCard: {
+      backgroundColor: tokens.colors.surface,
+      borderRadius: tokens.borderRadius.md,
+      padding: tokens.spacing.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.border,
+    },
+    recommendationHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: tokens.spacing.md,
+    },
+    studentImage: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      marginRight: tokens.spacing.sm,
+    },
+    studentInfo: {
+      flex: 1,
+    },
+    studentName: {
+      fontSize: tokens.typography.body,
+      fontWeight: tokens.typography.semiBold,
+      color: tokens.colors.onSurface,
+      marginBottom: tokens.spacing.xs,
+    },
+    recommendationRating: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    recommendationDate: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+      fontWeight: '500',
+    },
+    recommendationComment: {
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onSurfaceVariant,
+      lineHeight: 20,
+      fontStyle: 'italic',
     },
   });
