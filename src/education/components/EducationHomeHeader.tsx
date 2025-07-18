@@ -16,7 +16,7 @@ interface EducationHomeHeaderProps {
 }
 
 export function EducationHomeHeader({ userData }: EducationHomeHeaderProps) {
-  const { tokens, getGradient } = useServiceTheme();
+  const { tokens, getGradient, resetToGlobalTheme } = useServiceTheme();
   const styles = useThemedStyles(createStyles);
   
   // Use the same gradient system as teachers screen header
@@ -24,6 +24,8 @@ export function EducationHomeHeader({ userData }: EducationHomeHeaderProps) {
 
   const handleBackPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    // Reset theme to global theme before navigating back
+    resetToGlobalTheme();
     // Navigate back to main app
     router.push('/(app)/(tabs)/' as any);
   };
