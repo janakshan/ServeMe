@@ -30,9 +30,10 @@ export function EducationHomeHeader({ userData }: EducationHomeHeaderProps) {
     router.push('/(app)/(tabs)/' as any);
   };
 
-  const handleNotificationPress = () => {
+  const handleRankPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    // TODO: Implement notifications
+    // Navigate to leaderboard page
+    router.push('/(services)/education/(tabs)/leaderboard');
   };
 
   const getTimeBasedGreeting = () => {
@@ -76,11 +77,11 @@ export function EducationHomeHeader({ userData }: EducationHomeHeaderProps) {
           </View>
           
           <TouchableOpacity
-            onPress={handleNotificationPress}
+            onPress={handleRankPress}
             style={styles.navButton}
           >
             <Ionicons
-              name="notifications-outline"
+              name="trophy-outline"
               size={24}
               color={tokens.colors.onPrimary}
             />
