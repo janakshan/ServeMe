@@ -109,89 +109,119 @@ const preloadImages = (imageUrls: string[]) => {
 const ServiceCardSkeleton = ({ index }: { index: number }) => {
   const { tokens } = useServiceTheme();
   const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const { width: screenWidth } = Dimensions.get("window");
 
   useEffect(() => {
     const shimmerAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(shimmerAnim, {
           toValue: 1,
-          duration: 1000,
+          duration: 1500,
           useNativeDriver: true,
         }),
         Animated.timing(shimmerAnim, {
           toValue: 0,
-          duration: 1000,
+          duration: 1500,
           useNativeDriver: true,
         }),
       ])
     );
 
-    shimmerAnimation.start();
+    // Stagger the animation start for each skeleton
+    const delay = index * 200;
+    setTimeout(() => shimmerAnimation.start(), delay);
+    
     return () => shimmerAnimation.stop();
-  }, []);
+  }, [index]);
 
   const shimmerOpacity = shimmerAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.3, 0.7],
+    outputRange: [0.4, 0.8],
   });
 
-  // Get soft tinted background for skeleton
-  const getSoftSkeletonColor = () => {
+  // Get soft gradient colors for skeleton that match the service card style
+  const getSkeletonGradient = () => {
     const primaryColor = tokens.colors.primary;
 
     if (primaryColor === "#0D47A1") {
-      return "#FFFFFF"; // Pure white for blue theme
+      return ["#F8FAFE", "#F0F6FF", "#FFFFFF"]; // Light blue gradient
     } else if (primaryColor === "#7B1FA2") {
-      return "#FEFCFF"; // Very light purple tint
+      return ["#FDFAFF", "#F9F2FF", "#FFFFFF"]; // Light purple gradient
     } else if (primaryColor === "#2E7D32") {
-      return "#FDFEFD"; // Very light green tint
+      return ["#F9FDF9", "#F2F8F2", "#FFFFFF"]; // Light green gradient
     } else if (primaryColor === "#E91E63") {
-      return "#FFFEFF"; // Very light pink tint
+      return ["#FFFAFC", "#FFF2F7", "#FFFFFF"]; // Light pink gradient
     } else {
-      return "#FFFFFF"; // Default white
+      return ["#F8FAFE", "#F0F6FF", "#FFFFFF"]; // Default light blue gradient
     }
   };
 
+  // Calculate card dimensions to match real ServiceCard
+  const horizontalPadding = tokens.spacing.md * 2;
+  const cardSpacing = tokens.spacing.sm;
+  const availableWidth = screenWidth - horizontalPadding;
+  const cardWidth = (availableWidth - cardSpacing * 2) / 3;
+
   return (
     <View
-      style={[
-        {
-          backgroundColor: getSoftSkeletonColor(),
-          borderRadius: tokens.borderRadius.card,
-          padding: tokens.spacing.cardPadding.vertical,
-          paddingHorizontal: tokens.spacing.cardPadding.horizontal,
-          margin: tokens.spacing.sm,
+      style={{
+        width: cardWidth,
+        height: cardWidth,
+        marginBottom: tokens.spacing.md,
+      }}
+    >
+      <LinearGradient
+        colors={getSkeletonGradient()}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{
+          flex: 1,
+          borderRadius: tokens.borderRadius.lg,
+          padding: tokens.spacing.md,
           alignItems: "center",
           justifyContent: "center",
-          minHeight: 120,
-          flex: 1,
-          ...tokens.shadows.sm,
-        },
-      ]}
-    >
-      <Animated.View
-        style={[
-          {
-            width: 60,
-            height: 60,
-            backgroundColor: tokens.colors.divider,
-            borderRadius: tokens.borderRadius.lg,
-            marginBottom: tokens.spacing.md,
-            opacity: shimmerOpacity,
-          },
-        ]}
-      />
-      <Animated.View
-        style={[
-          {
-            width: "80%",
-            height: 16,
-            backgroundColor: tokens.colors.divider,
-            borderRadius: tokens.borderRadius.sm,
-            opacity: shimmerOpacity,
-          },
-        ]}
-      />
+          ...tokens.shadows.md,
+        }}
+      >
+        {/* Icon Container Placeholder */}
+        <View
+          style={{
+            width: 80,
+            height: 80,
+            justifyContent: "center",
+            alignItems: "center",
+            marginBottom: tokens.spacing.sm,
+          }}
+        >
+          <Animated.View
+            style={{
+              width: 72,
+              height: 72,
+              backgroundColor: tokens.colors.divider,
+              borderRadius: tokens.borderRadius.lg,
+              opacity: shimmerOpacity,
+            }}
+          />
+        </View>
+
+        {/* Title Placeholder */}
+        <View
+          style={{
+            width: "100%",
+            alignItems: "center",
+          }}
+        >
+          <Animated.View
+            style={{
+              width: "85%",
+              height: 14,
+              backgroundColor: tokens.colors.divider,
+              borderRadius: tokens.borderRadius.sm,
+              opacity: shimmerOpacity,
+            }}
+          />
+        </View>
+      </LinearGradient>
     </View>
   );
 };
