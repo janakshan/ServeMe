@@ -89,9 +89,6 @@ export function QuickAccessGrid() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.sectionTitle}>Quick Access</Text>
-        <TouchableOpacity onPress={() => router.push('/(services)/education/(tabs)/courses')}>
-          <Text style={styles.viewAllText}>View All</Text>
-        </TouchableOpacity>
       </View>
       
       <View style={styles.grid}>
@@ -195,7 +192,10 @@ const createStyles = (tokens: any) => StyleSheet.create({
     marginBottom: tokens.spacing.xs,
   },
   actionIndicator: {
-    alignSelf: 'flex-end',
-    marginTop: 'auto',
+    position: 'absolute',
+    bottom: tokens.spacing.lg,
+    right: tokens.spacing.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
