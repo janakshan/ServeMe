@@ -499,7 +499,7 @@ const createStyles = (tokens: any) => {
     },
     scrollContent: {
       paddingHorizontal: tokens.spacing.md,
-      paddingTop: tokens.spacing.sm,
+      paddingTop: tokens.spacing.lg,
       backgroundColor: 'transparent',
     },
     bottomSpacing: {
@@ -507,8 +507,8 @@ const createStyles = (tokens: any) => {
     },
     simpleHeader: {
       paddingHorizontal: tokens.spacing.lg,
-      paddingTop: tokens.spacing.md,
-      paddingBottom: tokens.spacing.sm,
+      paddingTop: tokens.spacing.lg,
+      paddingBottom: tokens.spacing.md,
       borderBottomWidth: 1,
       borderBottomColor: tokens.colors.border + '20',
     },

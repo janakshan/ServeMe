@@ -53,33 +53,15 @@ const RECOMMENDED_COURSES: RecommendedCourse[] = [
   },
 ];
 
-const TRENDING_TOPICS = [
-  { id: '1', name: 'Machine Learning', count: '+45%' },
-  { id: '2', name: 'Data Science', count: '+38%' },
-  { id: '3', name: 'Web Development', count: '+29%' },
-  { id: '4', name: 'Digital Marketing', count: '+22%' },
-];
-
 export function RecommendedContent() {
-  const { tokens, getGradient } = useServiceTheme();
+  const { tokens } = useServiceTheme();
   const styles = useThemedStyles(createStyles);
-  
-  const cardGradient = getGradient('card');
 
   const handleCoursePress = (course: RecommendedCourse) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Alert.alert(
       'Course Details',
       `You selected: ${course.title}\nInstructor: ${course.instructor}`,
-      [{ text: 'OK' }]
-    );
-  };
-
-  const handleTopicPress = (topic: any) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Alert.alert(
-      'Trending Topic',
-      `Explore courses in ${topic.name}`,
       [{ text: 'OK' }]
     );
   };
@@ -114,6 +96,28 @@ export function RecommendedContent() {
     }
   };
 
+  // Darker card gradients for better contrast
+  const getCardGradient = () => {
+    const primaryColor = tokens.colors.primary;
+    
+    if (primaryColor === "#6A1B9A") {
+      // Education purple theme - darker for better contrast
+      return ['#F3E5F5', '#E8EAF6'];
+    } else if (primaryColor === "#0D47A1") {
+      // Blue theme - darker blue tones
+      return ['#E3F2FD', '#E8F4F8'];
+    } else if (primaryColor === "#2E7D32") {
+      // Green theme - darker green tones
+      return ['#E8F5E8', '#F1F8E9'];
+    } else if (primaryColor === "#E91E63") {
+      // Pink theme - darker pink tones
+      return ['#FCE4EC', '#F8BBD9'];
+    } else {
+      // Default - darker neutral
+      return ['#F5F5F5', '#EEEEEE'];
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Recommended Courses */}
@@ -130,7 +134,7 @@ export function RecommendedContent() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.coursesScrollContainer}
         >
-          {RECOMMENDED_COURSES.map((course) => (
+          {RECOMMENDED_COURSES.map((course, index) => (
             <TouchableOpacity
               key={course.id}
               style={styles.courseCard}
@@ -138,8 +142,8 @@ export function RecommendedContent() {
               activeOpacity={0.8}
             >
               <LinearGradient
-                colors={cardGradient.colors as any}
-                start={{ x: cardGradient.direction.x, y: cardGradient.direction.y }}
+                colors={getCardGradient()}
+                start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.courseCardGradient}
               >
@@ -199,7 +203,6 @@ export function RecommendedContent() {
           ))}
         </ScrollView>
       </View>
-
     </View>
   );
 }
@@ -237,15 +240,16 @@ const createStyles = (tokens: any) => StyleSheet.create({
   },
   courseCardGradient: {
     borderRadius: tokens.borderRadius.md,
-    padding: tokens.spacing.md,
-    height: 180,
-    ...tokens.shadows.sm,
+    padding: tokens.spacing.lg,
+    height: 220,
+    justifyContent: 'space-between',
+    ...tokens.shadows.md,
   },
   courseCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: tokens.spacing.sm,
+    marginBottom: tokens.spacing.md,
   },
   badgeContainer: {
     flexDirection: 'row',
@@ -260,7 +264,7 @@ const createStyles = (tokens: any) => StyleSheet.create({
     backgroundColor: tokens.colors.error + '20',
   },
   trendingBadge: {
-    backgroundColor: tokens.colors.warning + '20',
+    backgroundColor: tokens.colors.success + '20',
   },
   badgeText: {
     fontSize: 10,
@@ -277,75 +281,44 @@ const createStyles = (tokens: any) => StyleSheet.create({
     justifyContent: 'center',
   },
   courseTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
     color: tokens.colors.onSurface,
-    marginBottom: tokens.spacing.xs,
-    lineHeight: 20,
+    marginBottom: tokens.spacing.sm,
+    lineHeight: 22,
   },
   instructorName: {
     fontSize: 14,
     fontWeight: '500',
     color: tokens.colors.onSurfaceVariant,
-    marginBottom: tokens.spacing.sm,
+    marginBottom: tokens.spacing.md,
   },
   courseStats: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: tokens.spacing.sm,
+    alignItems: 'center',
+    marginBottom: tokens.spacing.md,
+    paddingHorizontal: tokens.spacing.xs,
   },
   statItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
   },
   statText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '600',
     color: tokens.colors.onSurfaceVariant,
     marginLeft: 4,
   },
   categoryText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
     color: tokens.colors.primary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-  },
-  topicsContainer: {
-    backgroundColor: tokens.colors.surface,
-    borderRadius: tokens.borderRadius.md,
-    ...tokens.shadows.sm,
-  },
-  topicCard: {
-    borderBottomWidth: 1,
-    borderBottomColor: tokens.colors.border,
-  },
-  topicContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: tokens.spacing.md,
-  },
-  topicIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: tokens.colors.success + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: tokens.spacing.md,
-  },
-  topicInfo: {
-    flex: 1,
-  },
-  topicName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: tokens.colors.onSurface,
-    marginBottom: 2,
-  },
-  topicCount: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: tokens.colors.success,
+    textAlign: 'center',
+    marginTop: 'auto',
   },
 });
