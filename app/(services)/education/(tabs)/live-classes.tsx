@@ -285,10 +285,22 @@ const LiveClassCard: React.FC<LiveClassCardProps> = ({ liveClass, onPress }) => 
 // Calendar Modal Component
 const CalendarModal = ({ visible, onClose, classes, tokens }) => {
   const styles = useThemedStyles(createCalendarStyles);
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showYearPicker, setShowYearPicker] = useState(false);
+  const [calendarView, setCalendarView] = useState('month'); // 'day', 'week', 'month'
+  const [selectedWeek, setSelectedWeek] = useState(new Date());
+
+  // Initialize selectedDate when modal becomes visible
+  React.useEffect(() => {
+    if (visible && !selectedDate) {
+      const today = new Date();
+      setSelectedDate(today);
+      setSelectedWeek(today);
+      setCurrentMonth(new Date(today.getFullYear(), today.getMonth(), 1));
+    }
+  }, [visible, selectedDate]);
 
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
@@ -354,6 +366,238 @@ const CalendarModal = ({ visible, onClose, classes, tokens }) => {
     }
   };
 
+  // Handle view change and sync dates
+  const handleViewChange = (newView: string) => {
+    const currentDate = selectedDate || new Date();
+    
+    setCalendarView(newView);
+    
+    if (newView === 'day') {
+      // When switching to day view, use the selected date or today
+      if (!selectedDate) {
+        setSelectedDate(new Date());
+      }
+    } else if (newView === 'week') {
+      // When switching to week view, set the week that contains the selected date
+      setSelectedWeek(currentDate);
+    } else if (newView === 'month') {
+      // When switching to month view, update current month to show the selected date's month
+      if (selectedDate) {
+        setCurrentMonth(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
+      }
+    }
+  };
+
+  // Helper functions for day and week views
+  const getTimeSlots = () => {
+    const slots = [];
+    for (let hour = 7; hour <= 22; hour++) {
+      slots.push({
+        hour,
+        time: `${hour > 12 ? hour - 12 : hour}:00 ${hour >= 12 ? 'PM' : 'AM'}`,
+        fullTime: `${hour.toString().padStart(2, '0')}:00`
+      });
+    }
+    return slots;
+  };
+
+  const parseTime = (timeString) => {
+    // Parse time like "10:00 AM" to hours (24-hour format)
+    const [time, period] = timeString.split(' ');
+    const [hours, minutes] = time.split(':').map(Number);
+    let hour24 = hours;
+    if (period === 'PM' && hours !== 12) hour24 += 12;
+    if (period === 'AM' && hours === 12) hour24 = 0;
+    return hour24 + minutes / 60;
+  };
+
+  const getWeekDates = (date) => {
+    const week = [];
+    const startOfWeek = new Date(date);
+    startOfWeek.setDate(date.getDate() - date.getDay()); // Start from Sunday
+    
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(startOfWeek);
+      day.setDate(startOfWeek.getDate() + i);
+      week.push(day);
+    }
+    return week;
+  };
+
+  const navigateDate = (direction) => {
+    if (calendarView === 'day') {
+      const newDate = new Date(selectedDate || new Date());
+      newDate.setDate(newDate.getDate() + direction);
+      setSelectedDate(newDate);
+      // Also update the week state to keep views in sync
+      setSelectedWeek(newDate);
+      // Update current month if we moved to a different month
+      if (newDate.getMonth() !== currentMonth.getMonth() || newDate.getFullYear() !== currentMonth.getFullYear()) {
+        setCurrentMonth(new Date(newDate.getFullYear(), newDate.getMonth(), 1));
+      }
+    } else if (calendarView === 'week') {
+      const newWeek = new Date(selectedWeek);
+      newWeek.setDate(selectedWeek.getDate() + (direction * 7));
+      setSelectedWeek(newWeek);
+      // Update selected date to the first day of the new week (or keep current day of week)
+      const currentDayOfWeek = selectedDate ? selectedDate.getDay() : 0;
+      const newSelectedDate = new Date(newWeek);
+      newSelectedDate.setDate(newWeek.getDate() - newWeek.getDay() + currentDayOfWeek);
+      setSelectedDate(newSelectedDate);
+      // Update current month if we moved to a different month
+      if (newWeek.getMonth() !== currentMonth.getMonth() || newWeek.getFullYear() !== currentMonth.getFullYear()) {
+        setCurrentMonth(new Date(newWeek.getFullYear(), newWeek.getMonth(), 1));
+      }
+    } else {
+      navigateMonth(direction);
+    }
+  };
+
+  const renderDayView = () => {
+    const currentDate = selectedDate || new Date();
+    const dayClasses = getClassesForDate(currentDate);
+    const timeSlots = getTimeSlots();
+
+    return (
+      <View style={styles.dayViewContainer}>
+        <View style={styles.dayViewHeader}>
+          <TouchableOpacity onPress={() => navigateDate(-1)} style={styles.dayNavButton}>
+            <Ionicons name="chevron-back" size={24} color={tokens.colors.onSurface} />
+          </TouchableOpacity>
+          <View style={styles.dayViewDateContainer}>
+            <Text style={styles.dayViewDate}>
+              {currentDate.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                month: 'long', 
+                day: 'numeric',
+                year: 'numeric'
+              })}
+            </Text>
+          </View>
+          <TouchableOpacity onPress={() => navigateDate(1)} style={styles.dayNavButton}>
+            <Ionicons name="chevron-forward" size={24} color={tokens.colors.onSurface} />
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView style={styles.dayViewScrollContainer} showsVerticalScrollIndicator={false}>
+          {timeSlots.map((slot) => {
+            const slotClasses = dayClasses.filter(cls => {
+              const classTime = parseTime(cls.time);
+              return Math.floor(classTime) === slot.hour;
+            });
+
+            return (
+              <View key={slot.hour} style={styles.timeSlotContainer}>
+                <View style={styles.timeSlotHeader}>
+                  <Text style={styles.timeSlotText}>{slot.time}</Text>
+                </View>
+                <View style={styles.timeSlotContent}>
+                  {slotClasses.length === 0 ? (
+                    <View style={styles.emptyTimeSlot} />
+                  ) : (
+                    slotClasses.map((cls) => (
+                      <View key={cls.id} style={styles.dayClassItem}>
+                        <View style={styles.dayClassHeader}>
+                          <Ionicons 
+                            name={getStatusIcon(cls.status)}
+                            size={16}
+                            color={getStatusColor(cls.status)}
+                          />
+                          <View style={[styles.statusChip, { backgroundColor: getStatusColor(cls.status) + '20' }]}>
+                            <Text style={[styles.statusChipText, { color: getStatusColor(cls.status) }]}>
+                              {cls.status}
+                            </Text>
+                          </View>
+                        </View>
+                        <Text style={styles.dayClassTitle} numberOfLines={2}>{cls.title}</Text>
+                        <Text style={styles.dayClassInstructor}>{cls.instructor}</Text>
+                        <Text style={styles.dayClassTime}>{cls.time} • {cls.duration}</Text>
+                      </View>
+                    ))
+                  )}
+                </View>
+              </View>
+            );
+          })}
+        </ScrollView>
+      </View>
+    );
+  };
+
+  const renderWeekView = () => {
+    const weekDates = getWeekDates(selectedWeek);
+    const timeSlots = getTimeSlots();
+
+    return (
+      <View style={styles.weekViewContainer}>
+        <View style={styles.weekViewHeader}>
+          <TouchableOpacity onPress={() => navigateDate(-1)} style={styles.weekNavButton}>
+            <Ionicons name="chevron-back" size={24} color={tokens.colors.onSurface} />
+          </TouchableOpacity>
+          <Text style={styles.weekViewTitle}>
+            {weekDates[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {weekDates[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+          </Text>
+          <TouchableOpacity onPress={() => navigateDate(1)} style={styles.weekNavButton}>
+            <Ionicons name="chevron-forward" size={24} color={tokens.colors.onSurface} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.weekDaysHeader}>
+          {weekDates.map((date, index) => (
+            <TouchableOpacity 
+              key={index} 
+              style={styles.weekDayColumn}
+              onPress={() => {
+                setSelectedDate(date);
+                setSelectedWeek(date); // Keep week in sync
+                setCalendarView('day');
+              }}
+            >
+              <Text style={styles.weekDayName}>
+                {date.toLocaleDateString('en-US', { weekday: 'short' })}
+              </Text>
+              <Text style={[
+                styles.weekDayNumber,
+                formatDate(date) === formatDate(new Date()) && styles.todayWeekDay
+              ]}>
+                {date.getDate()}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <ScrollView style={styles.weekViewScrollContainer} showsVerticalScrollIndicator={false}>
+          {timeSlots.map((slot) => (
+            <View key={slot.hour} style={styles.weekTimeSlotContainer}>
+              <View style={styles.weekTimeSlotHeader}>
+                <Text style={styles.weekTimeSlotText}>{slot.time}</Text>
+              </View>
+              <View style={styles.weekTimeSlotContent}>
+                {weekDates.map((date, dayIndex) => {
+                  const dayClasses = getClassesForDate(date).filter(cls => {
+                    const classTime = parseTime(cls.time);
+                    return Math.floor(classTime) === slot.hour;
+                  });
+
+                  return (
+                    <View key={dayIndex} style={styles.weekDayTimeSlot}>
+                      {dayClasses.map((cls) => (
+                        <View key={cls.id} style={styles.weekClassItem}>
+                          <Text style={styles.weekClassTitle} numberOfLines={1}>{cls.title}</Text>
+                          <Text style={styles.weekClassTime}>{cls.time}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  };
+
   const renderCalendarDay = (date, index) => {
     if (!date) {
       return <View key={index} style={styles.emptyDay} />;
@@ -374,7 +618,11 @@ const CalendarModal = ({ visible, onClose, classes, tokens }) => {
           isSelected && styles.selectedDay,
           isToday && styles.todayDay,
         ]}
-        onPress={() => setSelectedDate(date)}
+        onPress={() => {
+          setSelectedDate(date);
+          // Also update the week state to include this date's week
+          setSelectedWeek(date);
+        }}
       >
         <Text style={[
           styles.dayNumber,
@@ -581,46 +829,72 @@ const CalendarModal = ({ visible, onClose, classes, tokens }) => {
           </View>
         </View>
 
-        <View style={styles.calendarContainer}>
-          <View style={styles.monthHeader}>
-            <TouchableOpacity onPress={() => navigateMonth(-1)} style={styles.monthNavButton}>
-              <Ionicons name="chevron-back" size={24} color={tokens.colors.onSurface} />
+        {/* View Selector */}
+        <View style={styles.viewSelectorContainer}>
+          {['Day', 'Week', 'Month'].map((view) => (
+            <TouchableOpacity
+              key={view}
+              style={[
+                styles.viewSelectorButton,
+                calendarView === view.toLowerCase() && styles.viewSelectorButtonActive
+              ]}
+              onPress={() => handleViewChange(view.toLowerCase())}
+            >
+              <Text style={[
+                styles.viewSelectorText,
+                calendarView === view.toLowerCase() && styles.viewSelectorTextActive
+              ]}>
+                {view}
+              </Text>
             </TouchableOpacity>
-            <View style={styles.monthYearContainer}>
-              <TouchableOpacity onPress={() => setShowMonthPicker(true)} style={styles.monthYearButton}>
-                <Text style={styles.monthText}>
-                  {currentMonth.toLocaleDateString('en-US', { month: 'long' })}
-                </Text>
-                <Ionicons name="chevron-down" size={16} color={tokens.colors.onSurface} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setShowYearPicker(true)} style={styles.monthYearButton}>
-                <Text style={styles.yearText}>
-                  {currentMonth.getFullYear()}
-                </Text>
-                <Ionicons name="chevron-down" size={16} color={tokens.colors.onSurface} />
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity onPress={() => navigateMonth(1)} style={styles.monthNavButton}>
-              <Ionicons name="chevron-forward" size={24} color={tokens.colors.onSurface} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.weekDaysContainer}>
-            {weekDays.map((day) => (
-              <View key={day} style={styles.weekDayCell}>
-                <Text style={styles.weekDayText}>{day}</Text>
-              </View>
-            ))}
-          </View>
-
-          <View style={styles.calendarGrid}>
-            {days.map((date, index) => renderCalendarDay(date, index))}
-          </View>
+          ))}
         </View>
 
-        {renderSelectedDateClasses()}
-        {renderMonthPicker()}
-        {renderYearPicker()}
+        {/* Calendar Content */}
+        {calendarView === 'day' && renderDayView()}
+        {calendarView === 'week' && renderWeekView()}
+        {calendarView === 'month' && (
+          <View style={styles.calendarContainer}>
+            <View style={styles.monthHeader}>
+              <TouchableOpacity onPress={() => navigateMonth(-1)} style={styles.monthNavButton}>
+                <Ionicons name="chevron-back" size={24} color={tokens.colors.onSurface} />
+              </TouchableOpacity>
+              <View style={styles.monthYearContainer}>
+                <TouchableOpacity onPress={() => setShowMonthPicker(true)} style={styles.monthYearButton}>
+                  <Text style={styles.monthText}>
+                    {currentMonth.toLocaleDateString('en-US', { month: 'long' })}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color={tokens.colors.onSurface} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setShowYearPicker(true)} style={styles.monthYearButton}>
+                  <Text style={styles.yearText}>
+                    {currentMonth.getFullYear()}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color={tokens.colors.onSurface} />
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity onPress={() => navigateMonth(1)} style={styles.monthNavButton}>
+                <Ionicons name="chevron-forward" size={24} color={tokens.colors.onSurface} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.weekDaysContainer}>
+              {weekDays.map((day) => (
+                <View key={day} style={styles.weekDayCell}>
+                  <Text style={styles.weekDayText}>{day}</Text>
+                </View>
+              ))}
+            </View>
+
+            <View style={styles.calendarGrid}>
+              {days.map((date, index) => renderCalendarDay(date, index))}
+            </View>
+          </View>
+        )}
+
+        {calendarView === 'month' && renderSelectedDateClasses()}
+        {calendarView === 'month' && renderMonthPicker()}
+        {calendarView === 'month' && renderYearPicker()}
       </View>
     </Modal>
   );
@@ -631,7 +905,7 @@ export default function LiveClassesScreen() {
   const [selectedTab, setSelectedTab] = useState("All Classes");
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [calendarVisible, setCalendarVisible] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const styles = useThemedStyles(createStyles);
   const { tokens, getGradient } = useServiceTheme();
@@ -1105,9 +1379,6 @@ const createCalendarStyles = (tokens: any) =>
       fontWeight: tokens.typography.bold,
       color: tokens.colors.onSurface,
     },
-    closeButton: {
-      padding: tokens.spacing.sm,
-    },
     legendContainer: {
       flexDirection: 'row',
       justifyContent: 'space-around',
@@ -1412,5 +1683,224 @@ const createCalendarStyles = (tokens: any) =>
     yearGridItemTextSelected: {
       color: tokens.colors.onPrimary,
       fontWeight: tokens.typography.bold,
+    },
+    // View Selector styles
+    viewSelectorContainer: {
+      flexDirection: 'row',
+      backgroundColor: tokens.colors.surface,
+      marginHorizontal: tokens.spacing.md,
+      marginVertical: tokens.spacing.sm,
+      borderRadius: tokens.borderRadius.md,
+      padding: 4,
+      borderWidth: 1,
+      borderColor: tokens.colors.border,
+    },
+    viewSelectorButton: {
+      flex: 1,
+      paddingVertical: tokens.spacing.sm,
+      paddingHorizontal: tokens.spacing.md,
+      borderRadius: tokens.borderRadius.sm,
+      alignItems: 'center',
+    },
+    viewSelectorButtonActive: {
+      backgroundColor: tokens.colors.primary,
+    },
+    viewSelectorText: {
+      fontSize: tokens.typography.body,
+      fontWeight: '500',
+      color: tokens.colors.onSurfaceVariant,
+    },
+    viewSelectorTextActive: {
+      color: tokens.colors.onPrimary,
+      fontWeight: '600',
+    },
+    // Day View styles
+    dayViewContainer: {
+      flex: 1,
+      backgroundColor: tokens.colors.surface,
+    },
+    dayViewHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: tokens.spacing.md,
+      backgroundColor: tokens.colors.surfaceVariant,
+      borderBottomWidth: 1,
+      borderBottomColor: tokens.colors.border,
+    },
+    dayNavButton: {
+      padding: tokens.spacing.sm,
+    },
+    dayViewDateContainer: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    dayViewDate: {
+      fontSize: tokens.typography.subtitle,
+      fontWeight: tokens.typography.semiBold,
+      color: tokens.colors.onSurface,
+    },
+    dayViewScrollContainer: {
+      flex: 1,
+    },
+    timeSlotContainer: {
+      flexDirection: 'row',
+      borderBottomWidth: 1,
+      borderBottomColor: tokens.colors.border,
+      minHeight: 80,
+    },
+    timeSlotHeader: {
+      width: 80,
+      paddingVertical: tokens.spacing.sm,
+      paddingHorizontal: tokens.spacing.xs,
+      backgroundColor: tokens.colors.surfaceVariant,
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+      borderRightWidth: 1,
+      borderRightColor: tokens.colors.border,
+    },
+    timeSlotText: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+      fontWeight: '500',
+    },
+    timeSlotContent: {
+      flex: 1,
+      padding: tokens.spacing.sm,
+    },
+    emptyTimeSlot: {
+      height: 60,
+    },
+    dayClassItem: {
+      backgroundColor: tokens.colors.primaryContainer,
+      borderRadius: tokens.borderRadius.sm,
+      padding: tokens.spacing.sm,
+      marginBottom: tokens.spacing.xs,
+      borderLeftWidth: 4,
+      borderLeftColor: tokens.colors.primary,
+    },
+    dayClassHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: tokens.spacing.xs,
+    },
+    dayClassTitle: {
+      fontSize: tokens.typography.body,
+      fontWeight: tokens.typography.semiBold,
+      color: tokens.colors.onSurface,
+      marginBottom: tokens.spacing.xs,
+    },
+    dayClassInstructor: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+      marginBottom: tokens.spacing.xs,
+    },
+    dayClassTime: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.primary,
+      fontWeight: '500',
+    },
+    // Week View styles
+    weekViewContainer: {
+      flex: 1,
+      backgroundColor: tokens.colors.surface,
+    },
+    weekViewHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: tokens.spacing.md,
+      backgroundColor: tokens.colors.surfaceVariant,
+      borderBottomWidth: 1,
+      borderBottomColor: tokens.colors.border,
+    },
+    weekNavButton: {
+      padding: tokens.spacing.sm,
+    },
+    weekViewTitle: {
+      fontSize: tokens.typography.subtitle,
+      fontWeight: tokens.typography.semiBold,
+      color: tokens.colors.onSurface,
+    },
+    weekDaysHeader: {
+      flexDirection: 'row',
+      backgroundColor: tokens.colors.surfaceVariant,
+      borderBottomWidth: 1,
+      borderBottomColor: tokens.colors.border,
+    },
+    weekDayColumn: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: tokens.spacing.sm,
+      borderRightWidth: 1,
+      borderRightColor: tokens.colors.border,
+    },
+    weekDayName: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+      fontWeight: '500',
+    },
+    weekDayNumber: {
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onSurface,
+      fontWeight: tokens.typography.semiBold,
+      marginTop: 2,
+    },
+    todayWeekDay: {
+      color: tokens.colors.primary,
+      fontWeight: tokens.typography.bold,
+    },
+    weekViewScrollContainer: {
+      flex: 1,
+    },
+    weekTimeSlotContainer: {
+      flexDirection: 'row',
+      borderBottomWidth: 1,
+      borderBottomColor: tokens.colors.border,
+      minHeight: 60,
+    },
+    weekTimeSlotHeader: {
+      width: 80,
+      paddingVertical: tokens.spacing.sm,
+      paddingHorizontal: tokens.spacing.xs,
+      backgroundColor: tokens.colors.surfaceVariant,
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+      borderRightWidth: 1,
+      borderRightColor: tokens.colors.border,
+    },
+    weekTimeSlotText: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+      fontWeight: '500',
+    },
+    weekTimeSlotContent: {
+      flex: 1,
+      flexDirection: 'row',
+    },
+    weekDayTimeSlot: {
+      flex: 1,
+      padding: 2,
+      borderRightWidth: 1,
+      borderRightColor: tokens.colors.border,
+    },
+    weekClassItem: {
+      backgroundColor: tokens.colors.primaryContainer,
+      borderRadius: tokens.borderRadius.xs,
+      padding: tokens.spacing.xs,
+      marginBottom: 2,
+      borderLeftWidth: 2,
+      borderLeftColor: tokens.colors.primary,
+    },
+    weekClassTitle: {
+      fontSize: tokens.typography.caption,
+      fontWeight: tokens.typography.semiBold,
+      color: tokens.colors.onSurface,
+      marginBottom: 1,
+    },
+    weekClassTime: {
+      fontSize: 10,
+      color: tokens.colors.primary,
+      fontWeight: '500',
     },
   });
