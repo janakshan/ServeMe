@@ -278,23 +278,54 @@ EOF
         "android/app/src/main/res/mipmap-xxxhdpi"
     )
     
-    # Remove duplicate launcher icons (prefer webp over png for smaller size)
+    # Remove ALL duplicate launcher icons comprehensively (prefer webp over png for smaller size)
     for dir in "${mipmap_dirs[@]}"; do
         if [ -d "$dir" ]; then
-            # Remove PNG versions if WebP versions exist
-            if [ -f "$dir/ic_launcher.webp" ] && [ -f "$dir/ic_launcher.png" ]; then
-                print_status "Removing duplicate ic_launcher.png in $(basename "$dir")"
-                rm -f "$dir/ic_launcher.png"
+            print_status "Checking for icon duplicates in $(basename "$dir")"
+            
+            # Find all PNG files that start with ic_launcher
+            local png_files=$(find "$dir" -name "ic_launcher*.png" -type f 2>/dev/null)
+            
+            if [ -n "$png_files" ]; then
+                # Process each PNG file
+                echo "$png_files" | while read -r png_file; do
+                    if [ -f "$png_file" ]; then
+                        # Get the base name without extension
+                        local base_name=$(basename "$png_file" .png)
+                        local webp_file="$dir/${base_name}.webp"
+                        
+                        # If WebP version exists, remove PNG
+                        if [ -f "$webp_file" ]; then
+                            print_status "Removing duplicate ${base_name}.png in $(basename "$dir")"
+                            rm -f "$png_file"
+                        else
+                            print_status "Keeping ${base_name}.png (no WebP alternative) in $(basename "$dir")"
+                        fi
+                    fi
+                done
             fi
             
-            if [ -f "$dir/ic_launcher_round.webp" ] && [ -f "$dir/ic_launcher_round.png" ]; then
-                print_status "Removing duplicate ic_launcher_round.png in $(basename "$dir")"
-                rm -f "$dir/ic_launcher_round.png"
+            # Also check for any remaining duplicates by scanning WebP files
+            local webp_files=$(find "$dir" -name "ic_launcher*.webp" -type f 2>/dev/null)
+            if [ -n "$webp_files" ]; then
+                echo "$webp_files" | while read -r webp_file; do
+                    if [ -f "$webp_file" ]; then
+                        local base_name=$(basename "$webp_file" .webp)
+                        local png_file="$dir/${base_name}.png"
+                        
+                        # Remove any remaining PNG duplicates
+                        if [ -f "$png_file" ]; then
+                            print_status "Removing remaining duplicate ${base_name}.png in $(basename "$dir")"
+                            rm -f "$png_file"
+                        fi
+                    fi
+                done
             fi
             
-            # If only PNG exists, keep it (fallback scenario)
-            if [ ! -f "$dir/ic_launcher.webp" ] && [ ! -f "$dir/ic_launcher.png" ]; then
-                print_warning "No launcher icon found in $(basename "$dir")"
+            # Verify we have at least one launcher icon
+            local launcher_count=$(find "$dir" -name "ic_launcher.*" -type f 2>/dev/null | wc -l)
+            if [ "$launcher_count" -eq 0 ]; then
+                print_warning "No launcher icons found in $(basename "$dir") after cleanup"
             fi
         fi
     done
@@ -409,8 +440,9 @@ validate_android_resources() {
         fix_resource_conflicts
     fi
     
-    # Check for duplicate launcher icons
+    # Check for ALL types of duplicate launcher icons dynamically
     local icon_conflicts=false
+    local duplicate_count=0
     local mipmap_dirs=(
         "android/app/src/main/res/mipmap-hdpi"
         "android/app/src/main/res/mipmap-mdpi" 
@@ -421,22 +453,55 @@ validate_android_resources() {
     
     for dir in "${mipmap_dirs[@]}"; do
         if [ -d "$dir" ]; then
-            # Check for duplicate ic_launcher
-            if [ -f "$dir/ic_launcher.webp" ] && [ -f "$dir/ic_launcher.png" ]; then
-                icon_conflicts=true
-                break
-            fi
-            # Check for duplicate ic_launcher_round
-            if [ -f "$dir/ic_launcher_round.webp" ] && [ -f "$dir/ic_launcher_round.png" ]; then
-                icon_conflicts=true
-                break
+            # Find all PNG files that start with ic_launcher
+            local png_files=$(find "$dir" -name "ic_launcher*.png" -type f 2>/dev/null)
+            
+            if [ -n "$png_files" ]; then
+                # Check each PNG file for WebP duplicate
+                echo "$png_files" | while read -r png_file; do
+                    if [ -f "$png_file" ]; then
+                        local base_name=$(basename "$png_file" .png)
+                        local webp_file="$dir/${base_name}.webp"
+                        
+                        if [ -f "$webp_file" ]; then
+                            icon_conflicts=true
+                            duplicate_count=$((duplicate_count + 1))
+                            print_status "Found duplicate: ${base_name} in $(basename "$dir")"
+                        fi
+                    fi
+                done
+                
+                # If we found conflicts in this directory, we can break early
+                if [ "$icon_conflicts" = true ]; then
+                    break
+                fi
             fi
         fi
     done
     
+    # Additional check using a more direct approach
+    if [ "$icon_conflicts" = false ]; then
+        # Use find to directly count duplicates across all mipmap directories
+        local png_count=$(find android/app/src/main/res/mipmap-* -name "ic_launcher*.png" -type f 2>/dev/null | wc -l)
+        local webp_count=$(find android/app/src/main/res/mipmap-* -name "ic_launcher*.webp" -type f 2>/dev/null | wc -l)
+        
+        if [ "$png_count" -gt 0 ] && [ "$webp_count" -gt 0 ]; then
+            # Check if there are actual duplicates by comparing base names
+            local total_unique=$(find android/app/src/main/res/mipmap-* -name "ic_launcher*" -type f 2>/dev/null | sed 's/\.[^.]*$//' | sort -u | wc -l)
+            local total_files=$(find android/app/src/main/res/mipmap-* -name "ic_launcher*" -type f 2>/dev/null | wc -l)
+            
+            if [ "$total_files" -gt "$total_unique" ]; then
+                icon_conflicts=true
+                print_status "Detected $png_count PNG and $webp_count WebP launcher icons with potential conflicts"
+            fi
+        fi
+    fi
+    
     if [ "$icon_conflicts" = true ]; then
         print_warning "Found duplicate launcher icons (.webp and .png). Fixing..."
         fix_resource_conflicts
+    else
+        print_status "No duplicate launcher icons detected"
     fi
     
     # Check for potential resource conflicts in drawable directories
