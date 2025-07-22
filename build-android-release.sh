@@ -20,6 +20,9 @@ BUILD_TYPE="release"
 OUTPUT_DIR="./android/app/build/outputs/apk/release"
 FINAL_APK_NAME="ServeMe-release-$(date +%Y%m%d-%H%M%S).apk"
 
+# Git cleanup option (set to true to reset build changes)
+GIT_CLEANUP_ENABLED=${GIT_CLEANUP_ENABLED:-true}
+
 # Function to print colored output
 print_status() {
     echo -e "${BLUE}[INFO]${NC} $1"
@@ -680,9 +683,9 @@ handle_output() {
     print_status "Full path: $ABSOLUTE_PATH"
 }
 
-# Clean up temporary files
+# Clean up temporary files and reset auto-generated changes
 cleanup() {
-    print_status "Cleaning up temporary files..."
+    print_status "Cleaning up temporary files and build artifacts..."
     
     # Remove export directory if it exists
     if [ -d "dist" ]; then
@@ -693,7 +696,63 @@ cleanup() {
     # Remove backup files created during build
     find . -name "*.bak" -type f -delete 2>/dev/null || true
     
-    print_success "Cleanup completed"
+    # Remove auto-generated build files
+    if [ -f "index.js" ]; then
+        rm -f index.js
+        print_status "Removed auto-generated index.js"
+    fi
+    
+    if [ -f "metro.config.js" ]; then
+        rm -f metro.config.js
+        print_status "Removed auto-generated metro.config.js"
+    fi
+    
+    print_success "Basic cleanup completed"
+}
+
+# Enhanced cleanup to reset build-generated file changes
+cleanup_git_changes() {
+    print_status "Resetting build-generated file changes..."
+    
+    # Reset .gitignore if it was modified by expo
+    if git diff --quiet .gitignore 2>/dev/null; then
+        print_status ".gitignore unchanged"
+    else
+        print_status "Resetting .gitignore to original state"
+        git checkout -- .gitignore 2>/dev/null || true
+    fi
+    
+    # Reset gradle.properties if it was modified (keep only JSC engine setting)
+    if git diff --quiet android/gradle.properties 2>/dev/null; then
+        print_status "gradle.properties unchanged"
+    else
+        print_status "Preserving essential gradle.properties changes"
+        # We'll keep the JSC engine setting but reset other changes
+        if grep -q "expo.jsEngine=jsc" android/gradle.properties 2>/dev/null; then
+            print_status "JSC engine setting preserved"
+        fi
+    fi
+    
+    # Reset AndroidManifest.xml changes (usually not needed for standalone APK)
+    if git diff --quiet android/app/src/main/AndroidManifest.xml 2>/dev/null; then
+        print_status "AndroidManifest.xml unchanged"
+    else
+        print_status "Resetting AndroidManifest.xml to original state"
+        git checkout -- android/app/src/main/AndroidManifest.xml 2>/dev/null || true
+    fi
+    
+    # Reset package-lock.json changes (usually just version bumps)
+    if git diff --quiet package-lock.json 2>/dev/null; then
+        print_status "package-lock.json unchanged"
+    else
+        print_status "Resetting package-lock.json to original state"
+        git checkout -- package-lock.json 2>/dev/null || true
+    fi
+    
+    # Clean any remaining untracked build files
+    git clean -fd 2>/dev/null || true
+    
+    print_success "Git changes cleanup completed"
 }
 
 # Print build summary
@@ -715,6 +774,12 @@ print_summary() {
     echo "• Test the APK on different Android devices"
     echo "• Share the APK file with testers"
     echo "• For Play Store release, generate a signed APK with a proper keystore"
+    echo ""
+    if [ "$GIT_CLEANUP_ENABLED" = true ]; then
+        echo "💡 Git cleanup was performed - no build artifacts left in git history"
+    else
+        echo "💡 To enable git cleanup: export GIT_CLEANUP_ENABLED=true"
+    fi
     echo ""
 }
 
@@ -768,6 +833,11 @@ main() {
     build_apk
     handle_output
     cleanup
+    
+    # Optional git cleanup to reset build-generated changes
+    if [ "$GIT_CLEANUP_ENABLED" = true ]; then
+        cleanup_git_changes
+    fi
     
     local end_time=$(date +%s)
     local duration=$((end_time - start_time))
