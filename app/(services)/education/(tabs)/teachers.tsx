@@ -17,10 +17,12 @@ const MOCK_TEACHERS = [
   {
     id: "1",
     name: "Prof. Murugesan Sivasubramaniam",
+    profileImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face&fm=jpg&q=80",
     specialization: "A/L Combined Mathematics",
     bio: "Senior mathematics educator with 15+ years of experience in A/L mathematics teaching. Former lecturer at University of Jaffna.",
     rating: 4.9,
     studentsCount: 3200,
+    activeStudents: 2850,
     coursesCount: 8,
     subjects: ["Combined Mathematics", "Pure Mathematics", "Applied Mathematics"],
     experience: "15 years",
@@ -60,6 +62,155 @@ const MOCK_TEACHERS = [
         year: "2008"
       }
     ],
+    courses: [
+      {
+        id: "c1",
+        title: "A/L Combined Mathematics - Advanced",
+        description: "Comprehensive course covering calculus, statistics, and mechanics for A/L Mathematics stream students.",
+        level: "expert",
+        duration: "2 years",
+        price: 25000,
+        studentsEnrolled: 450,
+        activeStudents: 420,
+        completionRate: 85,
+        rating: 4.9,
+        category: "A/L Preparation",
+        isActive: true,
+        startDate: "2025-01-15",
+        progress: 65
+      },
+      {
+        id: "c2",
+        title: "Pure Mathematics Fundamentals",
+        description: "Building strong foundations in pure mathematics concepts for advanced learners.",
+        level: "advanced",
+        duration: "1.5 years",
+        price: 20000,
+        studentsEnrolled: 380,
+        activeStudents: 350,
+        completionRate: 78,
+        rating: 4.8,
+        category: "A/L Preparation",
+        isActive: true,
+        startDate: "2025-02-01",
+        progress: 45
+      },
+      {
+        id: "c3",
+        title: "Applied Mathematics for Engineering",
+        description: "Practical mathematics applications for students preparing for engineering entrance exams.",
+        level: "expert",
+        duration: "1 year",
+        price: 18000,
+        studentsEnrolled: 320,
+        activeStudents: 295,
+        completionRate: 90,
+        rating: 4.9,
+        category: "A/L Preparation",
+        isActive: true,
+        startDate: "2024-11-01",
+        progress: 80
+      },
+      {
+        id: "c3a",
+        title: "Statistics for Data Analysis",
+        description: "Advanced statistical methods and data interpretation for research and analysis.",
+        level: "expert",
+        duration: "1 year",
+        price: 15000,
+        studentsEnrolled: 280,
+        activeStudents: 260,
+        completionRate: 88,
+        rating: 4.7,
+        category: "A/L Preparation",
+        isActive: true,
+        startDate: "2025-03-01",
+        progress: 25
+      },
+      {
+        id: "c3b",
+        title: "Differential Equations Masterclass",
+        description: "Master complex differential equations for advanced mathematics students.",
+        level: "expert",
+        duration: "8 months",
+        price: 12000,
+        studentsEnrolled: 195,
+        activeStudents: 180,
+        completionRate: 82,
+        rating: 4.8,
+        category: "A/L Preparation",
+        isActive: true,
+        startDate: "2024-09-15",
+        progress: 90
+      }
+    ],
+    liveClasses: [
+      {
+        id: "lc1",
+        title: "A/L Combined Mathematics - Calculus Problem Solving",
+        subject: "Mathematics",
+        date: "2025-07-25",
+        time: "10:00 AM",
+        duration: "3 hours",
+        status: "upcoming",
+        studentsCount: 48,
+        maxStudents: 50,
+        description: "Advanced calculus problem-solving session for A/L Mathematics stream students.",
+        isRegistered: true
+      },
+      {
+        id: "lc2",
+        title: "Statistics and Probability Workshop",
+        subject: "Mathematics",
+        date: "2025-07-30",
+        time: "2:00 PM",
+        duration: "2.5 hours",
+        status: "upcoming",
+        studentsCount: 35,
+        maxStudents: 40,
+        description: "Interactive workshop on statistical analysis and probability distributions.",
+        isRegistered: false
+      },
+      {
+        id: "lc3",
+        title: "Mechanics and Motion - Advanced Concepts",
+        subject: "Mathematics",
+        date: "2025-07-18",
+        time: "10:00 AM",
+        duration: "2 hours",
+        status: "completed",
+        studentsCount: 50,
+        maxStudents: 50,
+        description: "Advanced mechanics concepts with real-world applications.",
+        isRegistered: true
+      },
+      {
+        id: "lc4",
+        title: "Advanced Statistics Workshop",
+        subject: "Mathematics",
+        date: "2025-08-10",
+        time: "3:00 PM",
+        duration: "2 hours",
+        status: "upcoming",
+        studentsCount: 42,
+        maxStudents: 45,
+        description: "Deep dive into advanced statistical concepts and applications.",
+        isRegistered: false
+      },
+      {
+        id: "lc5",
+        title: "Differential Equations Live Session",
+        subject: "Mathematics",
+        date: "2025-08-15",
+        time: "10:00 AM",
+        duration: "2.5 hours",
+        status: "upcoming",
+        studentsCount: 38,
+        maxStudents: 40,
+        description: "Solving complex differential equations with real examples.",
+        isRegistered: true
+      }
+    ],
     studentRecommendations: [
       {
         id: "1",
@@ -90,10 +241,12 @@ const MOCK_TEACHERS = [
   {
     id: "2",
     name: "Dr. Priya Rajendran",
+    profileImage: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop&crop=face&fm=jpg&q=80",
     specialization: "A/L Biology",
     bio: "Experienced biology teacher with Ph.D. in Botany from University of Jaffna. Specialized in A/L Biological Science stream preparation.",
     rating: 4.9,
     studentsCount: 2890,
+    activeStudents: 2650,
     coursesCount: 6,
     subjects: ["Biology", "Botany", "Zoology", "Human Biology"],
     experience: "12 years",
@@ -127,6 +280,97 @@ const MOCK_TEACHERS = [
         year: "2010"
       }
     ],
+    courses: [
+      {
+        id: "c4",
+        title: "A/L Biology - Complete Course",
+        description: "Comprehensive A/L Biology covering botany, zoology, and human biology with practical sessions.",
+        level: "expert",
+        duration: "2 years",
+        price: 24000,
+        studentsEnrolled: 520,
+        activeStudents: 480,
+        completionRate: 88,
+        rating: 4.9,
+        category: "A/L Preparation",
+        isActive: true,
+        startDate: "2025-01-10",
+        progress: 55
+      },
+      {
+        id: "c5",
+        title: "Advanced Botany Studies",
+        description: "Specialized botany course focusing on plant physiology, taxonomy, and ecology.",
+        level: "expert",
+        duration: "1.5 years",
+        price: 20000,
+        studentsEnrolled: 285,
+        activeStudents: 270,
+        completionRate: 92,
+        rating: 4.8,
+        category: "A/L Preparation",
+        isActive: true,
+        startDate: "2024-08-15",
+        progress: 75
+      },
+      {
+        id: "c6",
+        title: "Human Biology & Physiology",
+        description: "Detailed study of human body systems for biological science students.",
+        level: "advanced",
+        duration: "1 year",
+        price: 18000,
+        studentsEnrolled: 360,
+        activeStudents: 340,
+        completionRate: 85,
+        rating: 4.7,
+        category: "A/L Preparation",
+        isActive: true,
+        startDate: "2025-03-01",
+        progress: 30
+      }
+    ],
+    liveClasses: [
+      {
+        id: "lc4",
+        title: "A/L Biology - Human Physiology Deep Dive",
+        subject: "Science",
+        date: "2025-07-28",
+        time: "2:00 PM",
+        duration: "2.5 hours",
+        status: "upcoming",
+        studentsCount: 68,
+        maxStudents: 75,
+        description: "Comprehensive session on human circulatory and respiratory systems with virtual lab demonstrations.",
+        isRegistered: true
+      },
+      {
+        id: "lc5",
+        title: "Plant Biology Lab Session",
+        subject: "Science",
+        date: "2025-08-05",
+        time: "10:00 AM",
+        duration: "3 hours",
+        status: "upcoming",
+        studentsCount: 45,
+        maxStudents: 50,
+        description: "Virtual laboratory session on plant anatomy and photosynthesis experiments.",
+        isRegistered: false
+      },
+      {
+        id: "lc6",
+        title: "Ecology and Environmental Biology",
+        subject: "Science",
+        date: "2025-07-15",
+        time: "3:00 PM",
+        duration: "2 hours",
+        status: "completed",
+        studentsCount: 72,
+        maxStudents: 75,
+        description: "Interactive session on ecosystem dynamics and environmental conservation.",
+        isRegistered: true
+      }
+    ],
     studentRecommendations: [
       {
         id: "1",
@@ -149,10 +393,12 @@ const MOCK_TEACHERS = [
   {
     id: "3",
     name: "Ravi Shankar",
+    profileImage: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face&fm=jpg&q=80",
     specialization: "O/L Mathematics",
     bio: "Dedicated mathematics teacher with B.Ed. from University of Jaffna. Expert in O/L mathematics preparation with bilingual teaching skills.",
     rating: 4.8,
     studentsCount: 4500,
+    activeStudents: 4100,
     coursesCount: 10,
     subjects: ["O/L Mathematics", "Algebra", "Geometry", "Statistics"],
     experience: "18 years",
@@ -208,10 +454,12 @@ const MOCK_TEACHERS = [
   {
     id: "4",
     name: "Dr. Kamala Thanabalasingham",
+    profileImage: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face&fm=jpg&q=80",
     specialization: "O/L Science",
     bio: "Science educator with M.Sc. in Chemistry from University of Jaffna. Specializes in integrated science teaching for O/L students.",
     rating: 4.8,
     studentsCount: 3680,
+    activeStudents: 3400,
     coursesCount: 7,
     subjects: ["O/L Science", "Chemistry", "Physics", "Biology"],
     experience: "14 years",
@@ -249,10 +497,12 @@ const MOCK_TEACHERS = [
   {
     id: "5",
     name: "Suresh Kandasamy",
+    profileImage: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face&fm=jpg&q=80",
     specialization: "Tamil Language & Literature",
     bio: "Tamil language expert with M.A. in Tamil Literature from University of Jaffna. Teaching both O/L and A/L Tamil literature.",
     rating: 4.7,
     studentsCount: 2150,
+    activeStudents: 1980,
     coursesCount: 5,
     subjects: ["Tamil Literature", "Tamil Language", "Poetry", "Classical Literature"],
     experience: "20 years",
@@ -290,10 +540,12 @@ const MOCK_TEACHERS = [
   {
     id: "6",
     name: "Prof. Mythili Rajasingam",
+    profileImage: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face&fm=jpg&q=80",
     specialization: "History",
     bio: "History professor with expertise in Sri Lankan Tamil history and world civilizations. Former head of History department at University of Jaffna.",
     rating: 4.6,
     studentsCount: 1890,
+    activeStudents: 1650,
     coursesCount: 9,
     subjects: ["Sri Lankan History", "World History", "Ancient Civilizations", "Modern History"],
     experience: "22 years",
@@ -337,10 +589,12 @@ const MOCK_TEACHERS = [
   {
     id: "7",
     name: "Dr. Krishnan Nadarajah",
+    profileImage: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=face&fm=jpg&q=80",
     specialization: "A/L Physics",
     bio: "Physics educator with Ph.D. in Applied Physics from University of Jaffna. Specialized in A/L Physics for Mathematics stream students.",
     rating: 4.8,
     studentsCount: 2340,
+    activeStudents: 2180,
     coursesCount: 6,
     subjects: ["A/L Physics", "Mechanics", "Electricity", "Modern Physics"],
     experience: "13 years",
@@ -378,10 +632,12 @@ const MOCK_TEACHERS = [
   {
     id: "8",
     name: "Geetha Mahendran",
+    profileImage: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop&crop=face&fm=jpg&q=80",
     specialization: "English Language",
     bio: "English language teacher with B.A. in English Literature from University of Jaffna. Expert in English language development for all levels.",
     rating: 4.7,
     studentsCount: 5200,
+    activeStudents: 4850,
     coursesCount: 12,
     subjects: ["English Grammar", "English Literature", "Composition", "Speaking Skills"],
     experience: "16 years",
@@ -420,6 +676,170 @@ const MOCK_TEACHERS = [
 
 const SUBJECT_FILTERS = ["All", "Mathematics", "Science", "Languages", "Arts & Humanities", "Social Studies"];
 
+interface TeacherCourseCardProps {
+  course: any;
+  onPress?: (courseId: string) => void;
+}
+
+const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({ course, onPress }) => {
+  const styles = useThemedStyles(createTeacherCourseCardStyles);
+  const { tokens } = useServiceTheme();
+
+  const getLevelColor = (level: string) => {
+    switch (level) {
+      case "beginner":
+        return tokens.colors.success;
+      case "intermediate":
+        return tokens.colors.warning;
+      case "advanced":
+        return tokens.colors.error;
+      case "expert":
+        return tokens.colors.info;
+      default:
+        return tokens.colors.onSurfaceVariant;
+    }
+  };
+
+  const handlePress = () => {
+    if (onPress) {
+      onPress(course.id);
+    }
+  };
+
+  return (
+    <TouchableOpacity
+      style={styles.courseCard}
+      onPress={handlePress}
+      activeOpacity={0.7}
+    >
+      <View style={styles.courseHeader}>
+        <View style={[styles.levelBadge, { backgroundColor: getLevelColor(course.level) }]}>
+          <Text style={styles.levelText}>{course.level}</Text>
+        </View>
+        <Text style={styles.coursePrice}>${course.price}</Text>
+      </View>
+
+      <Text style={styles.courseTitle} numberOfLines={2}>
+        {course.title}
+      </Text>
+      
+      <Text style={styles.courseDescription} numberOfLines={3}>
+        {course.description}
+      </Text>
+
+      <View style={styles.courseStats}>
+        <View style={styles.statItem}>
+          <Ionicons name="people" size={14} color={tokens.colors.onSurfaceVariant} />
+          <Text style={styles.statText}>{course.studentsEnrolled}</Text>
+        </View>
+        <View style={styles.statItem}>
+          <Ionicons name="star" size={14} color={tokens.colors.warning} />
+          <Text style={styles.statText}>{course.rating}</Text>
+        </View>
+        <View style={styles.statItem}>
+          <Ionicons name="time" size={14} color={tokens.colors.onSurfaceVariant} />
+          <Text style={styles.statText}>{course.duration}</Text>
+        </View>
+      </View>
+
+      <View style={styles.progressSection}>
+        <View style={styles.progressBar}>
+          <View
+            style={[
+              styles.progressFill,
+              {
+                width: `${course.progress}%`,
+                backgroundColor: tokens.colors.primary,
+              },
+            ]}
+          />
+        </View>
+        <Text style={styles.progressText}>{course.progress}% Progress</Text>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+interface TeacherLiveClassCardProps {
+  liveClass: any;
+  onPress?: (classId: string) => void;
+}
+
+const TeacherLiveClassCard: React.FC<TeacherLiveClassCardProps> = ({ liveClass, onPress }) => {
+  const styles = useThemedStyles(createTeacherLiveClassCardStyles);
+  const { tokens } = useServiceTheme();
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "live":
+        return tokens.colors.error;
+      case "upcoming":
+        return tokens.colors.primary;
+      case "completed":
+        return tokens.colors.success;
+      default:
+        return tokens.colors.onSurfaceVariant;
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "live":
+        return "🔴 Live Now";
+      case "upcoming":
+        return "📅 Upcoming";
+      case "completed":
+        return "✅ Completed";
+      default:
+        return status;
+    }
+  };
+
+  const handlePress = () => {
+    if (onPress) {
+      onPress(liveClass.id);
+    }
+  };
+
+  return (
+    <TouchableOpacity
+      style={styles.classCard}
+      onPress={handlePress}
+      activeOpacity={0.7}
+    >
+      <View style={styles.classHeader}>
+        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(liveClass.status) + '20' }]}>
+          <Text style={[styles.statusText, { color: getStatusColor(liveClass.status) }]}>
+            {getStatusText(liveClass.status)}
+          </Text>
+        </View>
+      </View>
+
+      <Text style={styles.classTitle} numberOfLines={2}>
+        {liveClass.title}
+      </Text>
+
+      <View style={styles.classInfo}>
+        <View style={styles.infoItem}>
+          <Ionicons name="calendar" size={14} color={tokens.colors.onSurfaceVariant} />
+          <Text style={styles.infoText}>{liveClass.date}</Text>
+        </View>
+        <View style={styles.infoItem}>
+          <Ionicons name="time" size={14} color={tokens.colors.onSurfaceVariant} />
+          <Text style={styles.infoText}>{liveClass.time}</Text>
+        </View>
+      </View>
+
+      <View style={styles.studentsInfo}>
+        <Ionicons name="people" size={14} color={tokens.colors.onSurfaceVariant} />
+        <Text style={styles.studentsText}>
+          {liveClass.studentsCount}/{liveClass.maxStudents} students
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
 interface TeacherCardProps {
   teacher: any;
   onPress: (teacher: any) => void;
@@ -450,19 +870,34 @@ const TeacherCard: React.FC<TeacherCardProps> = ({ teacher, onPress }) => {
     >
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
-          <Text style={styles.avatarText}>
-            {teacher.name.split(" ").map((n: string) => n[0]).join("")}
-          </Text>
+          {teacher.profileImage ? (
+            <Image
+              source={{ uri: teacher.profileImage }}
+              style={styles.profileImage}
+              onError={() => {
+                // Fallback to text avatar if image fails
+              }}
+            />
+          ) : (
+            <Text style={styles.avatarText}>
+              {teacher.name.split(" ").map((n: string) => n[0]).join("")}
+            </Text>
+          )}
         </View>
         <View style={styles.headerInfo}>
           <Text style={styles.name}>{teacher.name}</Text>
           <Text style={styles.specialization}>{teacher.specialization}</Text>
           <View style={styles.institutionRow}>
-            <Ionicons 
-              name={getInstitutionIcon(teacher.institutionType)} 
-              size={14} 
-              color={tokens.colors.onSurfaceVariant} 
-            />
+            <View style={[styles.institutionBadge, { backgroundColor: tokens.colors.secondaryContainer }]}>
+              <Ionicons 
+                name={getInstitutionIcon(teacher.institutionType)} 
+                size={12} 
+                color={tokens.colors.onSecondaryContainer} 
+              />
+              <Text style={[styles.institutionBadgeText, { color: tokens.colors.onSecondaryContainer }]}>
+                {teacher.institutionType}
+              </Text>
+            </View>
             <Text style={styles.institutionText}>{teacher.currentInstitution}</Text>
           </View>
           <View style={styles.ratingRow}>
@@ -522,6 +957,8 @@ interface TeacherModalProps {
 const TeacherModal: React.FC<TeacherModalProps> = ({ teacher, visible, onClose }) => {
   const styles = useThemedStyles(createModalStyles);
   const { tokens } = useServiceTheme();
+  const [showAllCourses, setShowAllCourses] = useState(false);
+  const [showAllClasses, setShowAllClasses] = useState(false);
 
   if (!teacher) return null;
 
@@ -533,19 +970,40 @@ const TeacherModal: React.FC<TeacherModalProps> = ({ teacher, visible, onClose }
       onRequestClose={onClose}
     >
       <View style={styles.container}>
-        <View style={styles.header}>
+        <LinearGradient
+          colors={[tokens.colors.primary, tokens.colors.primaryLight]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.header}
+        >
           <Text style={styles.title}>Teacher Profile</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Ionicons name="close" size={24} color={tokens.colors.onSurface} />
+            <Ionicons name="close" size={24} color="#FFFFFF" />
           </TouchableOpacity>
-        </View>
+        </LinearGradient>
 
         <ScrollView style={styles.content}>
-          <View style={styles.teacherHeader}>
+          <LinearGradient
+            colors={[tokens.colors.primary + '15', 'transparent']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={styles.teacherHeaderGradient}
+          >
+            <View style={styles.teacherHeader}>
             <View style={styles.avatarLarge}>
-              <Text style={styles.avatarLargeText}>
-                {teacher.name.split(" ").map((n: string) => n[0]).join("")}
-              </Text>
+              {teacher.profileImage ? (
+                <Image
+                  source={{ uri: teacher.profileImage }}
+                  style={styles.profileImageLarge}
+                  onError={() => {
+                    // Fallback to text avatar if image fails
+                  }}
+                />
+              ) : (
+                <Text style={styles.avatarLargeText}>
+                  {teacher.name.split(" ").map((n: string) => n[0]).join("")}
+                </Text>
+              )}
             </View>
             <Text style={styles.teacherName}>{teacher.name}</Text>
             <Text style={styles.teacherSpecialization}>{teacher.specialization}</Text>
@@ -555,25 +1013,58 @@ const TeacherModal: React.FC<TeacherModalProps> = ({ teacher, visible, onClose }
               <Text style={styles.ratingLarge}>{teacher.rating}</Text>
               <Text style={styles.ratingCountLarge}>({teacher.studentsCount} students)</Text>
             </View>
-          </View>
+            </View>
+          </LinearGradient>
 
           <View style={styles.section}>
-            {/* <Text style={styles.sectionTitle}>Statistics</Text> */}
-            <View style={styles.statsGrid}>
-              <View style={styles.statCard}>
-                <Ionicons name="book" size={24} color={tokens.colors.primary} />
+            <Text style={styles.sectionTitle}>Statistics</Text>
+            <View style={styles.statsGridResponsive}>
+              <View style={[styles.statCard, { backgroundColor: tokens.colors.primary + '15' }]}>
+                <View style={[styles.statIconContainer, { backgroundColor: tokens.colors.primary }]}>
+                  <Ionicons name="book" size={20} color={tokens.colors.onPrimary} />
+                </View>
                 <Text style={styles.statNumber}>{teacher.coursesCount}</Text>
                 <Text style={styles.statLabel}>Courses</Text>
               </View>
-              <View style={styles.statCard}>
-                <Ionicons name="people" size={24} color={tokens.colors.primary} />
-                <Text style={styles.statNumber}>{teacher.studentsCount}</Text>
-                <Text style={styles.statLabel}>Students</Text>
-              </View>
-              <View style={styles.statCard}>
-                <Ionicons name="time" size={24} color={tokens.colors.primary} />
+              <View style={[styles.statCard, { backgroundColor: tokens.colors.warning + '15' }]}>
+                <View style={[styles.statIconContainer, { backgroundColor: tokens.colors.warning }]}>
+                  <Ionicons name="calendar" size={20} color={tokens.colors.onPrimary} />
+                </View>
                 <Text style={styles.statNumber}>{teacher.experience}</Text>
                 <Text style={styles.statLabel}>Experience</Text>
+              </View>
+              <View style={[styles.statCard, { backgroundColor: tokens.colors.info + '15' }]}>
+                <View style={[styles.statIconContainer, { backgroundColor: tokens.colors.info }]}>
+                  <Ionicons name="school" size={20} color={tokens.colors.onPrimary} />
+                </View>
+                <Text style={styles.statNumber}>{teacher.studentsCount}</Text>
+                <Text style={styles.statLabel}>Total Students</Text>
+              </View>
+              <View style={[styles.statCard, { backgroundColor: tokens.colors.success + '15' }]}>
+                <View style={[styles.statIconContainer, { backgroundColor: tokens.colors.success }]}>
+                  <Ionicons name="people" size={20} color={tokens.colors.onPrimary} />
+                </View>
+                <Text style={styles.statNumber}>{teacher.activeStudents}</Text>
+                <Text style={styles.statLabel}>Active Students</Text>
+              </View>
+            </View>
+            <View style={styles.activeStudentsProgress}>
+              <View style={styles.progressHeader}>
+                <Text style={styles.progressLabel}>Student Active Rate</Text>
+                <Text style={styles.progressValue}>
+                  {Math.round((teacher.activeStudents / teacher.studentsCount) * 100)}%
+                </Text>
+              </View>
+              <View style={styles.progressBar}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    {
+                      width: `${(teacher.activeStudents / teacher.studentsCount) * 100}%`,
+                      backgroundColor: tokens.colors.success,
+                    },
+                  ]}
+                />
               </View>
             </View>
           </View>
@@ -593,6 +1084,155 @@ const TeacherModal: React.FC<TeacherModalProps> = ({ teacher, visible, onClose }
               ))}
             </View>
           </View>
+
+          {/* Courses Section */}
+          {teacher.courses && teacher.courses.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Courses by {teacher.name.split(' ')[0]}</Text>
+                <View style={styles.sectionHeaderRight}>
+                  <Text style={styles.sectionSubtitle}>{teacher.courses.length} courses</Text>
+                  {teacher.courses.length > 3 && (
+                    <TouchableOpacity 
+                      onPress={() => setShowAllCourses(!showAllCourses)}
+                      style={styles.viewToggleButton}
+                    >
+                      <Text style={styles.viewToggleText}>
+                        {showAllCourses ? 'Show Less' : 'View All'}
+                      </Text>
+                      <Ionicons 
+                        name={showAllCourses ? 'chevron-up' : 'chevron-down'} 
+                        size={16} 
+                        color={tokens.colors.primary} 
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+              
+              {teacher.courses.length <= 3 || !showAllCourses ? (
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.horizontalScroll}
+                  contentContainerStyle={styles.horizontalScrollContent}
+                >
+                  {(showAllCourses ? teacher.courses : teacher.courses.slice(0, 3)).map((course: any) => (
+                    <TeacherCourseCard
+                      key={course.id}
+                      course={course}
+                      onPress={(courseId: string) => {
+                        // Handle course press
+                      }}
+                    />
+                  ))}
+                </ScrollView>
+              ) : (
+                <View style={styles.verticalList}>
+                  {teacher.courses.map((course: any, index: number) => (
+                    <View key={course.id} style={styles.verticalCourseItem}>
+                      <View style={styles.courseItemHeader}>
+                        <Text style={styles.courseItemTitle}>{course.title}</Text>
+                        <Text style={styles.courseItemPrice}>${course.price}</Text>
+                      </View>
+                      <Text style={styles.courseItemDescription} numberOfLines={2}>
+                        {course.description}
+                      </Text>
+                      <View style={styles.courseItemStats}>
+                        <View style={styles.courseItemStat}>
+                          <Ionicons name="people" size={14} color={tokens.colors.onSurfaceVariant} />
+                          <Text style={styles.courseItemStatText}>{course.studentsEnrolled}</Text>
+                        </View>
+                        <View style={styles.courseItemStat}>
+                          <Ionicons name="star" size={14} color={tokens.colors.warning} />
+                          <Text style={styles.courseItemStatText}>{course.rating}</Text>
+                        </View>
+                        <View style={styles.courseItemStat}>
+                          <Ionicons name="time" size={14} color={tokens.colors.onSurfaceVariant} />
+                          <Text style={styles.courseItemStatText}>{course.duration}</Text>
+                        </View>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* Live Classes Section */}
+          {teacher.liveClasses && teacher.liveClasses.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Live Classes</Text>
+                <View style={styles.sectionHeaderRight}>
+                  <Text style={styles.sectionSubtitle}>{teacher.liveClasses.length} classes</Text>
+                  {teacher.liveClasses.length > 3 && (
+                    <TouchableOpacity 
+                      onPress={() => setShowAllClasses(!showAllClasses)}
+                      style={styles.viewToggleButton}
+                    >
+                      <Text style={styles.viewToggleText}>
+                        {showAllClasses ? 'Show Less' : 'View All'}
+                      </Text>
+                      <Ionicons 
+                        name={showAllClasses ? 'chevron-up' : 'chevron-down'} 
+                        size={16} 
+                        color={tokens.colors.primary} 
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+              
+              {teacher.liveClasses.length <= 3 || !showAllClasses ? (
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.horizontalScroll}
+                  contentContainerStyle={styles.horizontalScrollContent}
+                >
+                  {(showAllClasses ? teacher.liveClasses : teacher.liveClasses.slice(0, 3)).map((liveClass: any) => (
+                    <TeacherLiveClassCard
+                      key={liveClass.id}
+                      liveClass={liveClass}
+                      onPress={(classId: string) => {
+                        // Handle class press
+                      }}
+                    />
+                  ))}
+                </ScrollView>
+              ) : (
+                <View style={styles.verticalList}>
+                  {teacher.liveClasses.map((liveClass: any) => (
+                    <View key={liveClass.id} style={styles.verticalClassItem}>
+                      <View style={styles.classItemHeader}>
+                        <Text style={styles.classItemTitle}>{liveClass.title}</Text>
+                        <View style={styles.statusBadgeSmall}>
+                          <Text style={[styles.statusTextSmall, { color: tokens.colors.primary }]}>
+                            {liveClass.status}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.classItemInfo}>
+                        <View style={styles.classItemStat}>
+                          <Ionicons name="calendar" size={14} color={tokens.colors.onSurfaceVariant} />
+                          <Text style={styles.classItemStatText}>{liveClass.date}</Text>
+                        </View>
+                        <View style={styles.classItemStat}>
+                          <Ionicons name="time" size={14} color={tokens.colors.onSurfaceVariant} />
+                          <Text style={styles.classItemStatText}>{liveClass.time}</Text>
+                        </View>
+                        <View style={styles.classItemStat}>
+                          <Ionicons name="people" size={14} color={tokens.colors.onSurfaceVariant} />
+                          <Text style={styles.classItemStatText}>{liveClass.studentsCount}/{liveClass.maxStudents}</Text>
+                        </View>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Teaching History</Text>
@@ -917,6 +1557,12 @@ const createTeacherCardStyles = (tokens: any) =>
       alignItems: "center",
       marginRight: tokens.spacing.md,
     },
+    profileImage: {
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      resizeMode: 'cover',
+    },
     avatarText: {
       fontSize: 20,
       fontWeight: "bold",
@@ -941,11 +1587,24 @@ const createTeacherCardStyles = (tokens: any) =>
       alignItems: "center",
       marginBottom: tokens.spacing.xs,
     },
+    institutionBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: tokens.spacing.xs,
+      paddingVertical: 2,
+      borderRadius: tokens.borderRadius.sm,
+      marginRight: tokens.spacing.xs,
+    },
+    institutionBadgeText: {
+      fontSize: tokens.typography.caption - 1,
+      fontWeight: "600",
+      marginLeft: 2,
+    },
     institutionText: {
       fontSize: tokens.typography.caption,
       color: tokens.colors.onSurfaceVariant,
-      marginLeft: tokens.spacing.xs,
       fontWeight: "500",
+      flex: 1,
     },
     ratingRow: {
       flexDirection: "row",
@@ -1010,6 +1669,152 @@ const createTeacherCardStyles = (tokens: any) =>
     },
   });
 
+const createTeacherCourseCardStyles = (tokens: any) =>
+  StyleSheet.create({
+    courseCard: {
+      backgroundColor: tokens.colors.surface,
+      borderRadius: tokens.borderRadius.md,
+      padding: tokens.spacing.md,
+      marginRight: tokens.spacing.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.border,
+      width: 280,
+      ...tokens.shadows.sm,
+    },
+    courseHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: tokens.spacing.sm,
+    },
+    levelBadge: {
+      paddingHorizontal: tokens.spacing.sm,
+      paddingVertical: 4,
+      borderRadius: tokens.borderRadius.sm,
+    },
+    levelText: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onPrimary,
+      fontWeight: "600",
+      textTransform: "capitalize",
+    },
+    coursePrice: {
+      fontSize: tokens.typography.subtitle,
+      fontWeight: tokens.typography.bold,
+      color: tokens.colors.primary,
+    },
+    courseTitle: {
+      fontSize: tokens.typography.body,
+      fontWeight: tokens.typography.semiBold,
+      color: tokens.colors.onSurface,
+      marginBottom: tokens.spacing.xs,
+      minHeight: 40,
+    },
+    courseDescription: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+      marginBottom: tokens.spacing.md,
+      minHeight: 45,
+      lineHeight: 16,
+    },
+    courseStats: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: tokens.spacing.md,
+    },
+    statItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+    },
+    statText: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+      marginLeft: tokens.spacing.xs,
+      fontWeight: "500",
+    },
+    progressSection: {
+      marginTop: tokens.spacing.sm,
+    },
+    progressBar: {
+      height: 4,
+      backgroundColor: tokens.colors.surfaceVariant,
+      borderRadius: tokens.borderRadius.sm,
+      marginBottom: tokens.spacing.xs,
+    },
+    progressFill: {
+      height: "100%",
+      borderRadius: tokens.borderRadius.sm,
+    },
+    progressText: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+      textAlign: "center",
+      fontWeight: "500",
+    },
+  });
+
+const createTeacherLiveClassCardStyles = (tokens: any) =>
+  StyleSheet.create({
+    classCard: {
+      backgroundColor: tokens.colors.surface,
+      borderRadius: tokens.borderRadius.md,
+      padding: tokens.spacing.md,
+      marginRight: tokens.spacing.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.border,
+      width: 260,
+      ...tokens.shadows.sm,
+    },
+    classHeader: {
+      marginBottom: tokens.spacing.sm,
+    },
+    statusBadge: {
+      paddingHorizontal: tokens.spacing.sm,
+      paddingVertical: 4,
+      borderRadius: tokens.borderRadius.sm,
+      alignSelf: "flex-start",
+    },
+    statusText: {
+      fontSize: tokens.typography.caption,
+      fontWeight: "600",
+    },
+    classTitle: {
+      fontSize: tokens.typography.body,
+      fontWeight: tokens.typography.semiBold,
+      color: tokens.colors.onSurface,
+      marginBottom: tokens.spacing.md,
+      minHeight: 40,
+    },
+    classInfo: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: tokens.spacing.sm,
+    },
+    infoItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+    },
+    infoText: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+      marginLeft: tokens.spacing.xs,
+      fontWeight: "500",
+    },
+    studentsInfo: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: tokens.spacing.xs,
+    },
+    studentsText: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+      marginLeft: tokens.spacing.xs,
+      fontWeight: "500",
+    },
+  });
+
 const createModalStyles = (tokens: any) =>
   StyleSheet.create({
     container: {
@@ -1020,26 +1825,41 @@ const createModalStyles = (tokens: any) =>
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      padding: tokens.spacing.md,
-      backgroundColor: tokens.colors.surface,
+      paddingHorizontal: tokens.spacing.lg,
+      paddingVertical: tokens.spacing.md,
+      paddingTop: tokens.spacing.lg,
       borderBottomWidth: 1,
-      borderBottomColor: tokens.colors.border,
+      borderBottomColor: tokens.colors.border + '30',
+      ...tokens.shadows.sm,
     },
     title: {
       fontSize: tokens.typography.title,
       fontWeight: tokens.typography.bold,
-      color: tokens.colors.onSurface,
+      color: '#FFFFFF',
     },
     closeButton: {
       padding: tokens.spacing.sm,
+      borderRadius: tokens.borderRadius.md,
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      width: 40,
+      height: 40,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     content: {
       flex: 1,
       padding: tokens.spacing.md,
     },
+    teacherHeaderGradient: {
+      paddingTop: tokens.spacing.lg, // Proper spacing from modal header
+      paddingBottom: tokens.spacing.lg,
+      marginHorizontal: -tokens.spacing.md,
+      paddingHorizontal: tokens.spacing.md,
+      marginTop: -tokens.spacing.lg, // Moderate negative margin to remove white space
+      marginBottom: tokens.spacing.sm,
+    },
     teacherHeader: {
       alignItems: "center",
-      marginBottom: tokens.spacing.xl,
     },
     avatarLarge: {
       width: 100,
@@ -1049,6 +1869,12 @@ const createModalStyles = (tokens: any) =>
       justifyContent: "center",
       alignItems: "center",
       marginBottom: tokens.spacing.md,
+    },
+    profileImageLarge: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      resizeMode: 'cover',
     },
     avatarLargeText: {
       fontSize: 32,
@@ -1091,6 +1917,175 @@ const createModalStyles = (tokens: any) =>
       marginBottom: tokens.spacing.lg,
       letterSpacing: -0.5,
     },
+    sectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: tokens.spacing.lg,
+    },
+    sectionHeaderRight: {
+      alignItems: 'flex-end',
+    },
+    sectionSubtitle: {
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onSurfaceVariant,
+      fontWeight: '500',
+      marginBottom: tokens.spacing.xs,
+    },
+    viewToggleButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: tokens.spacing.sm,
+      paddingVertical: tokens.spacing.xs,
+      borderRadius: tokens.borderRadius.sm,
+      backgroundColor: tokens.colors.primaryContainer,
+    },
+    viewToggleText: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.primary,
+      fontWeight: '600',
+      marginRight: tokens.spacing.xs,
+    },
+    horizontalScroll: {
+      marginHorizontal: -tokens.spacing.md,
+    },
+    horizontalScrollContent: {
+      paddingHorizontal: tokens.spacing.md,
+      paddingRight: tokens.spacing.lg,
+    },
+    activeStudentsProgress: {
+      marginTop: tokens.spacing.md,
+      padding: tokens.spacing.md,
+      backgroundColor: tokens.colors.surfaceVariant,
+      borderRadius: tokens.borderRadius.md,
+    },
+    progressHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: tokens.spacing.sm,
+    },
+    progressLabel: {
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onSurface,
+      fontWeight: '600',
+    },
+    progressValue: {
+      fontSize: tokens.typography.body,
+      color: tokens.colors.success,
+      fontWeight: tokens.typography.bold,
+    },
+    progressBar: {
+      height: 8,
+      backgroundColor: tokens.colors.surface,
+      borderRadius: tokens.borderRadius.sm,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: tokens.borderRadius.sm,
+    },
+    // Vertical List Styles
+    verticalList: {
+      paddingHorizontal: tokens.spacing.xs,
+    },
+    verticalCourseItem: {
+      backgroundColor: tokens.colors.surface,
+      borderRadius: tokens.borderRadius.md,
+      padding: tokens.spacing.md,
+      marginBottom: tokens.spacing.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.border,
+      ...tokens.shadows.sm,
+    },
+    courseItemHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: tokens.spacing.sm,
+    },
+    courseItemTitle: {
+      fontSize: tokens.typography.body,
+      fontWeight: tokens.typography.semiBold,
+      color: tokens.colors.onSurface,
+      flex: 1,
+      marginRight: tokens.spacing.sm,
+    },
+    courseItemPrice: {
+      fontSize: tokens.typography.subtitle,
+      fontWeight: tokens.typography.bold,
+      color: tokens.colors.primary,
+    },
+    courseItemDescription: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+      marginBottom: tokens.spacing.sm,
+      lineHeight: 16,
+    },
+    courseItemStats: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    courseItemStat: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    courseItemStatText: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+      marginLeft: tokens.spacing.xs,
+      fontWeight: '500',
+    },
+    // Live Class Vertical List Styles
+    verticalClassItem: {
+      backgroundColor: tokens.colors.surface,
+      borderRadius: tokens.borderRadius.md,
+      padding: tokens.spacing.md,
+      marginBottom: tokens.spacing.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.border,
+      ...tokens.shadows.sm,
+    },
+    classItemHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: tokens.spacing.sm,
+    },
+    classItemTitle: {
+      fontSize: tokens.typography.body,
+      fontWeight: tokens.typography.semiBold,
+      color: tokens.colors.onSurface,
+      flex: 1,
+      marginRight: tokens.spacing.sm,
+    },
+    statusBadgeSmall: {
+      paddingHorizontal: tokens.spacing.sm,
+      paddingVertical: 4,
+      borderRadius: tokens.borderRadius.sm,
+      backgroundColor: tokens.colors.primaryContainer,
+    },
+    statusTextSmall: {
+      fontSize: tokens.typography.caption,
+      fontWeight: '600',
+      textTransform: 'capitalize',
+    },
+    classItemInfo: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    classItemStat: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    classItemStatText: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+      marginLeft: tokens.spacing.xs,
+      fontWeight: '500',
+    },
     bio: {
       fontSize: tokens.typography.body,
       color: tokens.colors.onSurfaceVariant,
@@ -1117,13 +2112,44 @@ const createModalStyles = (tokens: any) =>
       flexDirection: "row",
       justifyContent: "space-between",
     },
+    statsGridResponsive: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "space-between",
+      marginBottom: tokens.spacing.md,
+    },
+    statsGridThreeColumn: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: tokens.spacing.md,
+    },
     statCard: {
       alignItems: "center",
-      flex: 1,
-      padding: tokens.spacing.md,
-      backgroundColor: tokens.colors.surface,
-      borderRadius: tokens.borderRadius.md,
+      width: '48%', // 2 cards per row with some margin
+      padding: tokens.spacing.lg,
+      borderRadius: tokens.borderRadius.lg,
+      marginBottom: tokens.spacing.sm,
+      borderWidth: 1,
+      borderColor: tokens.colors.border + '30',
+      ...tokens.shadows.sm,
+    },
+    statCardLarge: {
+      alignItems: "center",
+      flex: 1.5,
+      padding: tokens.spacing.lg,
+      borderRadius: tokens.borderRadius.lg,
       marginHorizontal: tokens.spacing.xs,
+      borderWidth: 1,
+      borderColor: tokens.colors.border + '30',
+      ...tokens.shadows.sm,
+    },
+    statIconContainer: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: tokens.spacing.sm,
     },
     statNumber: {
       fontSize: tokens.typography.title,
@@ -1134,6 +2160,17 @@ const createModalStyles = (tokens: any) =>
     statLabel: {
       fontSize: tokens.typography.caption,
       color: tokens.colors.onSurfaceVariant,
+    },
+    studentsInfo: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      justifyContent: "center",
+    },
+    statSecondaryNumber: {
+      fontSize: tokens.typography.body,
+      fontWeight: tokens.typography.semiBold,
+      color: tokens.colors.onSurfaceVariant,
+      marginLeft: 2,
     },
     footer: {
       flexDirection: "row",
