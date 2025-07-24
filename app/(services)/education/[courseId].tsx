@@ -1,25 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
   Alert,
-  StatusBar,
   SafeAreaView,
+  Animated,
+  Dimensions,
+  Modal,
+  Image,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams, Stack } from 'expo-router';
 import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
 import { educationApi } from '@/services/api/education';
+import { EducationScreenHeader } from '@/src/education/components/headers';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+// import { Video, ResizeMode } from 'expo-av'; // Temporarily commented out due to native module issues
 
-// Remove unused import
-// const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface CourseDetail {
   id: string;
@@ -41,21 +42,30 @@ interface CourseDetail {
   completedLessons: number;
   requirements: string[];
   learningOutcomes: string[];
-  lessons: {
-    id: string;
-    title: string;
-    duration: string;
-    type: 'video' | 'text' | 'quiz';
-    isCompleted: boolean;
-    isLocked: boolean;
-  }[];
-  reviews: {
-    id: string;
-    studentName: string;
-    rating: number;
-    comment: string;
-    date: string;
-  }[];
+  lessons: Lesson[];
+  detailedLessons: DetailedLesson[];
+  reviews: Review[];
+}
+
+interface DetailedLesson extends Lesson {
+  isLocked: boolean;
+}
+
+interface Lesson {
+  id: string;
+  title: string;
+  duration: string;
+  type: 'video' | 'text' | 'quiz';
+  isCompleted: boolean;
+  isLocked?: boolean;
+}
+
+interface Review {
+  id: string;
+  studentName: string;
+  rating: number;
+  comment: string;
+  date: string;
 }
 
 type TabType = 'overview' | 'curriculum' | 'instructor' | 'reviews';
@@ -66,10 +76,27 @@ export default function CourseDetailScreen() {
   const [courseData, setCourseData] = useState<CourseDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [videoStatus, setVideoStatus] = useState({});
   
-  const { tokens, getGradient } = useServiceTheme();
+  // Sample video URL for course preview
+  const sampleVideoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+  
+  // Animation values for enhanced tabs
+  const tabIndicatorAnimation = useRef(new Animated.Value(0)).current;
+  const tabContentFadeAnimation = useRef(new Animated.Value(1)).current;
+  
+  const { tokens } = useServiceTheme();
   const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
+  
+  // Tab configuration with text only
+  const tabs = [
+    { id: 'overview', label: 'Overview', badge: null },
+    { id: 'curriculum', label: 'Curriculum', badge: null },
+    { id: 'instructor', label: 'Instructor', badge: null },
+    { id: 'reviews', label: 'Reviews', badge: null }
+  ];
 
   useEffect(() => {
     loadCourseData();
@@ -105,14 +132,54 @@ export default function CourseDetailScreen() {
     setIsBookmarked(!isBookmarked);
   };
 
-  const handleBack = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.back();
-  };
 
   const handleShare = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Alert.alert('Share Course', 'Share functionality will be implemented soon!');
+  };
+
+  const handlePreview = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setShowVideoModal(true);
+  };
+
+  const closeVideoModal = () => {
+    setShowVideoModal(false);
+  };
+
+  // Enhanced tab handler with animations
+  const handleTabPress = (tabIndex: number) => {
+    const newTabId = tabs[tabIndex].id as TabType;
+    
+    if (newTabId === activeTab) return; // Don't animate if same tab
+    
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    // Calculate tab indicator position - simple percentage based approach
+    const screenWidth = Dimensions.get('window').width;
+    const tabContainerWidth = screenWidth; // Full width tabs
+    const tabWidth = tabContainerWidth / 4; // Equal width for 4 tabs
+    const indicatorPosition = tabIndex * tabWidth;
+    
+    Animated.timing(tabIndicatorAnimation, {
+      toValue: indicatorPosition,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+    
+    // Fade out current content, change tab, then fade in
+    Animated.timing(tabContentFadeAnimation, {
+      toValue: 0,
+      duration: 150,
+      useNativeDriver: true,
+    }).start(() => {
+      setActiveTab(newTabId);
+      Animated.timing(tabContentFadeAnimation, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    });
   };
 
   const getLevelColor = (level: string) => {
@@ -142,32 +209,55 @@ export default function CourseDetailScreen() {
       case 'overview':
         return (
           <View style={styles.tabContent}>
-            {/* Course Description */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>About This Course</Text>
-              <Text style={styles.sectionText}>{courseData.description}</Text>
+            {/* Course Description Card */}
+            <View style={styles.modernCard}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardIconContainer}>
+                  <Ionicons name="information-circle" size={24} color={tokens.colors.primary} />
+                </View>
+                <Text style={styles.cardTitle}>About This Course</Text>
+              </View>
+              <Text style={styles.cardDescription}>{courseData.description}</Text>
             </View>
 
-            {/* Requirements */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Requirements</Text>
-              {courseData.requirements.map((requirement, index) => (
-                <View key={index} style={styles.listItem}>
-                  <Ionicons name="checkmark-circle" size={16} color={tokens.colors.success} />
-                  <Text style={styles.listText}>{requirement}</Text>
+            {/* Requirements Card */}
+            <View style={styles.modernCard}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardIconContainer}>
+                  <Ionicons name="checkmark-circle" size={24} color={tokens.colors.success} />
                 </View>
-              ))}
+                <Text style={styles.cardTitle}>Requirements</Text>
+              </View>
+              <View style={styles.requirementsList}>
+                {courseData.requirements.map((requirement, index) => (
+                  <View key={index} style={styles.modernListItem}>
+                    <View style={styles.listItemIcon}>
+                      <Ionicons name="checkmark" size={16} color={tokens.colors.success} />
+                    </View>
+                    <Text style={styles.modernListText}>{requirement}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
 
-            {/* Learning Outcomes */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>What You'll Learn</Text>
-              {courseData.learningOutcomes.map((outcome, index) => (
-                <View key={index} style={styles.listItem}>
-                  <Ionicons name="bulb" size={16} color={tokens.colors.primary} />
-                  <Text style={styles.listText}>{outcome}</Text>
+            {/* Learning Outcomes Card */}
+            <View style={styles.modernCard}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardIconContainer}>
+                  <Ionicons name="bulb" size={24} color={tokens.colors.warning} />
                 </View>
-              ))}
+                <Text style={styles.cardTitle}>What You'll Learn</Text>
+              </View>
+              <View style={styles.outcomesList}>
+                {courseData.learningOutcomes.map((outcome, index) => (
+                  <View key={index} style={styles.modernListItem}>
+                    <View style={[styles.listItemIcon, { backgroundColor: tokens.colors.primaryLight + '20' }]}>
+                      <Ionicons name="bulb-outline" size={16} color={tokens.colors.primary} />
+                    </View>
+                    <Text style={styles.modernListText}>{outcome}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
           </View>
         );
@@ -175,42 +265,101 @@ export default function CourseDetailScreen() {
       case 'curriculum':
         return (
           <View style={styles.tabContent}>
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Course Content</Text>
-              <Text style={styles.sectionSubtitle}>
-                {courseData.totalLessons} lessons • {courseData.completedLessons} completed
-              </Text>
+            {/* Course Progress Overview */}
+            <View style={styles.progressOverviewCard}>
+              <View style={styles.progressHeader}>
+                <Text style={styles.progressTitle}>Course Progress</Text>
+                <Text style={styles.progressSubtitle}>
+                  {courseData.completedLessons} of {courseData.totalLessons} lessons completed
+                </Text>
+              </View>
+              <View style={styles.progressBarContainer}>
+                <View style={styles.progressBar}>
+                  <View style={[styles.progressBarFill, { width: `${(courseData.completedLessons / courseData.totalLessons) * 100}%` }]} />
+                </View>
+                <Text style={styles.progressPercentageText}>
+                  {Math.round((courseData.completedLessons / courseData.totalLessons) * 100)}%
+                </Text>
+              </View>
+            </View>
+
+            {/* Enhanced Lessons List */}
+            <View style={styles.modernCard}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardIconContainer}>
+                  <Ionicons name="list" size={24} color={tokens.colors.primary} />
+                </View>
+                <Text style={styles.cardTitle}>Course Content</Text>
+              </View>
               
-              {(courseData as any).detailedLessons?.map((lesson: any, index: number) => (
-                <View key={lesson.id} style={styles.lessonCard}>
-                  <View style={styles.lessonHeader}>
+              {courseData.detailedLessons?.map((lesson, index: number) => {
+                const isLocked = lesson.isLocked ?? (!lesson.isCompleted && index > 0 && !courseData.detailedLessons[index - 1]?.isCompleted);
+                return (
+                <TouchableOpacity 
+                  key={lesson.id} 
+                  style={[
+                    styles.enhancedLessonCard,
+                    lesson.isCompleted && styles.completedLessonCard,
+                    isLocked && styles.lockedLessonCard
+                  ]}
+                  disabled={isLocked}
+                  onPress={() => {
+                    if (!isLocked) {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      console.log('Navigate to lesson:', lesson.id);
+                    }
+                  }}
+                >
+                  <View style={styles.lessonCardContent}>
+                    <View style={[
+                      styles.lessonStatusIcon,
+                      lesson.isCompleted && styles.completedStatusIcon,
+                      isLocked && styles.lockedStatusIcon
+                    ]}>
+                      {lesson.isCompleted ? (
+                        <Ionicons name="checkmark-circle" size={24} color={tokens.colors.success} />
+                      ) : isLocked ? (
+                        <Ionicons name="lock-closed" size={24} color={tokens.colors.onSurfaceVariant} />
+                      ) : (
+                        <Ionicons name="play-circle" size={24} color={tokens.colors.primary} />
+                      )}
+                    </View>
+                    
                     <View style={styles.lessonInfo}>
-                      <View style={styles.lessonStatus}>
-                        {lesson.isCompleted ? (
-                          <Ionicons name="checkmark-circle" size={20} color={tokens.colors.success} />
-                        ) : lesson.isLocked ? (
-                          <Ionicons name="lock-closed" size={20} color={tokens.colors.onSurfaceVariant} />
-                        ) : (
-                          <Ionicons name="play-circle" size={20} color={tokens.colors.primary} />
-                        )}
-                      </View>
-                      <View style={styles.lessonDetails}>
-                        <Text style={[styles.lessonTitle, lesson.isLocked && { color: tokens.colors.onSurfaceVariant }]}>
-                          {lesson.title}
-                        </Text>
-                        <View style={styles.lessonMeta}>
+                      <Text style={[
+                        styles.enhancedLessonTitle,
+                        isLocked && { color: tokens.colors.onSurfaceVariant }
+                      ]}>
+                        {index + 1}. {lesson.title}
+                      </Text>
+                      <View style={styles.lessonMetaRow}>
+                        <View style={styles.lessonTypeContainer}>
                           <Ionicons 
                             name={lesson.type === 'video' ? 'videocam' : lesson.type === 'quiz' ? 'help-circle' : 'document-text'} 
-                            size={14} 
-                            color={tokens.colors.onSurfaceVariant} 
+                            size={16} 
+                            color={isLocked ? tokens.colors.onSurfaceVariant : tokens.colors.primary} 
                           />
+                          <Text style={[
+                            styles.lessonType,
+                            isLocked && { color: tokens.colors.onSurfaceVariant }
+                          ]}>
+                            {lesson.type.charAt(0).toUpperCase() + lesson.type.slice(1)}
+                          </Text>
+                        </View>
+                        <View style={styles.lessonDurationContainer}>
+                          <Ionicons name="time-outline" size={16} color={tokens.colors.onSurfaceVariant} />
                           <Text style={styles.lessonDuration}>{lesson.duration}</Text>
                         </View>
                       </View>
                     </View>
+                    
+                    {!isLocked && (
+                      <Ionicons name="chevron-forward" size={20} color={tokens.colors.onSurfaceVariant} />
+                    )}
                   </View>
-                </View>
-              ))}
+                </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
         );
@@ -218,22 +367,67 @@ export default function CourseDetailScreen() {
       case 'instructor':
         return (
           <View style={styles.tabContent}>
-            <View style={styles.section}>
-              <View style={styles.instructorCard}>
-                <View style={styles.instructorAvatar}>
-                  <Text style={styles.avatarText}>{courseData.instructorAvatar}</Text>
+            {/* Enhanced Instructor Profile Card */}
+            <View style={styles.instructorProfileCard}>
+              <View style={styles.instructorHeader}>
+                <View style={styles.instructorAvatarContainer}>
+                  <View style={styles.enhancedInstructorAvatar}>
+                    <Text style={styles.avatarText}>{courseData.instructorAvatar}</Text>
+                  </View>
+                  <View style={styles.instructorBadge}>
+                    <Ionicons name="checkmark-circle" size={16} color={tokens.colors.success} />
+                  </View>
                 </View>
-                <View style={styles.instructorInfo}>
-                  <Text style={styles.instructorName}>{courseData.instructor}</Text>
-                  <View style={styles.instructorRating}>
-                    <Ionicons name="star" size={16} color={tokens.colors.warning} />
-                    <Text style={styles.ratingText}>{courseData.instructorRating} instructor rating</Text>
+                <View style={styles.instructorDetails}>
+                  <Text style={styles.enhancedInstructorName}>{courseData.instructor}</Text>
+                  <Text style={styles.instructorTitle}>Course Instructor</Text>
+                  <View style={styles.instructorStatsRow}>
+                    <View style={styles.instructorStat}>
+                      <Ionicons name="star" size={18} color={tokens.colors.warning} />
+                      <Text style={styles.instructorStatText}>{courseData.instructorRating}</Text>
+                    </View>
+                    <View style={styles.instructorStat}>
+                      <Ionicons name="people" size={18} color={tokens.colors.primary} />
+                      <Text style={styles.instructorStatText}>{courseData.studentsCount}+ students</Text>
+                    </View>
                   </View>
                 </View>
               </View>
-              
-              <Text style={styles.sectionTitle}>About the Instructor</Text>
-              <Text style={styles.sectionText}>{courseData.instructorBio}</Text>
+            </View>
+            
+            {/* About Instructor Card */}
+            <View style={styles.modernCard}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardIconContainer}>
+                  <Ionicons name="person" size={24} color={tokens.colors.primary} />
+                </View>
+                <Text style={styles.cardTitle}>About the Instructor</Text>
+              </View>
+              <Text style={styles.cardDescription}>{courseData.instructorBio}</Text>
+            </View>
+
+            {/* Instructor Achievements */}
+            <View style={styles.modernCard}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardIconContainer}>
+                  <Ionicons name="trophy" size={24} color={tokens.colors.warning} />
+                </View>
+                <Text style={styles.cardTitle}>Achievements</Text>
+              </View>
+              <View style={styles.achievementsList}>
+                <View style={styles.achievementItem}>
+                  <Ionicons name="medal" size={20} color={tokens.colors.warning} />
+                  <Text style={styles.achievementText}>Top-rated instructor</Text>
+                </View>
+                <View style={styles.achievementItem}>
+                  <Ionicons name="school" size={20} color={tokens.colors.primary} />
+                  <Text style={styles.achievementText}>5+ years of teaching experience</Text>
+                </View>
+                <View style={styles.achievementItem}>
+                  <Ionicons name="heart" size={20} color={tokens.colors.error} />
+                  <Text style={styles.achievementText}>Loved by {courseData.studentsCount}+ students</Text>
+                </View>
+              </View>
             </View>
           </View>
         );
@@ -241,23 +435,59 @@ export default function CourseDetailScreen() {
       case 'reviews':
         return (
           <View style={styles.tabContent}>
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Student Reviews</Text>
-              <Text style={styles.sectionSubtitle}>
-                {courseData.rating} average rating ({courseData.studentsCount} students)
-              </Text>
+            {/* Reviews Overview Card */}
+            <View style={styles.reviewOverviewCard}>
+              <View style={styles.reviewOverviewHeader}>
+                <View style={styles.ratingDisplayContainer}>
+                  <Text style={styles.overallRating}>{courseData.rating}</Text>
+                  <View style={styles.starsContainer}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Ionicons 
+                        key={star}
+                        name={star <= Math.floor(courseData.rating) ? "star" : "star-outline"} 
+                        size={20} 
+                        color={tokens.colors.warning} 
+                      />
+                    ))}
+                  </View>
+                  <Text style={styles.reviewCount}>Based on {courseData.studentsCount} reviews</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Individual Reviews */}
+            <View style={styles.modernCard}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardIconContainer}>
+                  <Ionicons name="chatbubbles" size={24} color={tokens.colors.primary} />
+                </View>
+                <Text style={styles.cardTitle}>Student Reviews</Text>
+              </View>
               
               {courseData.reviews.map((review) => (
-                <View key={review.id} style={styles.reviewCard}>
-                  <View style={styles.reviewHeader}>
-                    <Text style={styles.reviewerName}>{review.studentName}</Text>
-                    <View style={styles.reviewRating}>
-                      <Ionicons name="star" size={14} color={tokens.colors.warning} />
-                      <Text style={styles.reviewRatingText}>{review.rating}</Text>
+                <View key={review.id} style={styles.enhancedReviewCard}>
+                  <View style={styles.reviewerInfo}>
+                    <View style={styles.reviewerAvatar}>
+                      <Text style={styles.reviewerInitial}>{review.studentName.charAt(0)}</Text>
+                    </View>
+                    <View style={styles.reviewerDetails}>
+                      <Text style={styles.reviewerName}>{review.studentName}</Text>
+                      <View style={styles.reviewMeta}>
+                        <View style={styles.reviewStars}>
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Ionicons 
+                              key={star}
+                              name={star <= review.rating ? "star" : "star-outline"} 
+                              size={14} 
+                              color={tokens.colors.warning} 
+                            />
+                          ))}
+                        </View>
+                        <Text style={styles.reviewDate}>{review.date}</Text>
+                      </View>
                     </View>
                   </View>
-                  <Text style={styles.reviewComment}>{review.comment}</Text>
-                  <Text style={styles.reviewDate}>{review.date}</Text>
+                  <Text style={styles.enhancedReviewComment}>{review.comment}</Text>
                 </View>
               ))}
             </View>
@@ -285,131 +515,237 @@ export default function CourseDetailScreen() {
     );
   }
 
-  const headerGradient = getGradient('header');
 
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor={tokens.colors.primary} translucent={false} />
-      
-      {/* Hero Section */}
-      <LinearGradient
-        colors={headerGradient.colors as any}
-        start={{ x: headerGradient.direction.x, y: headerGradient.direction.y }}
-        end={{ x: 1, y: 1 }}
-        style={styles.heroSection}
+        {/* Standardized Header */}
+        <EducationScreenHeader
+          title={courseData.title}
+          subtitle={`by ${courseData.instructor}`}
+          rightActions={[
+            {
+              icon: isBookmarked ? "bookmark" : "bookmark-outline",
+              onPress: handleBookmark
+            },
+            {
+              icon: "share-outline",
+              onPress: handleShare
+            }
+          ]}
+        />
+
+      {/* Enhanced Content Section - Now Fully Scrollable */}
+      <ScrollView 
+        style={styles.contentSection}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollableContentContainer}
       >
-        {/* Header Controls */}
-        <View style={[styles.headerControls, { paddingTop: insets.top + 15 }]}>
-          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
-          </TouchableOpacity>
-          <View style={styles.headerActions}>
-            <TouchableOpacity onPress={handleBookmark} style={styles.actionButton}>
-              <Ionicons 
-                name={isBookmarked ? "bookmark" : "bookmark-outline"} 
-                size={18} 
-                color="#FFFFFF" 
-              />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleShare} style={styles.actionButton}>
-              <Ionicons name="share-outline" size={18} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Course Info */}
-        <View style={styles.courseInfo}>
-          <View style={styles.courseBadges}>
-            <View style={styles.categoryBadge}>
-              <Text style={styles.categoryText}>{courseData.category}</Text>
-            </View>
-            <View style={[styles.levelBadge, { backgroundColor: getLevelColor(courseData.level) }]}>
-              <Ionicons name={getLevelIcon(courseData.level)} size={12} color="#FFFFFF" />
-              <Text style={styles.levelText}>{courseData.level}</Text>
+        {/* Course Overview Card */}
+        <View style={styles.courseOverviewCard}>
+          {/* Enhanced Course Preview */}
+          <View style={styles.coursePreviewCard}>
+            <View style={styles.previewImageContainer}>
+              {/* Video Thumbnail with Sample Image */}
+              <View style={styles.videoThumbnail}>
+                <View style={styles.thumbnailImageContainer}>
+                  {/* Placeholder for actual course thumbnail image */}
+                  <TouchableOpacity style={styles.imageOverlay} onPress={handlePreview}>
+                    <Image 
+                      source={{ uri: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=225&fit=crop&crop=center' }}
+                      style={styles.thumbnailImage}
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+              
+              {/* Video Duration Badge */}
+              {/* <View style={styles.durationBadgeContainer}>
+                <View style={styles.videoDurationBadge}>
+                  <Ionicons name="play" size={12} color="#FFFFFF" />
+                  <Text style={styles.videoDurationText}>2:30</Text>
+                </View>
+              </View> */}
+              
+              {/* Centered Play Button Overlay */}
+              <TouchableOpacity onPress={handlePreview} style={styles.centeredPreviewOverlay}>
+                <View style={styles.centeredPlayButton}>
+                  <Ionicons name="play" size={36} color="#FFFFFF" />
+                </View>
+              </TouchableOpacity>
+              
+           
             </View>
           </View>
           
-          <Text style={styles.courseTitle}>{courseData.title}</Text>
-          <Text style={styles.courseInstructor}>by {courseData.instructor}</Text>
-          
-          <View style={styles.courseStats}>
-            <View style={styles.statItem}>
-              <Ionicons name="star" size={16} color="#FFD700" />
-              <Text style={styles.statText}>{courseData.rating}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Ionicons name="people" size={16} color="#FFFFFF" />
-              <Text style={styles.statText}>{courseData.studentsCount}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Ionicons name="time" size={16} color="#FFFFFF" />
-              <Text style={styles.statText}>{courseData.duration}</Text>
+          {/* Course Meta Info */}
+          <View style={styles.courseMetaInfo}>
+            <View style={styles.courseBadges}>
+              <View style={styles.categoryBadge}>
+                <Text style={styles.categoryText}>{courseData.category}</Text>
+              </View>
+              <View style={[styles.levelBadge, { backgroundColor: getLevelColor(courseData.level) }]}>
+                <Ionicons name={getLevelIcon(courseData.level)} size={12} color="#FFFFFF" />
+                <Text style={styles.levelText}>{courseData.level}</Text>
+              </View>
+              <View style={styles.durationBadge}>
+                <Ionicons name="time-outline" size={12} color={tokens.colors.onSurfaceVariant} />
+                <Text style={styles.durationText}>{courseData.duration}</Text>
+              </View>
             </View>
           </View>
 
-          {courseData.isEnrolled && (
-            <View style={styles.progressSection}>
-              <View style={styles.progressHeader}>
-                <Text style={styles.progressLabel}>Your Progress</Text>
-                <Text style={styles.progressValue}>{courseData.progress}%</Text>
+          {/* Course Stats */}
+          <View style={styles.statsContainer}>
+            <View style={styles.statsGrid}>
+              <View style={styles.statCard}>
+                <View style={styles.statIconContainer}>
+                  <View style={styles.ratingStarsContainer}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Ionicons 
+                        key={star}
+                        name={star <= Math.floor(courseData.rating) ? "star" : "star-outline"} 
+                        size={16} 
+                        color={tokens.colors.warning} 
+                      />
+                    ))}
+                  </View>
+                </View>
+                <Text style={styles.statValue}>{courseData.rating}</Text>
+                <Text style={styles.statLabel}>Rating</Text>
+                <View style={styles.statProgress}>
+                  <View style={[styles.statProgressBar, { width: `${(courseData.rating / 5) * 100}%` }]} />
+                </View>
               </View>
-              <View style={styles.progressBar}>
-                <LinearGradient
-                  colors={['#FFFFFF', '#E8F5E8']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={[styles.progressFill, { width: `${courseData.progress}%` }]}
-                />
-              </View>
-              <Text style={styles.progressStats}>
-                {courseData.completedLessons} of {courseData.totalLessons} lessons completed
-              </Text>
+              
+              {courseData.isEnrolled ? (
+                <>
+                  <View style={styles.statCard}>
+                    <View style={styles.statIconContainer}>
+                      <View style={styles.enhancedProgressRing}>
+                        <View style={styles.progressRingBackground}>
+                          <View style={[styles.progressRingFill, { 
+                            transform: [{ rotate: `${(courseData.progress / 100) * 360}deg` }] 
+                          }]} />
+                        </View>
+                        <View style={styles.progressRingCenter}>
+                          <Ionicons name="trending-up" size={16} color={tokens.colors.success} />
+                        </View>
+                      </View>
+                    </View>
+                    <Text style={styles.statValue}>{courseData.progress}%</Text>
+                    <Text style={styles.statLabel}>Progress</Text>
+                    <View style={styles.statProgress}>
+                      <View style={[styles.statProgressBar, { width: `${courseData.progress}%`, backgroundColor: tokens.colors.success }]} />
+                    </View>
+                  </View>
+                  <View style={styles.statCard}>
+                    <View style={styles.statIconContainer}>
+                      <View style={styles.lessonsIconContainer}>
+                        <Ionicons name="library" size={20} color={tokens.colors.success} />
+                        <View style={styles.lessonsCountBadge}>
+                          <Text style={styles.lessonsCountText}>{courseData.completedLessons}</Text>
+                        </View>
+                      </View>
+                    </View>
+                    <View style={styles.lessonsStatContainer}>
+                      <Text style={styles.statValue}>{courseData.completedLessons}</Text>
+                      <Text style={styles.lessonsSlash}>/</Text>
+                      <Text style={styles.lessonsTotalValue}>{courseData.totalLessons}</Text>
+                    </View>
+                    <Text style={styles.statLabel}>Lessons</Text>
+                    <View style={styles.statProgress}>
+                      <View style={[styles.statProgressBar, { width: `${(courseData.completedLessons / courseData.totalLessons) * 100}%`, backgroundColor: tokens.colors.success }]} />
+                    </View>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={styles.statCard}>
+                    <View style={styles.statIconContainer}>
+                      <Ionicons name="people" size={24} color={tokens.colors.info} />
+                    </View>
+                    <Text style={styles.statValue}>{courseData.studentsCount}</Text>
+                    <Text style={styles.statLabel}>Students</Text>
+                    <View style={styles.statProgress}>
+                      <View style={[styles.statProgressBar, { width: '85%', backgroundColor: tokens.colors.info }]} />
+                    </View>
+                  </View>
+                  <View style={styles.statCard}>
+                    <View style={styles.statIconContainer}>
+                      <Ionicons name="cash" size={24} color={tokens.colors.success} />
+                    </View>
+                    <Text style={styles.statValue}>${courseData.price}</Text>
+                    <Text style={styles.statLabel}>Price</Text>
+                    <Text style={styles.statSubLabel}>One-time payment</Text>
+                  </View>
+                </>
+              )}
             </View>
-          )}
+          </View>
         </View>
-      </LinearGradient>
 
-      {/* Content Section */}
-      <View style={styles.contentSection}>
-        {/* Tab Navigation */}
-        <View style={styles.tabNavigation}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabScrollView}>
-            {[
-              { id: 'overview', label: 'Overview' },
-              { id: 'curriculum', label: 'Curriculum' },
-              { id: 'instructor', label: 'Instructor' },
-              { id: 'reviews', label: 'Reviews' }
-            ].map((tab) => (
+        {/* Enhanced Tab Navigation */}
+        <View style={styles.enhancedTabNavigation}>
+          <View style={styles.enhancedTabContainer}>
+            <Animated.View 
+              style={[
+                styles.enhancedTabIndicator,
+                {
+                  transform: [{ translateX: tabIndicatorAnimation }]
+                }
+              ]}
+            />
+            {tabs.map((tab, index) => (
               <TouchableOpacity
                 key={tab.id}
-                onPress={() => setActiveTab(tab.id as TabType)}
+                onPress={() => handleTabPress(index)}
                 style={[
-                  styles.tabButton,
-                  activeTab === tab.id && styles.activeTabButton
+                  styles.enhancedTabButton,
+                  activeTab === tab.id && styles.activeEnhancedTabButton
                 ]}
+                activeOpacity={0.7}
               >
-                <Text style={[
-                  styles.tabText,
-                  activeTab === tab.id && styles.activeTabText
-                ]}>
-                  {tab.label}
-                </Text>
+                <View style={styles.tabContentWrapper}>
+                  <Text
+                    style={[
+                      styles.enhancedTabText,
+                      activeTab === tab.id && styles.activeEnhancedTabText
+                    ]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit={true}
+                    minimumFontScale={0.8}
+                  >
+                    {tab.label}
+                  </Text>
+                  {tab.badge && (
+                    <View style={styles.tabBadge}>
+                      <Text style={styles.tabBadgeText}>{tab.badge}</Text>
+                    </View>
+                  )}
+                </View>
               </TouchableOpacity>
             ))}
-          </ScrollView>
+          </View>
         </View>
 
-        {/* Tab Content */}
-        <ScrollView 
-          style={styles.scrollContent} 
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContentContainer}
+        {/* Animated Tab Content */}
+        <Animated.View 
+          style={[
+            styles.tabContentContainer,
+            {
+              opacity: tabContentFadeAnimation
+            }
+          ]}
         >
           {renderTabContent()}
-        </ScrollView>
-      </View>
+        </Animated.View>
+
+        {/* Bottom spacing for action button */}
+        <View style={styles.bottomSpacing} />
+      </ScrollView>
 
       {/* Fixed Action Button */}
       <SafeAreaView style={styles.actionSafeArea}>
@@ -431,6 +767,48 @@ export default function CourseDetailScreen() {
           )}
         </View>
       </SafeAreaView>
+
+      {/* Video Preview Modal */}
+      <Modal
+        visible={showVideoModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={closeVideoModal}
+      >
+        <SafeAreaView style={styles.videoModalContainer}>
+          <View style={styles.videoModalHeader}>
+            <TouchableOpacity onPress={closeVideoModal} style={styles.videoModalCloseButton}>
+              <Ionicons name="close" size={24} color={tokens.colors.onSurface} />
+            </TouchableOpacity>
+            <Text style={styles.videoModalTitle}>Course Preview</Text>
+            <View style={styles.videoModalSpacer} />
+          </View>
+          
+          <View style={styles.videoPlayerContainer}>
+            {/* Temporary video placeholder - centered video player simulation */}
+            <View style={styles.videoPlayer}>
+              <View style={styles.videoPlayerContent}>
+                <View style={styles.videoThumbnailIcon}>
+                  <Ionicons name="school" size={64} color={tokens.colors.primary} />
+                </View>
+                <TouchableOpacity style={styles.centeredVideoPlayButton}>
+                  <Ionicons name="play" size={48} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.videoControlsOverlay}>
+                <Text style={styles.videoDuration}>Sample Course Video - 5:30</Text>
+              </View>
+            </View>
+            
+            <View style={styles.videoInfo}>
+              <Text style={styles.videoTitle}>Course Preview Video</Text>
+              <Text style={styles.videoDescription}>
+                This is a sample preview video for the course. Tap the play button to start watching.
+              </Text>
+            </View>
+          </View>
+        </SafeAreaView>
+      </Modal>
     </View>
     </>
   );
@@ -461,71 +839,195 @@ const createStyles = (tokens: any) => StyleSheet.create({
     fontSize: tokens.typography.body,
     color: tokens.colors.error,
   },
-  heroSection: {
-    paddingHorizontal: tokens.spacing.lg,
-    paddingBottom: tokens.spacing.xl,
-    minHeight: 380,
-  },
-  headerControls: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: tokens.spacing.xl,
-    paddingHorizontal: 0,
-    zIndex: 10,
-  },
-  backButton: {
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderRadius: tokens.borderRadius.full,
-    padding: tokens.spacing.sm,
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
+  courseOverviewCard: {
+    backgroundColor: tokens.colors.surface,
+    borderRadius: 0, // Remove border radius for full width
+    marginBottom: tokens.spacing.lg,
+    padding: tokens.spacing.lg,
+    shadowColor: tokens.colors.shadow,
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: tokens.colors.border + '40',
   },
-  headerActions: {
-    flexDirection: 'row',
-    gap: tokens.spacing.xs,
+  coursePreviewCard: {
+    marginBottom: tokens.spacing.xs,
+    alignItems: 'center',
   },
-  actionButton: {
-    backgroundColor: 'rgba(0, 0, 0, 0.25)',
-    borderRadius: tokens.borderRadius.full,
-    padding: tokens.spacing.sm,
-    width: 36,
-    height: 36,
+  previewImageContainer: {
+    height: 180,
+    borderRadius: tokens.borderRadius.lg,
+    backgroundColor: tokens.colors.surfaceVariant,
+    marginBottom: tokens.spacing.md,
+    position: 'relative',
+    overflow: 'hidden',
+    aspectRatio: 16/9,
+  },
+  videoThumbnail: {
+    flex: 1,
+    backgroundColor: tokens.colors.primary + '08',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+  },
+  thumbnailImageContainer: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: tokens.colors.surfaceVariant,
+    position: 'relative',
+  },
+  imageOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  thumbnailImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: tokens.borderRadius.lg,
+  },
+  thumbnailPlaceholderText: {
+    fontSize: tokens.typography.caption,
+    color: tokens.colors.onSurfaceVariant,
+    marginTop: tokens.spacing.xs,
+    textAlign: 'center',
+  },
+  durationBadgeContainer: {
+    position: 'absolute',
+    top: tokens.spacing.sm,
+    right: tokens.spacing.sm,
+  },
+  videoDurationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    paddingHorizontal: tokens.spacing.sm,
+    paddingVertical: 4,
+    borderRadius: tokens.borderRadius.sm,
+    gap: 4,
+  },
+  videoDurationText: {
+    color: '#FFFFFF',
+    fontSize: tokens.typography.caption,
+    fontWeight: '600',
+  },
+  centeredPreviewOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  centeredPlayButton: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000000',
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 4,
     },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 3,
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  courseInfo: {
-    flex: 1,
-    justifyContent: 'space-between',
-    paddingTop: tokens.spacing.sm,
-    paddingBottom: tokens.spacing.md,
+  playButtonContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  playButtonOuter: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: tokens.colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  playButtonInner: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: tokens.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 4, // Slight offset for play icon centering
+  },
+  playButtonRipple: {
+    position: 'absolute',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: tokens.colors.primary + '20',
+    opacity: 0.6,
+  },  
+  previewLabel: {
+    color: '#FFFFFF',
+    fontSize: tokens.typography.body,
+    fontWeight: '600',
+    marginTop: tokens.spacing.md,
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  previewGradientOverlay: {
+    // position: 'absolute',
+    // bottom: 0,
+    // left: 0,
+    // right: 0,
+    // height: 60,
+    // backgroundColor: 'rgba(0, 0, 0, 0.2)',
+  },
+  courseMetaInfo: {
+    marginBottom: tokens.spacing.sm,
+    alignItems: 'center',
   },
   courseBadges: {
     flexDirection: 'row',
     gap: tokens.spacing.sm,
-    marginBottom: tokens.spacing.md,
+    marginBottom: tokens.spacing.lg,
     alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  durationBadge: {
+    backgroundColor: tokens.colors.surfaceVariant,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: tokens.spacing.sm,
+    paddingVertical: tokens.spacing.xs,
+    borderRadius: tokens.borderRadius.sm,
+  },
+  durationText: {
+    fontSize: tokens.typography.caption,
+    color: tokens.colors.onSurfaceVariant,
+    fontWeight: '600',
   },
   categoryBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: tokens.colors.primaryLight,
     paddingHorizontal: tokens.spacing.sm,
     paddingVertical: tokens.spacing.xs,
     borderRadius: tokens.borderRadius.sm,
@@ -549,125 +1051,392 @@ const createStyles = (tokens: any) => StyleSheet.create({
     fontWeight: '600',
     textTransform: 'capitalize',
   },
-  courseTitle: {
-    fontSize: tokens.typography.headline2,
-    fontWeight: tokens.typography.bold,
-    color: '#FFFFFF',
-    marginBottom: tokens.spacing.xs,
-    lineHeight: tokens.typography.headline2 * 1.2,
-  },
-  courseInstructor: {
-    fontSize: tokens.typography.body,
-    color: '#FFFFFF',
-    marginBottom: tokens.spacing.lg,
-    opacity: 0.9,
-  },
-  courseStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: tokens.spacing.lg,
-    paddingHorizontal: tokens.spacing.sm,
-  },
-  statItem: {
+  instructorInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    paddingHorizontal: tokens.spacing.sm,
-    paddingVertical: tokens.spacing.xs,
-    borderRadius: tokens.borderRadius.md,
-    minWidth: 80,
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
   },
-  statText: {
-    fontSize: tokens.typography.body,
-    color: '#FFFFFF',
-    fontWeight: '600',
-    marginLeft: tokens.spacing.xs,
-  },
-  progressSection: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    padding: tokens.spacing.md,
-    borderRadius: tokens.borderRadius.lg,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  progressHeader: {
+  instructorRating: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: tokens.spacing.xs,
+    gap: 4,
   },
-  progressLabel: {
+  instructorRatingText: {
     fontSize: tokens.typography.caption,
-    color: '#FFFFFF',
-    fontWeight: '600',
+    color: tokens.colors.onSurfaceVariant,
+    fontWeight: '500',
   },
-  progressValue: {
-    fontSize: tokens.typography.body,
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-  progressBar: {
-    height: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: 3,
-    overflow: 'hidden',
-    marginVertical: tokens.spacing.xs,
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  progressStats: {
-    fontSize: tokens.typography.caption,
-    color: '#FFFFFF',
+  statsContainer: {
     marginTop: tokens.spacing.xs,
-    opacity: 0.9,
-    textAlign: 'center',
   },
-  contentSection: {
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: tokens.spacing.md,
+  },
+  statCard: {
     flex: 1,
-    backgroundColor: tokens.colors.background,
-    marginTop: -tokens.spacing.lg,
-    borderTopLeftRadius: tokens.borderRadius.xl,
-    borderTopRightRadius: tokens.borderRadius.xl,
-    paddingTop: tokens.spacing.sm,
+    minWidth: 95,
+    maxWidth: 115,
+    minHeight: 120,
+    backgroundColor: tokens.colors.surfaceVariant,
+    borderRadius: tokens.borderRadius.lg,
+    padding: tokens.spacing.md,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: tokens.colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: tokens.colors.border + '30',
   },
-  tabNavigation: {
-    borderBottomWidth: 1,
-    borderBottomColor: tokens.colors.border + '20',
-    paddingBottom: tokens.spacing.sm,
+  statIconContainer: {
+    marginBottom: tokens.spacing.xs,
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 40,
   },
-  tabScrollView: {
-    paddingHorizontal: tokens.spacing.lg,
+  ratingStarsContainer: {
+    flexDirection: 'row',
+    gap: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  tabButton: {
-    paddingHorizontal: tokens.spacing.md,
-    paddingVertical: tokens.spacing.sm,
-    marginRight: tokens.spacing.sm,
-    borderRadius: tokens.borderRadius.md,
+  enhancedProgressRing: {
+    width: 36,
+    height: 36,
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  activeTabButton: {
-    backgroundColor: tokens.colors.primaryLight + '20',
+  progressRingBackground: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: tokens.colors.success + '20',
+    position: 'relative',
+    overflow: 'hidden',
   },
-  tabText: {
+  progressRingFill: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '50%',
+    height: '100%',
+    backgroundColor: tokens.colors.success,
+    transformOrigin: 'right center',
+  },
+  progressRingCenter: {
+    position: 'absolute',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: tokens.colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  lessonsIconContainer: {
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  lessonsCountBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -8,
+    backgroundColor: tokens.colors.success,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  lessonsCountText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: tokens.colors.onPrimary,
+  },
+  lessonsStatContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  lessonsSlash: {
+    fontSize: tokens.typography.body,
+    color: tokens.colors.onSurfaceVariant,
+    marginHorizontal: 2,
+  },
+  lessonsTotalValue: {
     fontSize: tokens.typography.body,
     color: tokens.colors.onSurfaceVariant,
     fontWeight: '500',
   },
-  activeTabText: {
-    color: tokens.colors.primary,
+  statLabel: {
+    fontSize: tokens.typography.caption,
+    color: tokens.colors.onSurfaceVariant,
+    fontWeight: '500',
+    marginBottom: tokens.spacing.xs,
+    textAlign: 'center',
+  },
+  statValue: {
+    fontSize: tokens.typography.subtitle,
+    color: tokens.colors.onSurface,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  statProgress: {
+    width: '100%',
+    height: 3,
+    backgroundColor: tokens.colors.border,
+    borderRadius: 2,
+    marginTop: 4,
+  },
+  statProgressBar: {
+    height: '100%',
+    backgroundColor: tokens.colors.warning,
+    borderRadius: 2,
+  },
+  statSubLabel: {
+    fontSize: tokens.typography.caption - 2,
+    color: tokens.colors.onSurfaceVariant,
+    textAlign: 'center',
+    marginTop: 2,
+  },
+  progressRing: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 3,
+    borderColor: tokens.colors.success,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+  },
+  progressPercentage: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: tokens.colors.success,
+  },
+  contentSection: {
+    flex: 1,
+    backgroundColor: tokens.colors.background,
+  },
+  scrollableContentContainer: {
+    paddingTop: 0, // Remove top padding
+    paddingBottom: tokens.spacing.xl,
+  },
+  tabNavigation: {
+    marginBottom: tokens.spacing.lg,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: tokens.colors.surface,
+    borderRadius: tokens.borderRadius.lg,
+    padding: 4,
+    shadowColor: tokens.colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  modernTabButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: tokens.spacing.sm,
+    paddingHorizontal: tokens.spacing.xs,
+    borderRadius: tokens.borderRadius.md,
+    position: 'relative',
+    gap: 6,
+  },
+  activeModernTabButton: {
+    backgroundColor: tokens.colors.primary,
+    shadowColor: tokens.colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  modernTabText: {
+    fontSize: tokens.typography.caption,
+    color: tokens.colors.onSurfaceVariant,
+    fontWeight: '600',
+  },
+  activeModernTabText: {
+    color: tokens.colors.onPrimary,
     fontWeight: '700',
   },
-  scrollContent: {
+  tabIndicator: {
+    position: 'absolute',
+    bottom: -2,
+    left: '50%',
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: tokens.colors.primary,
+    transform: [{ translateX: -2 }],
+  },
+  tabContentContainer: {
     flex: 1,
   },
-  scrollContentContainer: {
-    paddingBottom: tokens.spacing.xxl * 2,
-  },
   tabContent: {
+    paddingVertical: tokens.spacing.md,
+  },
+  
+  // Enhanced Tab Styles
+  enhancedTabNavigation: {
+    marginBottom: tokens.spacing.lg,
+    marginHorizontal: tokens.spacing.lg,
+  },
+  enhancedTabContainer: {
+    flexDirection: 'row',
+    backgroundColor: tokens.colors.surface,
+    borderRadius: tokens.borderRadius.xl,
+    padding: 6,
+    position: 'relative',
+    ...tokens.shadows.md,
+  },
+  enhancedTabIndicator: {
+    position: 'absolute',
+    top: 6,
+    left: 6,
+    bottom: 6,
+    backgroundColor: tokens.colors.primary,
+    borderRadius: tokens.borderRadius.lg,
+    width: '22%', // Approximately 25% minus padding
+    ...tokens.shadows.sm,
+  },
+  enhancedTabButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: tokens.spacing.md,
+    paddingHorizontal: tokens.spacing.md,
+    borderRadius: tokens.borderRadius.lg,
+    position: 'relative',
+    zIndex: 2,
+  },
+  activeEnhancedTabButton: {
+    // Active state handled by indicator
+  },
+  tabContentWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  enhancedTabText: {
+    fontSize: tokens.typography.caption,
+    color: tokens.colors.onSurfaceVariant,
+    fontWeight: '600',
+    textAlign: 'center',
+    flexShrink: 1,
+  },
+  activeEnhancedTabText: {
+    color: tokens.colors.onPrimary,
+    fontWeight: '700',
+  },
+  tabBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -8,
+    backgroundColor: tokens.colors.error,
+    borderRadius: tokens.borderRadius.full,
+    minWidth: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  tabBadgeText: {
+    fontSize: 10,
+    color: tokens.colors.onPrimary,
+    fontWeight: '700',
+  },
+  
+  bottomSpacing: {
+    height: 100,
+  },
+  modernCard: {
+    backgroundColor: tokens.colors.surface,
+    borderRadius: tokens.borderRadius.lg,
     padding: tokens.spacing.lg,
+    marginBottom: tokens.spacing.lg,
+    shadowColor: tokens.colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: tokens.colors.border + '40',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: tokens.spacing.md,
+  },
+  cardIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: tokens.colors.primaryLight + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: tokens.spacing.md,
+  },
+  cardTitle: {
+    fontSize: tokens.typography.subtitle,
+    fontWeight: tokens.typography.bold,
+    color: tokens.colors.onSurface,
+  },
+  cardDescription: {
+    fontSize: tokens.typography.body,
+    color: tokens.colors.onSurface,
+    lineHeight: tokens.typography.body * 1.6,
+  },
+  requirementsList: {
+    gap: tokens.spacing.sm,
+  },
+  outcomesList: {
+    gap: tokens.spacing.sm,
+  },
+  modernListItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: tokens.spacing.xs,
+  },
+  listItemIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: tokens.colors.success + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: tokens.spacing.md,
+    marginTop: 2,
+  },
+  modernListText: {
+    fontSize: tokens.typography.body,
+    color: tokens.colors.onSurface,
+    flex: 1,
+    lineHeight: tokens.typography.body * 1.5,
   },
   section: {
     marginBottom: tokens.spacing.xl,
@@ -713,11 +1482,6 @@ const createStyles = (tokens: any) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  lessonInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
   lessonStatus: {
     marginRight: tokens.spacing.sm,
   },
@@ -757,20 +1521,6 @@ const createStyles = (tokens: any) => StyleSheet.create({
     fontSize: tokens.typography.title,
     fontWeight: tokens.typography.bold,
     color: tokens.colors.onPrimary,
-  },
-  instructorInfo: {
-    flex: 1,
-  },
-  instructorName: {
-    fontSize: tokens.typography.subtitle,
-    fontWeight: tokens.typography.bold,
-    color: tokens.colors.onSurface,
-    marginBottom: tokens.spacing.xs,
-  },
-  instructorRating: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: tokens.spacing.xs,
   },
   ratingText: {
     fontSize: tokens.typography.caption,
@@ -817,44 +1567,51 @@ const createStyles = (tokens: any) => StyleSheet.create({
   },
   actionSafeArea: {
     backgroundColor: tokens.colors.surface,
-  },
-  actionSection: {
-    paddingHorizontal: tokens.spacing.lg,
-    paddingVertical: tokens.spacing.md,
-    backgroundColor: tokens.colors.surface,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     borderTopWidth: 1,
-    borderTopColor: tokens.colors.border + '20',
+    borderTopColor: tokens.colors.border + '30',
     shadowColor: tokens.colors.shadow,
     shadowOffset: {
       width: 0,
-      height: -2,
+      height: -4,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 10,
+    shadowRadius: 12,
+    elevation: 12,
+  },
+  actionSection: {
+    paddingHorizontal: tokens.spacing.lg,
+    paddingTop: tokens.spacing.md,
+    backgroundColor: 'transparent',
   },
   primaryButton: {
     backgroundColor: tokens.colors.primary,
-    paddingVertical: tokens.spacing.md,
+    paddingVertical: tokens.spacing.md + 2,
     paddingHorizontal: tokens.spacing.xl,
-    borderRadius: tokens.borderRadius.md,
+    borderRadius: tokens.borderRadius.lg,
     alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: tokens.colors.primary,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-    alignSelf: 'center',
-    minWidth: 200,
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 6,
+    flex: 1,
+    minHeight: 50,
   },
   primaryButtonText: {
     fontSize: tokens.typography.body,
     fontWeight: tokens.typography.semiBold,
     color: tokens.colors.onPrimary,
-    letterSpacing: 0.25,
+    letterSpacing: 0.5,
+    textAlign: 'center',
+    lineHeight: tokens.typography.body * 1.2,
   },
   enrollSection: {
     flexDirection: 'row',
@@ -877,24 +1634,533 @@ const createStyles = (tokens: any) => StyleSheet.create({
   enrollButton: {
     backgroundColor: tokens.colors.primary,
     paddingHorizontal: tokens.spacing.lg,
-    paddingVertical: tokens.spacing.md,
-    borderRadius: tokens.borderRadius.md,
+    paddingVertical: tokens.spacing.md + 2,
+    borderRadius: tokens.borderRadius.lg,
     shadowColor: tokens.colors.primary,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 6,
     flex: 1,
-    maxWidth: 140,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 50,
   },
   enrollButtonText: {
     fontSize: tokens.typography.body,
     fontWeight: tokens.typography.semiBold,
     color: tokens.colors.onPrimary,
     letterSpacing: 0.25,
+  },
+
+  // Progress Overview Styles
+  progressOverviewCard: {
+    backgroundColor: tokens.colors.surface,
+    borderRadius: tokens.borderRadius.lg,
+    padding: tokens.spacing.lg,
+    marginBottom: tokens.spacing.lg,
+    shadowColor: tokens.colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: tokens.colors.border + '40',
+  },
+  progressHeader: {
+    marginBottom: tokens.spacing.md,
+  },
+  progressTitle: {
+    fontSize: tokens.typography.subtitle,
+    fontWeight: tokens.typography.bold,
+    color: tokens.colors.onSurface,
+    marginBottom: tokens.spacing.xs,
+  },
+  progressSubtitle: {
+    fontSize: tokens.typography.body,
+    color: tokens.colors.onSurfaceVariant,
+  },
+  progressBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing.md,
+  },
+  progressBar: {
+    flex: 1,
+    height: 8,
+    backgroundColor: tokens.colors.border,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: tokens.colors.success,
+    borderRadius: 4,
+  },
+  progressPercentageText: {
+    fontSize: tokens.typography.body,
+    fontWeight: tokens.typography.semiBold,
+    color: tokens.colors.success,
+    minWidth: 40,
+    textAlign: 'right',
+  },
+
+  // Enhanced Lesson Styles
+  enhancedLessonCard: {
+    backgroundColor: tokens.colors.surface,
+    borderRadius: tokens.borderRadius.md,
+    padding: tokens.spacing.md,
+    marginBottom: tokens.spacing.sm,
+    borderWidth: 1,
+    borderColor: tokens.colors.border,
+    shadowColor: tokens.colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  completedLessonCard: {
+    backgroundColor: tokens.colors.success + '10',
+    borderColor: tokens.colors.success + '40',
+  },
+  lockedLessonCard: {
+    backgroundColor: tokens.colors.surfaceVariant,
+    borderColor: tokens.colors.border,
+    opacity: 0.7,
+  },
+  lessonCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing.md,
+  },
+  lessonStatusIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: tokens.colors.primaryLight + '20',
+  },
+  completedStatusIcon: {
+    backgroundColor: tokens.colors.success + '20',
+  },
+  lockedStatusIcon: {
+    backgroundColor: tokens.colors.surfaceVariant,
+  },
+  lessonInfo: {
+    flex: 1,
+  },
+  enhancedLessonTitle: {
+    fontSize: tokens.typography.body,
+    fontWeight: tokens.typography.semiBold,
+    color: tokens.colors.onSurface,
+    marginBottom: tokens.spacing.xs,
+  },
+  lessonMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing.md,
+  },
+  lessonTypeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  lessonType: {
+    fontSize: tokens.typography.caption,
+    color: tokens.colors.primary,
+    fontWeight: '600',
+  },
+  lessonDurationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+
+  // Instructor Profile Styles
+  instructorProfileCard: {
+    backgroundColor: tokens.colors.surface,
+    borderRadius: tokens.borderRadius.lg,
+    padding: tokens.spacing.lg,
+    marginBottom: tokens.spacing.lg,
+    shadowColor: tokens.colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: tokens.colors.border + '40',
+  },
+  instructorHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing.md,
+  },
+  instructorAvatarContainer: {
+    position: 'relative',
+  },
+  enhancedInstructorAvatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: tokens.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: tokens.colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  instructorBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: tokens.colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: tokens.colors.surface,
+  },
+  instructorDetails: {
+    flex: 1,
+  },
+  enhancedInstructorName: {
+    fontSize: tokens.typography.title,
+    fontWeight: tokens.typography.bold,
+    color: tokens.colors.onSurface,
+    marginBottom: tokens.spacing.xs,
+  },
+  instructorTitle: {
+    fontSize: tokens.typography.body,
+    color: tokens.colors.onSurfaceVariant,
+    marginBottom: tokens.spacing.sm,
+  },
+  instructorStatsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing.lg,
+  },
+  instructorStat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  instructorStatText: {
+    fontSize: tokens.typography.body,
+    color: tokens.colors.onSurface,
+    fontWeight: '600',
+  },
+
+  // Achievements Styles
+  achievementsList: {
+    gap: tokens.spacing.sm,
+  },
+  achievementItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing.md,
+    paddingVertical: tokens.spacing.xs,
+  },
+  achievementText: {
+    fontSize: tokens.typography.body,
+    color: tokens.colors.onSurface,
+    flex: 1,
+  },
+
+  // Reviews Overview Styles
+  reviewOverviewCard: {
+    backgroundColor: tokens.colors.surface,
+    borderRadius: tokens.borderRadius.lg,
+    padding: tokens.spacing.lg,
+    marginBottom: tokens.spacing.lg,
+    shadowColor: tokens.colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: tokens.colors.border + '40',
+  },
+  reviewOverviewHeader: {
+    alignItems: 'center',
+  },
+  ratingDisplayContainer: {
+    alignItems: 'center',
+    gap: tokens.spacing.sm,
+  },
+  overallRating: {
+    fontSize: 48,
+    fontWeight: tokens.typography.bold,
+    color: tokens.colors.onSurface,
+  },
+  starsContainer: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  reviewCount: {
+    fontSize: tokens.typography.body,
+    color: tokens.colors.onSurfaceVariant,
+  },
+
+  // Enhanced Review Styles
+  enhancedReviewCard: {
+    backgroundColor: tokens.colors.surfaceVariant + '40',
+    borderRadius: tokens.borderRadius.md,
+    padding: tokens.spacing.md,
+    marginBottom: tokens.spacing.md,
+    borderWidth: 1,
+    borderColor: tokens.colors.border + '60',
+  },
+  reviewerInfo: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: tokens.spacing.md,
+    marginBottom: tokens.spacing.sm,
+  },
+  reviewerAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: tokens.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  reviewerInitial: {
+    fontSize: tokens.typography.subtitle,
+    fontWeight: tokens.typography.bold,
+    color: tokens.colors.onPrimary,
+  },
+  reviewerDetails: {
+    flex: 1,
+  },
+  reviewMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing.md,
+    marginTop: tokens.spacing.xs,
+  },
+  reviewStars: {
+    flexDirection: 'row',
+    gap: 2,
+  },
+  enhancedReviewComment: {
+    fontSize: tokens.typography.body,
+    color: tokens.colors.onSurface,
+    lineHeight: tokens.typography.body * 1.5,
+  },
+
+  // Video Modal Styles
+  videoModalContainer: {
+    flex: 1,
+    backgroundColor: tokens.colors.background,
+  },
+  videoModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: tokens.spacing.lg,
+    paddingVertical: tokens.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: tokens.colors.border,
+  },
+  videoModalCloseButton: {
+    padding: tokens.spacing.sm,
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 22,
+    backgroundColor: tokens.colors.surfaceVariant,
+  },
+  videoModalTitle: {
+    fontSize: tokens.typography.title,
+    fontWeight: tokens.typography.bold,
+    color: tokens.colors.onSurface,
+  },
+  videoModalSpacer: {
+    width: 44,
+  },
+  videoPlayerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: tokens.spacing.lg,
+    paddingVertical: tokens.spacing.xxl,
+  },
+  videoPlayer: {
+    width: '95%',
+    aspectRatio: 16/9,
+    borderRadius: tokens.borderRadius.lg,
+    marginBottom: tokens.spacing.xl,
+    alignSelf: 'center',
+    backgroundColor: tokens.colors.surface,
+    shadowColor: tokens.colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  videoPlayerContent: {
+    flex: 1,
+    backgroundColor: tokens.colors.primary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  videoThumbnailIcon: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -32 }, { translateY: -32 }],
+    opacity: 0.3,
+  },
+  centeredVideoPlayButton: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: tokens.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: tokens.colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 12,
+  },
+  videoControlsOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    paddingHorizontal: tokens.spacing.md,
+    paddingVertical: tokens.spacing.sm,
+  },
+  videoDuration: {
+    color: '#FFFFFF',
+    fontSize: tokens.typography.caption,
+    fontWeight: '600',
+  },
+  videoInfo: {
+    width: '100%',
+    alignItems: 'center',
+    paddingHorizontal: tokens.spacing.md,
+  },
+  videoTitle: {
+    fontSize: tokens.typography.title,
+    fontWeight: tokens.typography.bold,
+    color: tokens.colors.onSurface,
+    textAlign: 'center',
+    marginBottom: tokens.spacing.sm,
+  },
+  videoDescription: {
+    fontSize: tokens.typography.body,
+    color: tokens.colors.onSurfaceVariant,
+    textAlign: 'center',
+    lineHeight: tokens.typography.body * 1.5,
+  },
+  videoPlaceholder: {
+    width: '100%',
+    aspectRatio: 16/9,
+    backgroundColor: tokens.colors.primary + '10',
+    borderRadius: tokens.borderRadius.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: tokens.spacing.xl,
+    borderWidth: 2,
+    borderColor: tokens.colors.primary + '20',
+    position: 'relative',
+  },
+  videoPlayButton: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: tokens.colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: tokens.spacing.md,
+    shadowColor: tokens.colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  videoPlaceholderText: {
+    fontSize: tokens.typography.title,
+    fontWeight: tokens.typography.semiBold,
+    color: tokens.colors.primary,
+    marginBottom: tokens.spacing.xs,
+  },
+  videoPlaceholderSubtext: {
+    fontSize: tokens.typography.body,
+    color: tokens.colors.onSurfaceVariant,
+  },
+  videoControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: tokens.spacing.xl,
+    marginBottom: tokens.spacing.lg,
+  },
+  videoControlButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: tokens.colors.surfaceVariant,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoProgressContainer: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  videoProgressBar: {
+    width: '100%',
+    height: 4,
+    backgroundColor: tokens.colors.border,
+    borderRadius: 2,
+    marginBottom: tokens.spacing.sm,
+  },
+  videoProgress: {
+    height: '100%',
+    backgroundColor: tokens.colors.primary,
+    borderRadius: 2,
+  },
+  videoTimeText: {
+    fontSize: tokens.typography.caption,
+    color: tokens.colors.onSurfaceVariant,
   },
 });

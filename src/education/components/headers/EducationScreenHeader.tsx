@@ -42,8 +42,8 @@ export function EducationScreenHeader({
 
   const handleBackPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    // Navigate back to home tab within education section
-    router.push('/(services)/education/(tabs)/' as any);
+    // Navigate back to main screen instead of education browse
+    router.push('/(app)/(tabs)/' as any);
   };
 
   return (
@@ -142,27 +142,27 @@ export function EducationScreenHeader({
 
 const createStyles = (tokens: any) => StyleSheet.create({
   headerSection: {
-    paddingBottom: tokens.spacing.lg,
+    paddingBottom: tokens.spacing.xl,
+    minHeight: 220, // Consistent minimum height
   },
   headerSafeArea: {
     backgroundColor: 'transparent',
     flex: 1,
   },
   headerContent: {
-    width: '100%',
+    flex: 1,
     paddingHorizontal: tokens.spacing.lg,
-    position: 'absolute',
-    top: 80,
-    left: 0,
-    right: 0,
+    justifyContent: 'center',
     alignItems: 'center',
+    paddingTop: tokens.spacing.md,
   },
   headerTop: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: tokens.spacing.sm,
-    minHeight: 56,
+    marginBottom: tokens.spacing.lg,
+    minHeight: 44,
+    width: '100%',
   },
   backButton: {
     padding: tokens.spacing.sm,
@@ -209,20 +209,22 @@ const createStyles = (tokens: any) => StyleSheet.create({
   title: {
     color: tokens.colors.onPrimary,
     fontWeight: tokens.typography.bold,
-    fontSize: 28,
+    fontSize: 26,
     textAlign: 'center',
-    marginBottom: tokens.spacing.xs,
-    lineHeight: 32,
-    letterSpacing: -0.5,
+    marginBottom: tokens.spacing.sm,
+    lineHeight: 30,
+    letterSpacing: -0.4,
+    paddingHorizontal: tokens.spacing.md,
   },
   subtitle: {
     color: tokens.colors.onPrimary,
     fontWeight: '400',
-    fontSize: tokens.typography.body,
+    fontSize: tokens.typography.body - 1,
     textAlign: 'center',
-    opacity: 0.85,
-    lineHeight: tokens.typography.body * 1.4,
-    letterSpacing: 0.2,
+    opacity: 0.9,
+    lineHeight: tokens.typography.body * 1.3,
+    letterSpacing: 0.1,
+    paddingHorizontal: tokens.spacing.lg,
   },
   childrenContainer: {
     marginTop: tokens.spacing.md,
@@ -230,5 +232,6 @@ const createStyles = (tokens: any) => StyleSheet.create({
   rightActionsContainer: {
     flexDirection: 'column',
     alignItems: 'center',
+    gap: tokens.spacing.xs,
   },
 });

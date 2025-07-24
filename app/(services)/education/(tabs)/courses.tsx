@@ -18,7 +18,7 @@ import * as Haptics from 'expo-haptics';
 import { EducationHeader, EducationScreenHeader } from "@/src/education/components/headers";
 
 const MOCK_COURSES = [
-  // Primary Education (Grades 1-5)
+  // Primary Education (2 courses)
   {
     id: "1",
     title: "Tamil Language & Literature - Grade 3",
@@ -47,24 +47,10 @@ const MOCK_COURSES = [
     isEnrolled: false,
     progress: 0,
   },
+  
+  // Junior Secondary (2 courses)
   {
     id: "3",
-    title: "Environmental Studies - Grade 4",
-    description: "Introduction to science and social studies through environmental exploration",
-    instructor: "Kamala Thanabalasingham",
-    duration: "3 terms",
-    level: "beginner",
-    price: 0,
-    rating: 4.6,
-    studentsCount: 1560,
-    category: "Primary Education",
-    isEnrolled: true,
-    progress: 45,
-  },
-  
-  // Junior Secondary (Grades 6-9)
-  {
-    id: "4",
     title: "Science - Grade 8",
     description: "Integrated physics, chemistry, and biology concepts for junior secondary students",
     instructor: "Dr. Priya Rajendran",
@@ -78,21 +64,7 @@ const MOCK_COURSES = [
     progress: 78,
   },
   {
-    id: "5",
-    title: "History - Grade 9",
-    description: "Sri Lankan history and world civilizations for Grade 9 students",
-    instructor: "Prof. Mythili Rajasingam",
-    duration: "3 terms",
-    level: "intermediate",
-    price: 0,
-    rating: 4.5,
-    studentsCount: 1450,
-    category: "Junior Secondary",
-    isEnrolled: false,
-    progress: 0,
-  },
-  {
-    id: "6",
+    id: "4",
     title: "English Language - Grade 7",
     description: "Intermediate English skills including grammar, composition, and literature",
     instructor: "Geetha Mahendran",
@@ -102,13 +74,13 @@ const MOCK_COURSES = [
     rating: 4.8,
     studentsCount: 2100,
     category: "Junior Secondary",
-    isEnrolled: true,
-    progress: 52,
+    isEnrolled: false,
+    progress: 0,
   },
   
-  // O/L Preparation (Grades 10-11)
+  // O/L Preparation (3 courses)
   {
-    id: "7",
+    id: "5",
     title: "O/L Mathematics",
     description: "Advanced mathematics preparation for GCE O/L examination",
     instructor: "Ravi Shankar",
@@ -122,7 +94,7 @@ const MOCK_COURSES = [
     progress: 85,
   },
   {
-    id: "8",
+    id: "6",
     title: "O/L Science",
     description: "Integrated physics, chemistry, and biology for O/L examination",
     instructor: "Dr. Kamala Thanabalasingham",
@@ -136,7 +108,7 @@ const MOCK_COURSES = [
     progress: 0,
   },
   {
-    id: "9",
+    id: "7",
     title: "O/L Tamil Language & Literature",
     description: "Advanced Tamil language skills and literature for O/L examination",
     instructor: "Suresh Kandasamy",
@@ -149,24 +121,10 @@ const MOCK_COURSES = [
     isEnrolled: true,
     progress: 72,
   },
-  {
-    id: "10",
-    title: "O/L Geography",
-    description: "Physical and human geography for O/L optional subject",
-    instructor: "Nithya Selvakumar",
-    duration: "2 years",
-    level: "advanced",
-    price: 14000,
-    rating: 4.6,
-    studentsCount: 1680,
-    category: "O/L Preparation",
-    isEnrolled: false,
-    progress: 0,
-  },
   
-  // A/L Preparation (Grades 12-13)
+  // A/L Preparation (3 courses)
   {
-    id: "11",
+    id: "8",
     title: "A/L Combined Mathematics",
     description: "Advanced calculus, statistics, and mechanics for A/L Mathematics stream",
     instructor: "Prof. Murugesan Sivasubramaniam",
@@ -180,7 +138,7 @@ const MOCK_COURSES = [
     progress: 45,
   },
   {
-    id: "12",
+    id: "9",
     title: "A/L Physics",
     description: "Mechanics, electricity, and modern physics for A/L Mathematics stream",
     instructor: "Dr. Krishnan Nadarajah",
@@ -194,7 +152,7 @@ const MOCK_COURSES = [
     progress: 0,
   },
   {
-    id: "13",
+    id: "10",
     title: "A/L Biology",
     description: "Botany, zoology, and human biology for A/L Biological Science stream",
     instructor: "Dr. Priya Rajendran",
@@ -206,34 +164,6 @@ const MOCK_COURSES = [
     category: "A/L Preparation",
     isEnrolled: true,
     progress: 58,
-  },
-  {
-    id: "14",
-    title: "A/L Economics",
-    description: "Micro and macroeconomics for A/L Commerce and Arts streams",
-    instructor: "Prof. Selvam Ramanathan",
-    duration: "2 years",
-    level: "expert",
-    price: 20000,
-    rating: 4.7,
-    studentsCount: 980,
-    category: "A/L Preparation",
-    isEnrolled: false,
-    progress: 0,
-  },
-  {
-    id: "15",
-    title: "A/L Business Studies",
-    description: "Management and entrepreneurship for A/L Commerce stream",
-    instructor: "Arun Vijayakumar",
-    duration: "2 years",
-    level: "expert",
-    price: 18000,
-    rating: 4.6,
-    studentsCount: 750,
-    category: "A/L Preparation",
-    isEnrolled: true,
-    progress: 35,
   },
 ];
 
