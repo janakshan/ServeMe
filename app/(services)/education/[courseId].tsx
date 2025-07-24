@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,7 @@ import { educationApi } from '@/services/api/education';
 import { EducationScreenHeader } from '@/src/education/components/headers';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-// import { Video, ResizeMode } from 'expo-av'; // Temporarily commented out due to native module issues
+import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
 
 
 interface CourseDetail {
@@ -77,10 +77,29 @@ export default function CourseDetailScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
-  const [videoStatus, setVideoStatus] = useState({});
+  const [videoStatus, setVideoStatus] = useState<AVPlaybackStatus | null>(null);
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
+  const videoRef = useRef<Video>(null);
   
   // Sample video URL for course preview
   const sampleVideoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+  
+  // Handle video status updates
+  const handleVideoStatusUpdate = useCallback((status: AVPlaybackStatus) => {
+    setVideoStatus(status);
+    if (status.isLoaded) {
+      setIsVideoLoading(false);
+    }
+  }, []);
+  
+  // Handle video modal close
+  const closeVideoModal = () => {
+    setShowVideoModal(false);
+    setIsVideoLoading(true);
+    if (videoRef.current) {
+      videoRef.current.pauseAsync();
+    }
+  };
   
   // Animation values for enhanced tabs
   const tabIndicatorAnimation = useRef(new Animated.Value(0)).current;
@@ -100,9 +119,25 @@ export default function CourseDetailScreen() {
 
   useEffect(() => {
     loadCourseData();
-  }, [courseId]);
+  }, [loadCourseData]);
+  
+  // Initialize tab indicator position on component mount
+  useEffect(() => {
+    const currentTabIndex = tabs.findIndex(tab => tab.id === activeTab);
+    if (currentTabIndex !== -1) {
+      const screenWidth = Dimensions.get('window').width;
+      const containerPadding = tokens.spacing.lg * 2;
+      const tabContainerWidth = screenWidth - containerPadding;
+      const tabPadding = 12;
+      const availableWidth = tabContainerWidth - tabPadding;
+      const tabWidth = availableWidth / 4;
+      const indicatorPosition = 6 + (currentTabIndex * tabWidth);
+      
+      tabIndicatorAnimation.setValue(indicatorPosition);
+    }
+  }, [activeTab, tabs, tokens.spacing.lg, tabIndicatorAnimation]);
 
-  const loadCourseData = async () => {
+  const loadCourseData = useCallback(async () => {
     try {
       setIsLoading(true);
       // Use the enhanced API to get course details
@@ -113,7 +148,7 @@ export default function CourseDetailScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [courseId]);
 
   const handleEnroll = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -138,14 +173,12 @@ export default function CourseDetailScreen() {
     Alert.alert('Share Course', 'Share functionality will be implemented soon!');
   };
 
-  const handlePreview = () => {
+  const handlePreview = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setIsVideoLoading(true); // Reset loading state
     setShowVideoModal(true);
-  };
+  }, []);
 
-  const closeVideoModal = () => {
-    setShowVideoModal(false);
-  };
 
   // Enhanced tab handler with animations
   const handleTabPress = (tabIndex: number) => {
@@ -155,11 +188,14 @@ export default function CourseDetailScreen() {
     
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     
-    // Calculate tab indicator position - simple percentage based approach
+    // Calculate tab indicator position based on container width and padding
     const screenWidth = Dimensions.get('window').width;
-    const tabContainerWidth = screenWidth; // Full width tabs
-    const tabWidth = tabContainerWidth / 4; // Equal width for 4 tabs
-    const indicatorPosition = tabIndex * tabWidth;
+    const containerPadding = tokens.spacing.lg * 2; // Left + right margins
+    const tabContainerWidth = screenWidth - containerPadding;
+    const tabPadding = 12; // 6px padding on each side of container
+    const availableWidth = tabContainerWidth - tabPadding;
+    const tabWidth = availableWidth / 4; // Equal width for 4 tabs
+    const indicatorPosition = 6 + (tabIndex * tabWidth); // 6px is the container padding
     
     Animated.timing(tabIndicatorAnimation, {
       toValue: indicatorPosition,
@@ -182,7 +218,7 @@ export default function CourseDetailScreen() {
     });
   };
 
-  const getLevelColor = (level: string) => {
+  const getLevelColor = useCallback((level: string) => {
     switch (level) {
       case 'beginner': return tokens.colors.success;
       case 'intermediate': return tokens.colors.warning;
@@ -190,9 +226,9 @@ export default function CourseDetailScreen() {
       case 'expert': return tokens.colors.info;
       default: return tokens.colors.onSurfaceVariant;
     }
-  };
+  }, [tokens.colors]);
 
-  const getLevelIcon = (level: string) => {
+  const getLevelIcon = useCallback((level: string) => {
     switch (level) {
       case 'beginner': return 'leaf';
       case 'intermediate': return 'library';
@@ -200,7 +236,7 @@ export default function CourseDetailScreen() {
       case 'expert': return 'trophy';
       default: return 'book';
     }
-  };
+  }, []);
 
   const renderTabContent = () => {
     if (!courseData) return null;
@@ -785,26 +821,57 @@ export default function CourseDetailScreen() {
           </View>
           
           <View style={styles.videoPlayerContainer}>
-            {/* Temporary video placeholder - centered video player simulation */}
+            {/* Enhanced Video Player with expo-av */}
             <View style={styles.videoPlayer}>
-              <View style={styles.videoPlayerContent}>
-                <View style={styles.videoThumbnailIcon}>
-                  <Ionicons name="school" size={64} color={tokens.colors.primary} />
+              {isVideoLoading && (
+                <View style={styles.videoLoadingContainer}>
+                  <Animated.View style={[styles.loadingSpinner, {
+                    transform: [{
+                      rotate: '0deg' // You can add rotation animation here if needed
+                    }]
+                  }]}>
+                    <Ionicons name="play-circle" size={48} color={tokens.colors.primary} />
+                  </Animated.View>
+                  <Text style={styles.videoLoadingText}>Loading video...</Text>
                 </View>
-                <TouchableOpacity style={styles.centeredVideoPlayButton}>
-                  <Ionicons name="play" size={48} color="#FFFFFF" />
-                </TouchableOpacity>
-              </View>
-              <View style={styles.videoControlsOverlay}>
-                <Text style={styles.videoDuration}>Sample Course Video - 5:30</Text>
-              </View>
+              )}
+              
+              <Video
+                ref={videoRef}
+                source={{ uri: sampleVideoUrl }}
+                style={styles.video}
+                resizeMode={ResizeMode.CONTAIN}
+                shouldPlay={showVideoModal} // Auto-play when modal opens
+                isLooping={false}
+                useNativeControls={true}
+                onPlaybackStatusUpdate={handleVideoStatusUpdate}
+                onLoad={() => setIsVideoLoading(false)}
+                onError={(error) => {
+                  console.error('Video error:', error);
+                  setIsVideoLoading(false);
+                }}
+              />
             </View>
             
             <View style={styles.videoInfo}>
               <Text style={styles.videoTitle}>Course Preview Video</Text>
               <Text style={styles.videoDescription}>
-                This is a sample preview video for the course. Tap the play button to start watching.
+                Get a preview of what you'll learn in this comprehensive Tamil Language & Literature course.
               </Text>
+              {videoStatus?.isLoaded && (
+                <View style={styles.videoStats}>
+                  <View style={styles.videoStatItem}>
+                    <Ionicons name="time-outline" size={16} color={tokens.colors.onSurfaceVariant} />
+                    <Text style={styles.videoStatText}>
+                      {Math.floor((videoStatus.durationMillis || 0) / 60000)}:{Math.floor(((videoStatus.durationMillis || 0) % 60000) / 1000).toString().padStart(2, '0')} duration
+                    </Text>
+                  </View>
+                  <View style={styles.videoStatItem}>
+                    <Ionicons name="play-circle" size={16} color={tokens.colors.onSurfaceVariant} />
+                    <Text style={styles.videoStatText}>Auto-play enabled</Text>
+                  </View>
+                </View>
+              )}
             </View>
           </View>
         </SafeAreaView>
@@ -841,19 +908,19 @@ const createStyles = (tokens: any) => StyleSheet.create({
   },
   courseOverviewCard: {
     backgroundColor: tokens.colors.surface,
-    borderRadius: 0, // Remove border radius for full width
+    borderRadius: 0,
     marginBottom: tokens.spacing.lg,
     padding: tokens.spacing.lg,
     shadowColor: tokens.colors.shadow,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: tokens.colors.border + '40',
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: tokens.colors.border + '20',
   },
   coursePreviewCard: {
     marginBottom: tokens.spacing.xs,
@@ -1079,21 +1146,21 @@ const createStyles = (tokens: any) => StyleSheet.create({
     minWidth: 95,
     maxWidth: 115,
     minHeight: 120,
-    backgroundColor: tokens.colors.surfaceVariant,
-    borderRadius: tokens.borderRadius.lg,
+    backgroundColor: tokens.colors.surface,
+    borderRadius: tokens.borderRadius.xl,
     padding: tokens.spacing.md,
     alignItems: 'center',
     justifyContent: 'space-between',
     shadowColor: tokens.colors.shadow,
     shadowOffset: {
       width: 0,
-      height: 3,
+      height: 4,
     },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
     borderWidth: 1,
-    borderColor: tokens.colors.border + '30',
+    borderColor: tokens.colors.border + '20',
   },
   statIconContainer: {
     marginBottom: tokens.spacing.xs,
@@ -1318,7 +1385,7 @@ const createStyles = (tokens: any) => StyleSheet.create({
     bottom: 6,
     backgroundColor: tokens.colors.primary,
     borderRadius: tokens.borderRadius.lg,
-    width: '22%', // Approximately 25% minus padding
+    width: `${(100 - 3) / 4}%`, // Dynamic width calculation accounting for container padding
     ...tokens.shadows.sm,
   },
   enhancedTabButton: {
@@ -1326,10 +1393,11 @@ const createStyles = (tokens: any) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: tokens.spacing.md,
-    paddingHorizontal: tokens.spacing.md,
+    paddingHorizontal: 4, // Reduced padding to give more space to text
     borderRadius: tokens.borderRadius.lg,
     position: 'relative',
     zIndex: 2,
+    minWidth: 0,
   },
   activeEnhancedTabButton: {
     // Active state handled by indicator
@@ -1338,13 +1406,17 @@ const createStyles = (tokens: any) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+    width: '100%',
+    paddingHorizontal: 2,
   },
   enhancedTabText: {
-    fontSize: tokens.typography.caption,
+    fontSize: tokens.typography.caption - 2, // Smaller font to fit better
     color: tokens.colors.onSurfaceVariant,
     fontWeight: '600',
     textAlign: 'center',
     flexShrink: 1,
+    width: '100%',
+    includeFontPadding: false, // Remove extra font padding on Android
   },
   activeEnhancedTabText: {
     color: tokens.colors.onPrimary,
@@ -1373,19 +1445,20 @@ const createStyles = (tokens: any) => StyleSheet.create({
   },
   modernCard: {
     backgroundColor: tokens.colors.surface,
-    borderRadius: tokens.borderRadius.lg,
-    padding: tokens.spacing.lg,
+    borderRadius: tokens.borderRadius.xl,
+    padding: tokens.spacing.xl,
+    marginHorizontal: tokens.spacing.lg,
     marginBottom: tokens.spacing.lg,
     shadowColor: tokens.colors.shadow,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 6,
     borderWidth: 1,
-    borderColor: tokens.colors.border + '40',
+    borderColor: tokens.colors.border + '20',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -1572,38 +1645,38 @@ const createStyles = (tokens: any) => StyleSheet.create({
     left: 0,
     right: 0,
     borderTopWidth: 1,
-    borderTopColor: tokens.colors.border + '30',
+    borderTopColor: tokens.colors.border + '20',
     shadowColor: tokens.colors.shadow,
     shadowOffset: {
       width: 0,
-      height: -4,
+      height: -6,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 12,
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 16,
   },
   actionSection: {
-    paddingHorizontal: tokens.spacing.lg,
-    paddingTop: tokens.spacing.md,
+    paddingHorizontal: tokens.spacing.xl,
+    paddingTop: tokens.spacing.lg,
     backgroundColor: 'transparent',
   },
   primaryButton: {
     backgroundColor: tokens.colors.primary,
-    paddingVertical: tokens.spacing.md + 2,
+    paddingVertical: tokens.spacing.lg,
     paddingHorizontal: tokens.spacing.xl,
-    borderRadius: tokens.borderRadius.lg,
+    borderRadius: tokens.borderRadius.xl,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: tokens.colors.primary,
     shadowOffset: {
       width: 0,
-      height: 3,
+      height: 4,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 6,
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
     flex: 1,
-    minHeight: 50,
+    minHeight: 56,
   },
   primaryButtonText: {
     fontSize: tokens.typography.body,
@@ -1633,21 +1706,21 @@ const createStyles = (tokens: any) => StyleSheet.create({
   },
   enrollButton: {
     backgroundColor: tokens.colors.primary,
-    paddingHorizontal: tokens.spacing.lg,
-    paddingVertical: tokens.spacing.md + 2,
-    borderRadius: tokens.borderRadius.lg,
+    paddingHorizontal: tokens.spacing.xl,
+    paddingVertical: tokens.spacing.lg,
+    borderRadius: tokens.borderRadius.xl,
     shadowColor: tokens.colors.primary,
     shadowOffset: {
       width: 0,
-      height: 3,
+      height: 4,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 6,
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 50,
+    minHeight: 56,
   },
   enrollButtonText: {
     fontSize: tokens.typography.body,
@@ -1981,9 +2054,10 @@ const createStyles = (tokens: any) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: tokens.spacing.lg,
-    paddingVertical: tokens.spacing.md,
+    paddingVertical: tokens.spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: tokens.colors.border,
+    borderBottomColor: tokens.colors.border + '40',
+    backgroundColor: tokens.colors.surface,
   },
   videoModalCloseButton: {
     padding: tokens.spacing.sm,
@@ -1993,6 +2067,14 @@ const createStyles = (tokens: any) => StyleSheet.create({
     alignItems: 'center',
     borderRadius: 22,
     backgroundColor: tokens.colors.surfaceVariant,
+    shadowColor: tokens.colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   videoModalTitle: {
     fontSize: tokens.typography.title,
@@ -2004,28 +2086,70 @@ const createStyles = (tokens: any) => StyleSheet.create({
   },
   videoPlayerContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     paddingHorizontal: tokens.spacing.lg,
-    paddingVertical: tokens.spacing.xxl,
+    paddingTop: tokens.spacing.xl,
+    paddingBottom: tokens.spacing.lg,
   },
   videoPlayer: {
-    width: '95%',
+    width: '100%',
     aspectRatio: 16/9,
     borderRadius: tokens.borderRadius.lg,
     marginBottom: tokens.spacing.xl,
-    alignSelf: 'center',
     backgroundColor: tokens.colors.surface,
     shadowColor: tokens.colors.shadow,
     shadowOffset: {
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
     elevation: 8,
     position: 'relative',
     overflow: 'hidden',
+  },
+  video: {
+    width: '100%',
+    height: '100%',
+    borderRadius: tokens.borderRadius.lg,
+  },
+  videoLoadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: tokens.colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2,
+    borderRadius: tokens.borderRadius.lg,
+  },
+  loadingSpinner: {
+    marginBottom: tokens.spacing.md,
+    opacity: 0.8,
+  },
+  videoLoadingText: {
+    fontSize: tokens.typography.body,
+    color: tokens.colors.onSurfaceVariant,
+    fontWeight: '500',
+  },
+  videoStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: tokens.spacing.md,
+    paddingTop: tokens.spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: tokens.colors.border + '40',
+  },
+  videoStatItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing.xs,
+  },
+  videoStatText: {
+    fontSize: tokens.typography.caption,
+    color: tokens.colors.onSurfaceVariant,
+    fontWeight: '500',
   },
   videoPlayerContent: {
     flex: 1,
@@ -2072,22 +2196,30 @@ const createStyles = (tokens: any) => StyleSheet.create({
     fontWeight: '600',
   },
   videoInfo: {
-    width: '100%',
-    alignItems: 'center',
     paddingHorizontal: tokens.spacing.md,
+    paddingVertical: tokens.spacing.lg,
+    backgroundColor: tokens.colors.surface,
+    borderRadius: tokens.borderRadius.lg,
+    marginTop: tokens.spacing.md,
+    shadowColor: tokens.colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
   },
   videoTitle: {
     fontSize: tokens.typography.title,
     fontWeight: tokens.typography.bold,
     color: tokens.colors.onSurface,
-    textAlign: 'center',
     marginBottom: tokens.spacing.sm,
   },
   videoDescription: {
     fontSize: tokens.typography.body,
     color: tokens.colors.onSurfaceVariant,
-    textAlign: 'center',
-    lineHeight: tokens.typography.body * 1.5,
+    lineHeight: tokens.typography.body * 1.6,
   },
   videoPlaceholder: {
     width: '100%',
