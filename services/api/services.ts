@@ -5,6 +5,7 @@ const API_BASE_URL = 'https://your-api-endpoint.com/api';
 
 // Mock data for development - replace with real API calls
 const MOCK_SERVICES: Service[] = [
+  // Main app services with full implementations (prioritized)
   {
     id: '1',
     name: 'Education',
@@ -13,7 +14,7 @@ const MOCK_SERVICES: Service[] = [
     shortDescription: 'Learn new skills online',
     icon: 'https://cdn-icons-png.flaticon.com/128/3749/3749784.png',
     imageUrl: 'https://cdn-icons-png.flaticon.com/512/2784/2784403.png',
-    color: '#5856D6',
+    color: '#6A1B9A', // Purple theme
     isActive: true,
     features: ['Video courses', 'Certificates', 'Progress tracking'],
     status: 'featured',
@@ -22,6 +23,7 @@ const MOCK_SERVICES: Service[] = [
     userCount: 1832,
     category: 'digital',
   },
+  // Additional services (coming soon implementations)
   {
     id: '2',
     name: 'Men Saloon',
@@ -34,7 +36,7 @@ const MOCK_SERVICES: Service[] = [
     isActive: true,
     features: ['Hair cutting', 'Beard trimming', 'Face treatments'],
     status: 'popular',
-    priority: 'high',
+    priority: 'medium',
     rating: 4.5,
     userCount: 1287,
     category: 'wellness',
@@ -85,7 +87,7 @@ const MOCK_SERVICES: Service[] = [
     isActive: true,
     features: ['Same day delivery', 'Package tracking', 'Secure delivery'],
     status: 'featured',
-    priority: 'high',
+    priority: 'medium',
     rating: 4.8,
     userCount: 2156,
     category: 'logistics',
@@ -102,7 +104,7 @@ const MOCK_SERVICES: Service[] = [
     isActive: true,
     features: ['Restaurant orders', 'Live tracking', 'Quick delivery'],
     status: 'popular',
-    priority: 'high',
+    priority: 'medium',
     rating: 4.7,
     userCount: 3428,
     category: 'food',

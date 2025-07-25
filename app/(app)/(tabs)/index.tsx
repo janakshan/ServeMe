@@ -26,8 +26,8 @@ const getServiceImage = (serviceType: string) => {
     men_saloon: require("../../../assets/images/onbording/saloon.png"),
     vehicle_repair: require("../../../assets/images/onbording/vec.png"),
     cleaning: require("../../../assets/images/onbording/ser.png"),
-    parcel: require("../../../assets/images/services/parcel.png"), // Using ser.png for parcel
-    food_delivery: require("../../../assets/images/services/food.png"), // Using ser.png for food delivery
+    parcel: require("../../../assets/images/services/parcel.png"),
+    food_delivery: require("../../../assets/images/services/food.png"),
   };
   return (
     imageMap[serviceType] || require("../../../assets/images/onbording/ser.png")
@@ -531,12 +531,6 @@ function ServiceCard({
         return ["#FFF3E0", "#FFF8F0", "#FFFFFF"]; // Light orange gradient
       case "food_delivery":
         return ["#FFEBEE", "#FFF5F5", "#FFFFFF"]; // Light red gradient
-      case "booking":
-        return ["#E3F2FD", "#F0F8FF", "#FFFFFF"]; // Light blue gradient
-      case "healthcare":
-        return ["#E8F5E8", "#F2FBF2", "#FFFFFF"]; // Light green gradient
-      case "entertainment":
-        return ["#FCE4EC", "#FFF0F6", "#FFFFFF"]; // Light pink gradient
       default:
         return ["#F5F5F5", "#FAFAFA", "#FFFFFF"]; // Default light gray gradient
     }
@@ -577,6 +571,22 @@ export default function HomeScreen() {
   const { services, isLoading, fetchServices } = useServices();
   const styles = useThemedStyles(createStyles);
 
+  // Function to get grid alignment based on service count
+  const getGridAlignment = (serviceCount: number) => {
+    const displayCount = Math.min(serviceCount, 6);
+    
+    if (displayCount <= 3) {
+      // Center align for 1-3 services
+      return { justifyContent: 'center' as const };
+    } else if (displayCount === 4 || displayCount === 5) {
+      // Center align with some spacing for 4-5 services
+      return { justifyContent: 'center' as const };
+    } else {
+      // Full width justification for 6 services
+      return { justifyContent: 'space-between' as const };
+    }
+  };
+
   useEffect(() => {
     fetchServices();
   }, []);
@@ -592,29 +602,25 @@ export default function HomeScreen() {
   const handleServicePress = (serviceId: string, serviceType: string) => {
     console.log("🎯 Service pressed:", { serviceId, serviceType });
 
-    if (serviceType === "booking") {
-      // Navigate to booking service
-      router.push("/(services)/booking/(tabs)");
-    } else if (serviceType === "education") {
-      // Navigate to education home screen
-      router.push("/(services)/education");
-    } else {
-      // Show alert for other services (not implemented yet)
-      Alert.alert(
-        `${serviceType.charAt(0).toUpperCase() + serviceType.slice(1)} Service`,
-        `The ${serviceType} service will be available soon!\n\nCurrently booking and education services are implemented.`,
-        [
-          { text: "OK" },
-          {
-            text: "Go to Booking",
-            onPress: () => router.push("/(services)/booking/(tabs)"),
-          },
-          {
-            text: "Go to Education",
-            onPress: () => router.push("/(services)/education"),
-          },
-        ]
-      );
+    // Route to implemented services with themed welcome pages
+    switch (serviceType) {
+      case "education":
+        router.push("/(services)/education");
+        break;
+      default:
+        // Show alert for other services (not fully implemented yet)
+        Alert.alert(
+          `${serviceType.charAt(0).toUpperCase() + serviceType.slice(1)} Service`,
+          `The ${serviceType} service will be available soon!\n\nCurrently only the Education service is available.`,
+          [
+            { text: "OK" },
+            {
+              text: "Try Education",
+              onPress: () => router.push("/(services)/education"),
+            },
+          ]
+        );
+        break;
     }
   };
 
@@ -641,7 +647,7 @@ export default function HomeScreen() {
 
         <View style={styles.contentSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>All Categories</Text>
+            <Text style={styles.sectionTitle}>Our Services</Text>
             <TouchableOpacity disabled>
               <Text style={[styles.seeAllText, { opacity: 0.5 }]}>See all</Text>
             </TouchableOpacity>
@@ -666,13 +672,15 @@ export default function HomeScreen() {
 
       <View style={styles.contentSection}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>All Categories</Text>
-          <TouchableOpacity onPress={() => console.log("See all pressed")}>
-            <Text style={styles.seeAllText}>See all</Text>
-          </TouchableOpacity>
+          <Text style={styles.sectionTitle}>Our Services</Text>
+          {services.length > 6 && (
+            <TouchableOpacity onPress={() => console.log("See all pressed")}>
+              <Text style={styles.seeAllText}>See all</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
-        <View style={styles.gridContainer}>
+        <View style={[styles.gridContainer, getGridAlignment(services.length)]}>
           {services.slice(0, 6).map((item, index) => (
             <ServiceCard
               key={item.id}
@@ -684,7 +692,7 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Special Offers Section - Moved after All Categories */}
+      {/* Special Offers Section - Moved after Our Services */}
       <View style={styles.offersSection}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Special Offers</Text>
@@ -796,7 +804,7 @@ const createStyles = (tokens, layout, variants) => {
       flexDirection: "row",
       flexWrap: "wrap",
       paddingHorizontal: tokens.spacing.md,
-      justifyContent: "space-between",
+      gap: tokens.spacing.sm,
     },
     offersSection: {
       backgroundColor: tintedColors.softSurface,
@@ -816,7 +824,7 @@ const createStyles = (tokens, layout, variants) => {
 const createServiceCardStyles = (tokens: any) => {
   const { width: screenWidth } = Dimensions.get("window");
   const horizontalPadding = tokens.spacing.md * 2; // Container padding both sides
-  const cardSpacing = tokens.spacing.sm; // Space between cards
+  const cardSpacing = tokens.spacing.sm; // Space between cards (now using gap)
   const availableWidth = screenWidth - horizontalPadding;
   const cardWidth = (availableWidth - cardSpacing * 2) / 3; // 3 columns with spacing
 

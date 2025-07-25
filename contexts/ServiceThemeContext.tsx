@@ -39,89 +39,6 @@ type GlobalTheme = 'professional-azure' | 'light' | 'dark';
 
 // Service-specific theme configurations
 const serviceThemeConfigs: Record<string, ServiceThemeOverride> = {
-  [ServiceTypes.BOOKING]: {
-    colors: {
-      primary: '#0D47A1',
-      primaryDark: '#1565C0',
-      primaryLight: '#42A5F5',
-      accent: '#2196F3',
-    },
-    gradients: {
-      header: {
-        colors: ['#1565C0', '#0D47A1', '#0A3D91'],
-        direction: { x: 0, y: 1 }
-      },
-      card: {
-        colors: ['#E3F2FD', '#F0F8FF', '#FFFFFF'],
-        direction: { x: 0, y: 1 }
-      },
-      button: {
-        colors: ['#42A5F5', '#0D47A1', '#0A3D91'],
-        direction: { x: 0, y: 1 }
-      },
-      background: {
-        colors: ['#F8FAFE', '#F0F6FF'],
-        direction: { x: 0, y: 1 }
-      },
-      surface: {
-        colors: ['#FFFFFF', '#F8FAFE'],
-        direction: { x: 0, y: 1 }
-      },
-      accent: {
-        colors: ['#64B5F6', '#2196F3', '#1976D2'],
-        direction: { x: 0, y: 1 }
-      }
-    },
-    layout: 'card-based',
-    componentVariants: {
-      button: 'default',
-      input: 'default',
-      card: 'elevated',
-    },
-  },
-  
-  [ServiceTypes.HEALTHCARE]: {
-    colors: {
-      primary: '#2E7D32',
-      primaryDark: '#1B5E20',
-      primaryLight: '#66BB6A',
-      accent: '#4CAF50',
-      success: '#388E3C',
-      error: '#D32F2F',
-    },
-    gradients: {
-      header: {
-        colors: ['#388E3C', '#2E7D32', '#1B5E20'],
-        direction: { x: 0, y: 1 }
-      },
-      card: {
-        colors: ['#E8F5E8', '#F2FBF2', '#FFFFFF'],
-        direction: { x: 0, y: 1 }
-      },
-      button: {
-        colors: ['#66BB6A', '#2E7D32', '#1B5E20'],
-        direction: { x: 0, y: 1 }
-      },
-      background: {
-        colors: ['#F9FDF9', '#F2F8F2'],
-        direction: { x: 0, y: 1 }
-      },
-      surface: {
-        colors: ['#FFFFFF', '#F9FDF9'],
-        direction: { x: 0, y: 1 }
-      },
-      accent: {
-        colors: ['#81C784', '#4CAF50', '#388E3C'],
-        direction: { x: 0, y: 1 }
-      }
-    },
-    layout: 'clinical',
-    componentVariants: {
-      button: 'clinical',
-      input: 'outlined',
-      card: 'flat',
-    },
-  },
   
   [ServiceTypes.EDUCATION]: {
     colors: {
@@ -175,48 +92,6 @@ const serviceThemeConfigs: Record<string, ServiceThemeOverride> = {
       button: 'rounded',
       input: 'outlined',
       card: 'bordered',
-    },
-  },
-  
-  [ServiceTypes.ENTERTAINMENT]: {
-    colors: {
-      primary: '#E91E63',
-      primaryDark: '#AD1457',
-      primaryLight: '#F48FB1',
-      accent: '#FF4081',
-      background: '#FCE4EC',
-    },
-    gradients: {
-      header: {
-        colors: ['#EC407A', '#E91E63', '#C2185B'],
-        direction: { x: 0, y: 1 }
-      },
-      card: {
-        colors: ['#FCE4EC', '#FFF0F6', '#FFFFFF'],
-        direction: { x: 0, y: 1 }
-      },
-      button: {
-        colors: ['#F48FB1', '#E91E63', '#C2185B'],
-        direction: { x: 0, y: 1 }
-      },
-      background: {
-        colors: ['#FFFAFC', '#FFF2F7'],
-        direction: { x: 0, y: 1 }
-      },
-      surface: {
-        colors: ['#FFFFFF', '#FFFAFC'],
-        direction: { x: 0, y: 1 }
-      },
-      accent: {
-        colors: ['#FF80AB', '#FF4081', '#E91E63'],
-        direction: { x: 0, y: 1 }
-      }
-    },
-    layout: 'entertainment',
-    componentVariants: {
-      button: 'rounded',
-      input: 'default',
-      card: 'elevated',
     },
   },
 };
