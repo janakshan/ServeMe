@@ -14,7 +14,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams, Stack, router } from 'expo-router';
 import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
 import { educationApi } from '@/services/api/education';
 import { EducationScreenHeader } from '@/src/education/components/headers';
@@ -814,7 +814,10 @@ export default function CourseDetailScreen() {
       <SafeAreaView style={styles.actionSafeArea}>
         <View style={[styles.actionSection, { paddingBottom: insets.bottom }]}>
           {courseData.isEnrolled ? (
-            <TouchableOpacity style={styles.primaryButton}>
+            <TouchableOpacity 
+              style={styles.primaryButton}
+              onPress={() => router.push(`/(services)/education/${courseId}/learn`)}
+            >
               <Text style={styles.primaryButtonText}>Continue Learning</Text>
             </TouchableOpacity>
           ) : (
