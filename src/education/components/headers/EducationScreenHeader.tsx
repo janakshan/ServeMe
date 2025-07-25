@@ -11,6 +11,7 @@ interface EducationScreenHeaderProps {
   minHeight?: number;
   showBackButton?: boolean;
   showBranding?: boolean;
+  onBackPress?: () => void;
   rightAction?: {
     icon: keyof typeof Ionicons.glyphMap;
     onPress: () => void;
@@ -30,6 +31,7 @@ export function EducationScreenHeader({
   minHeight = 200,
   showBackButton = true,
   showBranding = true,
+  onBackPress,
   rightAction,
   rightActions,
   children 
@@ -40,12 +42,21 @@ export function EducationScreenHeader({
   const backgroundGradient = getGradient('header');
 
   const handleBackPress = () => {
-    // Use proper navigation back functionality
-    if (router.canGoBack()) {
-      router.back();
+    // Use custom onBackPress if provided, otherwise use default navigation
+    if (onBackPress) {
+      console.log('EducationScreenHeader: Using custom onBackPress');
+      onBackPress();
     } else {
-      // Fallback to main screen if no history
-      router.push('/(app)/(tabs)/' as any);
+      // For intra-service navigation, use regular router.back()
+      console.log('EducationScreenHeader: handleBackPress called, canGoBack:', router.canGoBack());
+      if (router.canGoBack()) {
+        console.log('EducationScreenHeader: Going back using router.back()');
+        router.back();
+      } else {
+        console.log('EducationScreenHeader: No back history, going to education tabs');
+        // Fallback to education main screen if no history
+        router.push('/(services)/education/(tabs)/' as any);
+      }
     }
   };
 

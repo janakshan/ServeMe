@@ -13,6 +13,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
 import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
+import { useServiceLayout } from '@/hooks/useServiceLayout';
+import { ServiceTypes } from '@/utils/constants';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { LinearGradient } from 'expo-linear-gradient';
 import { EducationScreenHeader } from '@/src/education/components/headers';
@@ -54,6 +56,7 @@ interface CourseData {
 export default function CourseLearnScreen() {
   const { courseId } = useLocalSearchParams();
   const { tokens, getGradient } = useServiceTheme();
+  const { screenOptions } = useServiceLayout(ServiceTypes.EDUCATION);
   const styles = useThemedStyles(createStyles);
   // State management
   const [courseData, setCourseData] = useState<CourseData | null>(null);
@@ -473,9 +476,8 @@ export default function CourseLearnScreen() {
   return (
     <>
       <Stack.Screen options={{ 
-        headerShown: false,
-        statusBarStyle: 'dark',
-        statusBarBackgroundColor: 'transparent'
+        ...screenOptions,
+        headerShown: false
       }} />
       <SafeAreaView style={styles.container}>
         <LinearGradient
@@ -490,6 +492,10 @@ export default function CourseLearnScreen() {
             subtitle={`by ${courseData.instructor}`}
             showBackButton={true}
             minHeight={160}
+            onBackPress={() => {
+              console.log('Learn screen: Custom back navigation to course details for courseId:', courseId);
+              router.push(`/(services)/education/${courseId}` as any);
+            }}
           />
 
           {/* Progress Bar */}

@@ -597,6 +597,10 @@ export default function CourseDetailScreen() {
               onPress: handleShare
             }
           ]}
+          onBackPress={() => {
+            console.log('Course details: Custom back navigation to courses tab');
+            router.push('/(services)/education/(tabs)/courses' as any);
+          }}
         />
 
       {/* Enhanced Content Section - Now Fully Scrollable */}
@@ -816,7 +820,10 @@ export default function CourseDetailScreen() {
           {courseData.isEnrolled ? (
             <TouchableOpacity 
               style={styles.primaryButton}
-              onPress={() => router.push(`/(services)/education/${courseId}/learn`)}
+              onPress={() => {
+                console.log('CourseDetail: Navigating to learn screen for course:', courseId);
+                router.push(`/(services)/education/${courseId}/learn` as any);
+              }}
             >
               <Text style={styles.primaryButtonText}>Continue Learning</Text>
             </TouchableOpacity>
