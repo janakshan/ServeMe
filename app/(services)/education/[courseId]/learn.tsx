@@ -8,13 +8,14 @@ import {
   Animated,
   ActivityIndicator,
   Alert,
-  FlatList,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
 import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { VideoView, useVideoPlayer } from 'expo-video';
+import { LinearGradient } from 'expo-linear-gradient';
+import { EducationScreenHeader } from '@/src/education/components/headers';
 
 // Enhanced interfaces for learning experience
 interface VideoLesson {
@@ -52,10 +53,8 @@ interface CourseData {
 
 export default function CourseLearnScreen() {
   const { courseId } = useLocalSearchParams();
-  const { tokens } = useServiceTheme();
+  const { tokens, getGradient } = useServiceTheme();
   const styles = useThemedStyles(createStyles);
-  const insets = useSafeAreaInsets();
-
   // State management
   const [courseData, setCourseData] = useState<CourseData | null>(null);
   const [currentLesson, setCurrentLesson] = useState<VideoLesson | null>(null);
@@ -318,32 +317,6 @@ export default function CourseLearnScreen() {
     );
   }, [courseData, learningProgress]);
 
-  const handleVideoCompleted = useCallback(() => {
-    if (!currentLesson || !courseData) return;
-
-    // Mark lesson as completed
-    markLessonCompleted(currentLesson.id);
-
-    // Auto-advance to next lesson after a brief delay
-    setTimeout(() => {
-      const currentIndex = courseData.lessons.findIndex(l => l.id === currentLesson.id);
-      const nextLesson = courseData.lessons[currentIndex + 1];
-      
-      if (nextLesson && !nextLesson.isLocked) {
-        Alert.alert(
-          'Next Lesson',
-          `Would you like to continue with "${nextLesson.title}"?`,
-          [
-            { text: 'Stay Here', style: 'cancel' },
-            { 
-              text: 'Continue', 
-              onPress: () => handleLessonSelect(nextLesson)
-            }
-          ]
-        );
-      }
-    }, 1500);
-  }, [currentLesson, courseData, markLessonCompleted, handleLessonSelect]);
 
   const saveLearningProgress = useCallback((currentTime: number) => {
     if (currentLesson && learningProgress) {
@@ -373,12 +346,6 @@ export default function CourseLearnScreen() {
   }, [currentLesson, learningProgress, courseData]);
 
 
-  const handleBackPress = useCallback(() => {
-    if (player) {
-      player.pause();
-    }
-    router.back();
-  }, [player]);
 
   const renderLessonItem = ({ item, index }: { item: VideoLesson; index: number }) => {
     const isActive = currentLesson?.id === item.id;
@@ -386,6 +353,7 @@ export default function CourseLearnScreen() {
     
     return (
       <TouchableOpacity
+        key={item.id}
         style={[
           styles.lessonItem,
           isActive && styles.activeLessonItem,
@@ -498,120 +466,129 @@ export default function CourseLearnScreen() {
     );
   }
 
+  // Get education theme gradients
+  const backgroundGradient = getGradient('background');
+  const surfaceGradient = getGradient('surface');
+
   return (
     <>
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen options={{ 
+        headerShown: false,
+        statusBarStyle: 'dark',
+        statusBarBackgroundColor: 'transparent'
+      }} />
       <SafeAreaView style={styles.container}>
-        {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top }]}>
-          <TouchableOpacity 
-            onPress={handleBackPress} 
-            style={styles.backButton}
-            accessibilityLabel="Go back to course details"
-            accessibilityRole="button"
+        <LinearGradient
+          colors={backgroundGradient.colors as any}
+          start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
+          end={{ x: 1, y: 1 }}
+          style={styles.gradientBackground}
+        >
+          {/* Education Header */}
+          <EducationScreenHeader
+            title={courseData.title}
+            subtitle={`by ${courseData.instructor}`}
+            showBackButton={true}
+            minHeight={160}
+          />
+
+          {/* Progress Bar */}
+          <View style={styles.progressBarContainer}>
+            <View style={styles.progressBar}>
+              <Animated.View 
+                style={[
+                  styles.progressBarFill,
+                  { 
+                    width: progressAnimation.interpolate({
+                      inputRange: [0, 100],
+                      outputRange: ['0%', '100%'],
+                      extrapolate: 'clamp',
+                    })
+                  }
+                ]} 
+              />
+            </View>
+            <Text style={styles.progressText}>
+              Lesson {currentLesson.order} of {courseData.totalLessons}
+            </Text>
+          </View>
+
+          {/* Main Scrollable Content */}
+          <ScrollView 
+            style={styles.scrollContainer}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
           >
-            <Ionicons name="arrow-back" size={24} color={tokens.colors.onSurface} />
-          </TouchableOpacity>
-          
-          <View style={styles.headerContent}>
-            <Text 
-              style={styles.courseTitle} 
-              numberOfLines={1}
-              accessibilityLabel={`Course: ${courseData.title}`}
-            >
-              {courseData.title}
-            </Text>
-            <Text 
-              style={styles.instructorName}
-              accessibilityLabel={`Instructor: ${courseData.instructor}`}
-            >
-              by {courseData.instructor}
-            </Text>
-          </View>
-        </View>
+            {/* Video Player Section */}
+            <View style={styles.videoSection}>
+              <Animated.View 
+                style={[
+                  styles.videoContainer,
+                  {
+                    opacity: lessonChangeAnimation,
+                    transform: [{ scale: lessonChangeAnimation }],
+                  }
+                ]}
+              >
+                <View style={styles.videoPlayer}>
+                  <VideoView
+                    style={styles.video}
+                    player={player}
+                    allowsFullscreen
+                    allowsPictureInPicture
+                    nativeControls
+                    contentFit="contain"
+                    accessibilityLabel={`Video player: ${currentLesson.title}`}
+                    accessibilityHint="Double tap to play or pause, pinch to zoom"
+                  />
+                  
+                  {isVideoLoading && (
+                    <View style={styles.videoLoadingOverlay}>
+                      <ActivityIndicator size="large" color={tokens.colors.onPrimary} />
+                      <Text style={styles.videoLoadingText}>Loading video...</Text>
+                    </View>
+                  )}
+                </View>
+              </Animated.View>
+              
+              {/* Video Info with Surface Gradient */}
+              <LinearGradient
+                colors={surfaceGradient.colors as any}
+                start={{ x: surfaceGradient.direction.x, y: surfaceGradient.direction.y }}
+                end={{ x: 1, y: 1 }}
+                style={styles.videoInfo}
+              >
+                <Text style={styles.videoTitle}>{currentLesson.title}</Text>
+                <Text style={styles.videoDescription}>{currentLesson.description}</Text>
+              </LinearGradient>
+            </View>
 
-        {/* Progress Bar */}
-        <View style={styles.progressBarContainer}>
-          <View style={styles.progressBar}>
-            <Animated.View 
-              style={[
-                styles.progressBarFill,
-                { 
-                  width: progressAnimation.interpolate({
-                    inputRange: [0, 100],
-                    outputRange: ['0%', '100%'],
-                    extrapolate: 'clamp',
-                  })
-                }
-              ]} 
-            />
-          </View>
-          <Text style={styles.progressText}>
-            Lesson {currentLesson.order} of {courseData.totalLessons}
-          </Text>
-        </View>
-
-        {/* Main Content - Flex Layout */}
-        <View style={styles.mainContent}>
-          {/* Video Player Section */}
-          <View style={styles.videoSection}>
-            <Animated.View 
-              style={[
-                styles.videoContainer,
-                {
-                  opacity: lessonChangeAnimation,
-                  transform: [{ scale: lessonChangeAnimation }],
-                }
-              ]}
+            {/* Course Content Section */}
+            <LinearGradient
+              colors={surfaceGradient.colors as any}
+              start={{ x: surfaceGradient.direction.x, y: surfaceGradient.direction.y }}
+              end={{ x: 1, y: 1 }}
+              style={styles.courseContentSection}
             >
-              <View style={styles.videoPlayer}>
-                <VideoView
-                  style={styles.video}
-                  player={player}
-                  allowsFullscreen
-                  allowsPictureInPicture
-                  nativeControls
-                  contentFit="contain"
-                  accessibilityLabel={`Video player: ${currentLesson.title}`}
-                  accessibilityHint="Double tap to play or pause, pinch to zoom"
-                />
-                
-                {isVideoLoading && (
-                  <View style={styles.videoLoadingOverlay}>
-                    <ActivityIndicator size="large" color={tokens.colors.onPrimary} />
-                    <Text style={styles.videoLoadingText}>Loading video...</Text>
-                  </View>
+              <View style={styles.courseContentHeader}>
+                <Text style={styles.courseContentTitle}>Course Content</Text>
+                <Text style={styles.courseContentProgress}>
+                  {courseData.completedLessons} of {courseData.totalLessons} completed
+                </Text>
+              </View>
+              
+              {/* Lesson List */}
+              <View style={styles.lessonContainer}>
+                {courseData.lessons.map((lesson, index) => 
+                  renderLessonItem({ item: lesson, index })
                 )}
               </View>
-            </Animated.View>
+            </LinearGradient>
             
-            {/* Video Info */}
-            <View style={styles.videoInfo}>
-              <Text style={styles.videoTitle}>{currentLesson.title}</Text>
-              <Text style={styles.videoDescription}>{currentLesson.description}</Text>
-            </View>
-          </View>
-
-          {/* Lesson List Section - Fixed Height */}
-          <View style={styles.lessonListContainer}>
-            <View style={styles.lessonListHeader}>
-              <Text style={styles.lessonListTitle}>Course Content</Text>
-              <Text style={styles.lessonListProgress}>
-                {courseData.completedLessons} of {courseData.totalLessons} completed
-              </Text>
-            </View>
-            
-            <FlatList
-              data={courseData.lessons}
-              renderItem={renderLessonItem}
-              keyExtractor={(item) => item.id}
-              style={styles.lessonList}
-              showsVerticalScrollIndicator={true}
-              contentContainerStyle={styles.lessonListContent}
-              nestedScrollEnabled={true}
-            />
-          </View>
-        </View>
+            {/* Bottom spacing */}
+            <View style={styles.bottomSpacing} />
+          </ScrollView>
+        </LinearGradient>
       </SafeAreaView>
     </>
   );
@@ -621,6 +598,34 @@ const createStyles = (tokens: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: tokens.colors.background,
+  },
+  gradientBackground: {
+    flex: 1,
+  },
+  courseContentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: tokens.spacing.lg,
+    paddingVertical: tokens.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: tokens.colors.border + '15',
+  },
+  courseContentTitle: {
+    fontSize: tokens.typography.subtitle,
+    fontWeight: '800',
+    color: tokens.colors.onSurface,
+  },
+  courseContentProgress: {
+    fontSize: tokens.typography.caption,
+    color: tokens.colors.primary,
+    fontWeight: '600',
+  },
+  lessonContainer: {
+    paddingBottom: tokens.spacing.md,
+  },
+  bottomSpacing: {
+    height: tokens.spacing.xxl * 2,
   },
   loadingContainer: {
     flex: 1,
@@ -689,21 +694,24 @@ const createStyles = (tokens: any) => StyleSheet.create({
   progressBarContainer: {
     paddingHorizontal: tokens.spacing.lg,
     paddingVertical: tokens.spacing.md,
-    backgroundColor: tokens.colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: tokens.colors.border + '15',
+    backgroundColor: 'transparent',
   },
   progressBar: {
-    height: 6,
-    backgroundColor: tokens.colors.border + '40',
-    borderRadius: 3,
+    height: 8,
+    backgroundColor: tokens.colors.border + '30',
+    borderRadius: 4,
     marginBottom: tokens.spacing.xs,
     overflow: 'hidden',
+    shadowColor: tokens.colors.shadow,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
   },
   progressBarFill: {
     height: '100%',
     backgroundColor: tokens.colors.primary,
-    borderRadius: 3,
+    borderRadius: 4,
   },
   progressText: {
     fontSize: tokens.typography.caption,
@@ -711,17 +719,19 @@ const createStyles = (tokens: any) => StyleSheet.create({
     textAlign: 'center',
     fontWeight: '600',
   },
-  mainContent: {
+  scrollContainer: {
     flex: 1,
-    backgroundColor: tokens.colors.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   videoSection: {
-    backgroundColor: tokens.colors.background,
+    backgroundColor: 'transparent',
     paddingBottom: tokens.spacing.md,
   },
   videoContainer: {
     paddingHorizontal: tokens.spacing.lg,
-    paddingTop: tokens.spacing.lg,
+    paddingTop: tokens.spacing.md,
   },
   videoPlayer: {
     width: '100%',
@@ -731,10 +741,10 @@ const createStyles = (tokens: any) => StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 15,
   },
   video: {
     width: '100%',
@@ -756,8 +766,16 @@ const createStyles = (tokens: any) => StyleSheet.create({
     marginTop: tokens.spacing.md,
   },
   videoInfo: {
+    marginHorizontal: tokens.spacing.lg,
+    marginTop: tokens.spacing.md,
     paddingHorizontal: tokens.spacing.lg,
     paddingVertical: tokens.spacing.lg,
+    borderRadius: tokens.borderRadius.lg,
+    shadowColor: tokens.colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   videoTitle: {
     fontSize: tokens.typography.title,
@@ -772,55 +790,25 @@ const createStyles = (tokens: any) => StyleSheet.create({
     lineHeight: tokens.typography.body * 1.6,
     fontWeight: '400',
   },
-  lessonListContainer: {
-    height: 320, // Fixed height for lesson list
-    backgroundColor: tokens.colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: tokens.colors.border + '20',
+  courseContentSection: {
+    marginTop: tokens.spacing.xl,
+    marginHorizontal: tokens.spacing.lg,
+    borderRadius: tokens.borderRadius.xl,
+    overflow: 'hidden',
     shadowColor: tokens.colors.shadow,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 8,
-    borderTopLeftRadius: tokens.borderRadius.xl,
-    borderTopRightRadius: tokens.borderRadius.xl,
-  },
-  lessonListHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: tokens.spacing.lg,
-    paddingVertical: tokens.spacing.lg,
-    backgroundColor: tokens.colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: tokens.colors.border + '15',
-  },
-  lessonListTitle: {
-    fontSize: tokens.typography.subtitle,
-    fontWeight: '800',
-    color: tokens.colors.onSurface,
-  },
-  lessonListProgress: {
-    fontSize: tokens.typography.caption,
-    color: tokens.colors.primary,
-    fontWeight: '600',
-  },
-  lessonList: {
-    flex: 1,
-    backgroundColor: tokens.colors.surface,
-  },
-  lessonListContent: {
-    paddingBottom: tokens.spacing.xl,
-    flexGrow: 1,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 10,
   },
   lessonItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     paddingHorizontal: tokens.spacing.lg,
     paddingVertical: tokens.spacing.lg,
-    backgroundColor: tokens.colors.surface,
+    backgroundColor: 'transparent',
     borderBottomWidth: 1,
-    borderBottomColor: tokens.colors.border + '08',
+    borderBottomColor: tokens.colors.border + '15',
   },
   activeLessonItem: {
     backgroundColor: tokens.colors.primary + '10',
