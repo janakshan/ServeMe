@@ -1249,7 +1249,7 @@ const createClassCardStyles = (tokens: any) =>
     },
     title: {
       fontSize: tokens.typography.subtitle,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
       marginBottom: tokens.spacing.xs,
     },
@@ -1433,13 +1433,13 @@ const createCalendarStyles = (tokens: any) =>
     },
     monthText: {
       fontSize: tokens.typography.body,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
       marginRight: tokens.spacing.xs,
     },
     yearText: {
       fontSize: tokens.typography.body,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
       marginRight: tokens.spacing.xs,
     },
@@ -1456,7 +1456,7 @@ const createCalendarStyles = (tokens: any) =>
     },
     weekDayText: {
       fontSize: tokens.typography.caption,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurfaceVariant,
     },
     calendarGrid: {
@@ -1500,7 +1500,7 @@ const createCalendarStyles = (tokens: any) =>
     },
     todayDayNumber: {
       color: tokens.colors.onPrimaryContainer,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
     },
     dayIndicators: {
       flexDirection: 'row',
@@ -1520,7 +1520,7 @@ const createCalendarStyles = (tokens: any) =>
     },
     selectedDateTitle: {
       fontSize: tokens.typography.subtitle,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
       marginBottom: tokens.spacing.md,
       textAlign: 'center',
@@ -1545,7 +1545,7 @@ const createCalendarStyles = (tokens: any) =>
       fontSize: tokens.typography.body,
       color: tokens.colors.onSurface,
       marginLeft: tokens.spacing.sm,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
     },
     statusChip: {
       paddingHorizontal: tokens.spacing.sm,
@@ -1555,13 +1555,13 @@ const createCalendarStyles = (tokens: any) =>
     },
     statusChipText: {
       fontSize: tokens.typography.caption,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       textTransform: 'capitalize',
     },
     classTitle: {
       fontSize: tokens.typography.body,
       color: tokens.colors.onSurface,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       marginBottom: tokens.spacing.xs,
     },
     classInstructor: {
@@ -1642,7 +1642,7 @@ const createCalendarStyles = (tokens: any) =>
     },
     monthGridItemText: {
       fontSize: tokens.typography.body,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
     },
     monthGridItemTextSelected: {
@@ -1677,7 +1677,7 @@ const createCalendarStyles = (tokens: any) =>
     },
     yearGridItemText: {
       fontSize: tokens.typography.subtitle,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
     },
     yearGridItemTextSelected: {
@@ -1737,7 +1737,7 @@ const createCalendarStyles = (tokens: any) =>
     },
     dayViewDate: {
       fontSize: tokens.typography.subtitle,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
     },
     dayViewScrollContainer: {
@@ -1786,7 +1786,7 @@ const createCalendarStyles = (tokens: any) =>
     },
     dayClassTitle: {
       fontSize: tokens.typography.body,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
       marginBottom: tokens.spacing.xs,
     },
@@ -1819,7 +1819,7 @@ const createCalendarStyles = (tokens: any) =>
     },
     weekViewTitle: {
       fontSize: tokens.typography.subtitle,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
     },
     weekDaysHeader: {
@@ -1843,7 +1843,7 @@ const createCalendarStyles = (tokens: any) =>
     weekDayNumber: {
       fontSize: tokens.typography.body,
       color: tokens.colors.onSurface,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       marginTop: 2,
     },
     todayWeekDay: {
@@ -1894,7 +1894,7 @@ const createCalendarStyles = (tokens: any) =>
     },
     weekClassTitle: {
       fontSize: tokens.typography.caption,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
       marginBottom: 1,
     },

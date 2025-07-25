@@ -11,6 +11,7 @@ import {
   Dimensions,
   Modal,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, Stack } from 'expo-router';
@@ -117,9 +118,11 @@ export default function CourseDetailScreen() {
   const tabIndicatorAnimation = useRef(new Animated.Value(0)).current;
   const tabContentFadeAnimation = useRef(new Animated.Value(1)).current;
   
+  
   const { tokens } = useServiceTheme();
   const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
+  
   
   // Tab configuration with text only
   const tabs = [
@@ -551,17 +554,27 @@ export default function CourseDetailScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Loading course details...</Text>
-      </View>
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View style={styles.simpleLoadingContainer}>
+          <ActivityIndicator 
+            size="large" 
+            color={tokens.colors.primary} 
+          />
+          <Text style={styles.simpleLoadingText}>Loading...</Text>
+        </View>
+      </>
     );
   }
 
   if (!courseData) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Course not found</Text>
-      </View>
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Course not found</Text>
+        </View>
+      </>
     );
   }
 
@@ -889,15 +902,17 @@ const createStyles = (tokens: any) => StyleSheet.create({
     flex: 1,
     backgroundColor: tokens.colors.background,
   },
-  loadingContainer: {
+  // Simple Loading Styles
+  simpleLoadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: tokens.colors.background,
   },
-  loadingText: {
+  simpleLoadingText: {
     fontSize: tokens.typography.body,
     color: tokens.colors.onSurface,
+    marginTop: tokens.spacing.md,
   },
   errorContainer: {
     flex: 1,
@@ -1683,7 +1698,7 @@ const createStyles = (tokens: any) => StyleSheet.create({
   },
   primaryButtonText: {
     fontSize: tokens.typography.body,
-    fontWeight: tokens.typography.semiBold,
+    fontWeight: tokens.typography.semibold,
     color: tokens.colors.onPrimary,
     letterSpacing: 0.5,
     textAlign: 'center',
@@ -1727,7 +1742,7 @@ const createStyles = (tokens: any) => StyleSheet.create({
   },
   enrollButtonText: {
     fontSize: tokens.typography.body,
-    fontWeight: tokens.typography.semiBold,
+    fontWeight: tokens.typography.semibold,
     color: tokens.colors.onPrimary,
     letterSpacing: 0.25,
   },
@@ -1781,7 +1796,7 @@ const createStyles = (tokens: any) => StyleSheet.create({
   },
   progressPercentageText: {
     fontSize: tokens.typography.body,
-    fontWeight: tokens.typography.semiBold,
+    fontWeight: tokens.typography.semibold,
     color: tokens.colors.success,
     minWidth: 40,
     textAlign: 'right',
@@ -1837,7 +1852,7 @@ const createStyles = (tokens: any) => StyleSheet.create({
   },
   enhancedLessonTitle: {
     fontSize: tokens.typography.body,
-    fontWeight: tokens.typography.semiBold,
+    fontWeight: tokens.typography.semibold,
     color: tokens.colors.onSurface,
     marginBottom: tokens.spacing.xs,
   },
@@ -2255,7 +2270,7 @@ const createStyles = (tokens: any) => StyleSheet.create({
   },
   videoPlaceholderText: {
     fontSize: tokens.typography.title,
-    fontWeight: tokens.typography.semiBold,
+    fontWeight: tokens.typography.semibold,
     color: tokens.colors.primary,
     marginBottom: tokens.spacing.xs,
   },

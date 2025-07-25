@@ -30,6 +30,15 @@ export interface ColorTokens {
   background: string;
   surface: string;
   surfaceElevated: string;
+  surfaceVariant: string;
+
+  // Container Colors
+  primaryContainer: string;
+  onPrimaryContainer: string;
+  secondaryContainer: string;
+  onSecondaryContainer: string;
+  warningContainer: string;
+  onWarningContainer: string;
 
   // Text Colors
   onPrimary: string;
@@ -47,6 +56,8 @@ export interface ColorTokens {
   // Border & Divider
   border: string;
   divider: string;
+  outline: string;
+  outlineVariant: string;
 
   // Input Colors
   inputBackground: string;
@@ -57,6 +68,7 @@ export interface ColorTokens {
 export interface TypographyTokens {
   // Font Sizes
   display: number;
+  headline: number;
   headline1: number;
   headline2: number;
   title: number;
@@ -66,11 +78,11 @@ export interface TypographyTokens {
   small: number;
 
   // Font Weights
-  light: string;
-  regular: string;
-  medium: string;
-  semibold: string;
-  bold: string;
+  light: "300";
+  regular: "400";
+  medium: "500";
+  semibold: "600";
+  bold: "700";
 
   // Line Heights
   tight: number;
@@ -172,6 +184,15 @@ export const professionalAzureTokens: DesignTokens = {
     background: "#F8FCFF",
     surface: "#FFFFFF",
     surfaceElevated: "#FFFFFF",
+    surfaceVariant: "#F5F5F5",
+
+    // Container Colors
+    primaryContainer: "#E3F2FD",
+    onPrimaryContainer: "#0D47A1",
+    secondaryContainer: "#E8F5E8",
+    onSecondaryContainer: "#1B5E20",
+    warningContainer: "#FFF3E0",
+    onWarningContainer: "#E65100",
 
     // Text Colors
     onPrimary: "#FFFFFF",
@@ -189,6 +210,8 @@ export const professionalAzureTokens: DesignTokens = {
     // Border & Divider
     border: "#E0E0E0",
     divider: "#F5F5F5",
+    outline: "#79747E",
+    outlineVariant: "#CAC4D0",
 
     // Input Colors
     inputBackground: "#E8F4FD",
@@ -199,6 +222,7 @@ export const professionalAzureTokens: DesignTokens = {
   typography: {
     // Font Sizes
     display: 32,
+    headline: 26,
     headline1: 28,
     headline2: 24,
     title: 22,

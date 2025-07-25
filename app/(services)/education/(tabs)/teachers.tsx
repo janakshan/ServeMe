@@ -1573,7 +1573,7 @@ const createTeacherCardStyles = (tokens: any) =>
     },
     name: {
       fontSize: tokens.typography.subtitle,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
       marginBottom: 2,
     },
@@ -1705,7 +1705,7 @@ const createTeacherCourseCardStyles = (tokens: any) =>
     },
     courseTitle: {
       fontSize: tokens.typography.body,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
       marginBottom: tokens.spacing.xs,
       minHeight: 40,
@@ -1781,7 +1781,7 @@ const createTeacherLiveClassCardStyles = (tokens: any) =>
     },
     classTitle: {
       fontSize: tokens.typography.body,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
       marginBottom: tokens.spacing.md,
       minHeight: 40,
@@ -2006,7 +2006,7 @@ const createModalStyles = (tokens: any) =>
     },
     courseItemTitle: {
       fontSize: tokens.typography.body,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
       flex: 1,
       marginRight: tokens.spacing.sm,
@@ -2055,7 +2055,7 @@ const createModalStyles = (tokens: any) =>
     },
     classItemTitle: {
       fontSize: tokens.typography.body,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
       flex: 1,
       marginRight: tokens.spacing.sm,
@@ -2168,7 +2168,7 @@ const createModalStyles = (tokens: any) =>
     },
     statSecondaryNumber: {
       fontSize: tokens.typography.body,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurfaceVariant,
       marginLeft: 2,
     },
@@ -2229,13 +2229,13 @@ const createModalStyles = (tokens: any) =>
     },
     historyInstitution: {
       fontSize: tokens.typography.body,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
       marginLeft: tokens.spacing.xs,
     },
     historyPosition: {
       fontSize: tokens.typography.body,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.primary,
       marginBottom: tokens.spacing.xs,
     },
@@ -2267,7 +2267,7 @@ const createModalStyles = (tokens: any) =>
     },
     qualificationDegree: {
       fontSize: tokens.typography.body,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
       marginLeft: tokens.spacing.xs,
     },
@@ -2308,7 +2308,7 @@ const createModalStyles = (tokens: any) =>
     },
     studentName: {
       fontSize: tokens.typography.body,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
       marginBottom: tokens.spacing.xs,
     },

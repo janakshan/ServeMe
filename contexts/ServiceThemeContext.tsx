@@ -19,7 +19,7 @@ interface ThemeGradients {
 }
 
 // Service-specific theme overrides
-interface ServiceThemeOverride {
+export interface ServiceThemeOverride {
   colors?: Partial<DesignTokens['colors']>;
   typography?: Partial<DesignTokens['typography']>;
   spacing?: Partial<DesignTokens['spacing']>;
@@ -33,6 +33,10 @@ interface ServiceThemeOverride {
     card?: 'default' | 'elevated' | 'flat' | 'bordered';
   };
 }
+
+// Export type aliases for convenience
+export type ThemeLayout = ServiceThemeOverride['layout'];
+export type ThemeVariants = ServiceThemeOverride['componentVariants'];
 
 // Global theme types
 type GlobalTheme = 'professional-azure' | 'light' | 'dark';
@@ -135,7 +139,7 @@ interface ServiceThemeContextType {
   // Gradient utilities
   getGradient: (type: keyof ThemeGradients) => GradientDefinition;
   getServiceGradient: (service: string, type: keyof ThemeGradients) => GradientDefinition;
-  createServiceCardGradient: (serviceType: string) => string[];
+  createServiceCardGradient: (serviceType: string) => readonly [string, string, string];
 }
 
 const ServiceThemeContext = createContext<ServiceThemeContextType | null>(null);
@@ -358,28 +362,28 @@ export function ServiceThemeProvider({
     return defaultGradients[type];
   };
 
-  const createServiceCardGradient = (serviceType: string): string[] => {
+  const createServiceCardGradient = (serviceType: string): readonly [string, string, string] => {
     switch (serviceType) {
       case 'education':
-        return ['#F3E5F5', '#FAF0FF', '#FFFFFF'];
+        return ['#F3E5F5', '#FAF0FF', '#FFFFFF'] as const;
       case 'men_saloon':
-        return ['#FFF3E0', '#FFF8F0', '#FFFFFF'];
+        return ['#FFF3E0', '#FFF8F0', '#FFFFFF'] as const;
       case 'vehicle_repair':
-        return ['#E8F5E8', '#F2FBF2', '#FFFFFF'];
+        return ['#E8F5E8', '#F2FBF2', '#FFFFFF'] as const;
       case 'cleaning':
-        return ['#E0F2F1', '#F0F9F8', '#FFFFFF'];
+        return ['#E0F2F1', '#F0F9F8', '#FFFFFF'] as const;
       case 'parcel':
-        return ['#FFF3E0', '#FFF8F0', '#FFFFFF'];
+        return ['#FFF3E0', '#FFF8F0', '#FFFFFF'] as const;
       case 'food_delivery':
-        return ['#FFEBEE', '#FFF5F5', '#FFFFFF'];
+        return ['#FFEBEE', '#FFF5F5', '#FFFFFF'] as const;
       case 'booking':
-        return ['#E3F2FD', '#F0F8FF', '#FFFFFF'];
+        return ['#E3F2FD', '#F0F8FF', '#FFFFFF'] as const;
       case 'healthcare':
-        return ['#E8F5E8', '#F2FBF2', '#FFFFFF'];
+        return ['#E8F5E8', '#F2FBF2', '#FFFFFF'] as const;
       case 'entertainment':
-        return ['#FCE4EC', '#FFF0F6', '#FFFFFF'];
+        return ['#FCE4EC', '#FFF0F6', '#FFFFFF'] as const;
       default:
-        return ['#F5F5F5', '#FAFAFA', '#FFFFFF'];
+        return ['#F5F5F5', '#FAFAFA', '#FFFFFF'] as const;
     }
   };
 

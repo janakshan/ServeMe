@@ -1,7 +1,10 @@
 import {
   useServiceTheme,
   useThemedStyles,
+  type ThemeLayout,
+  type ThemeVariants,
 } from "@/contexts/ServiceThemeContext";
+import type { DesignTokens } from '@/utils/tokens';
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useRef } from "react";
@@ -144,15 +147,15 @@ const ServiceCardSkeleton = ({ index }: { index: number }) => {
     const primaryColor = tokens.colors.primary;
 
     if (primaryColor === "#0D47A1") {
-      return ["#F8FAFE", "#F0F6FF", "#FFFFFF"]; // Light blue gradient
+      return ["#F8FAFE", "#F0F6FF", "#FFFFFF"] as const; // Light blue gradient
     } else if (primaryColor === "#7B1FA2") {
-      return ["#FDFAFF", "#F9F2FF", "#FFFFFF"]; // Light purple gradient
+      return ["#FDFAFF", "#F9F2FF", "#FFFFFF"] as const; // Light purple gradient
     } else if (primaryColor === "#2E7D32") {
-      return ["#F9FDF9", "#F2F8F2", "#FFFFFF"]; // Light green gradient
+      return ["#F9FDF9", "#F2F8F2", "#FFFFFF"] as const; // Light green gradient
     } else if (primaryColor === "#E91E63") {
-      return ["#FFFAFC", "#FFF2F7", "#FFFFFF"]; // Light pink gradient
+      return ["#FFFAFC", "#FFF2F7", "#FFFFFF"] as const; // Light pink gradient
     } else {
-      return ["#F8FAFE", "#F0F6FF", "#FFFFFF"]; // Default light blue gradient
+      return ["#F8FAFE", "#F0F6FF", "#FFFFFF"] as const; // Default light blue gradient
     }
   };
 
@@ -276,28 +279,28 @@ const OfferCard = ({ offer, index }: { offer: any; index: number }) => {
 
     switch (variant) {
       case "sunset":
-        return ["#FFD6CC", "#FFF0E6", "#FFE5D9"]; // Light peach to cream gradient
+        return ["#FFD6CC", "#FFF0E6", "#FFE5D9"] as const; // Light peach to cream gradient
       case "ocean":
-        return ["#E8F8F5", "#D5F4E6", "#B8E6D2"]; // Light teal to mint gradient
+        return ["#E8F8F5", "#D5F4E6", "#B8E6D2"] as const; // Light teal to mint gradient
       case "forest":
-        return ["#E8F5E8", "#F0F8E8", "#E6F7E1"]; // Very light green gradient
+        return ["#E8F5E8", "#F0F8E8", "#E6F7E1"] as const; // Very light green gradient
       case "royal":
-        return ["#F4E6FF", "#F8F0FF", "#EDD9FF"]; // Light purple gradient
+        return ["#F4E6FF", "#F8F0FF", "#EDD9FF"] as const; // Light purple gradient
       case "fire":
-        return ["#FFF4E6", "#FFE8CC", "#FFD6B3"]; // Light orange to cream gradient
+        return ["#FFF4E6", "#FFE8CC", "#FFD6B3"] as const; // Light orange to cream gradient
       case "mint":
-        return ["#E8FFF8", "#F0FFF4", "#E6FFFA"]; // Very light mint gradient
+        return ["#E8FFF8", "#F0FFF4", "#E6FFFA"] as const; // Very light mint gradient
       case "sky":
-        return ["#E8F4FD", "#F0F8FF", "#E6F3FF"]; // Light sky blue gradient
+        return ["#E8F4FD", "#F0F8FF", "#E6F3FF"] as const; // Light sky blue gradient
       case "berry":
-        return ["#FFE8F1", "#FFF0F6", "#FFE6F2"]; // Light pink gradient
+        return ["#FFE8F1", "#FFF0F6", "#FFE6F2"] as const; // Light pink gradient
       case "lavender":
-        return ["#F4F0FF", "#F8F4FF", "#F0E6FF"]; // Light lavender gradient
+        return ["#F4F0FF", "#F8F4FF", "#F0E6FF"] as const; // Light lavender gradient
       case "coral":
-        return ["#FFE8E8", "#FFF0F0", "#FFE6E6"]; // Light coral gradient
+        return ["#FFE8E8", "#FFF0F0", "#FFE6E6"] as const; // Light coral gradient
       default:
         // Fallback to theme colors
-        return [baseColors.primary, baseColors.accent, baseColors.surface];
+        return [baseColors.primary, baseColors.accent, baseColors.surface] as const;
     }
   };
 
@@ -520,19 +523,19 @@ function ServiceCard({
   const getServiceGradient = (serviceType?: string) => {
     switch (serviceType) {
       case "education":
-        return ["#F3E5F5", "#FAF0FF", "#FFFFFF"]; // Light purple gradient
+        return ["#F3E5F5", "#FAF0FF", "#FFFFFF"] as const; // Light purple gradient
       case "men_saloon":
-        return ["#FFF3E0", "#FFF8F0", "#FFFFFF"]; // Light amber gradient
+        return ["#FFF3E0", "#FFF8F0", "#FFFFFF"] as const; // Light amber gradient
       case "vehicle_repair":
-        return ["#E8F5E8", "#F2FBF2", "#FFFFFF"]; // Light green gradient
+        return ["#E8F5E8", "#F2FBF2", "#FFFFFF"] as const; // Light green gradient
       case "cleaning":
-        return ["#E0F2F1", "#F0F9F8", "#FFFFFF"]; // Light teal gradient
+        return ["#E0F2F1", "#F0F9F8", "#FFFFFF"] as const; // Light teal gradient
       case "parcel":
-        return ["#FFF3E0", "#FFF8F0", "#FFFFFF"]; // Light orange gradient
+        return ["#FFF3E0", "#FFF8F0", "#FFFFFF"] as const; // Light orange gradient
       case "food_delivery":
-        return ["#FFEBEE", "#FFF5F5", "#FFFFFF"]; // Light red gradient
+        return ["#FFEBEE", "#FFF5F5", "#FFFFFF"] as const; // Light red gradient
       default:
-        return ["#F5F5F5", "#FAFAFA", "#FFFFFF"]; // Default light gray gradient
+        return ["#F5F5F5", "#FAFAFA", "#FFFFFF"] as const; // Default light gray gradient
     }
   };
 
@@ -719,7 +722,11 @@ export default function HomeScreen() {
   );
 }
 
-const createStyles = (tokens, layout, variants) => {
+const createStyles = (
+  tokens: DesignTokens, 
+  layout: ThemeLayout, 
+  variants: ThemeVariants
+) => {
   // Create soft blue-tinted backgrounds for better eye comfort
   const getSoftTintedColors = () => {
     const primaryColor = tokens.colors.primary;

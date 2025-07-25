@@ -227,7 +227,7 @@ const createLeaderboardRowStyles = (tokens: any) =>
     },
     userName: {
       fontSize: tokens.typography.body,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
       marginBottom: tokens.spacing.xs,
     },
@@ -622,7 +622,7 @@ const createStyles = (tokens: any) => {
     podiumName: {
       fontSize: tokens.typography.body,
       color: tokens.colors.onSurface,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       marginBottom: tokens.spacing.xs,
       textAlign: "center",
     },

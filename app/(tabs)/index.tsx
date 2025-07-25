@@ -15,7 +15,7 @@ export default function HomeScreen() {
 
   const handleServicePress = (serviceId: string, serviceType: string) => {
     // Navigate to specific service layout
-    router.push(`/(services)/${serviceType}/(tabs)`);
+    router.push(`/(services)/${serviceType}/(tabs)` as any);
   };
 
   const renderServiceItem = ({ item }: { item: any }) => (

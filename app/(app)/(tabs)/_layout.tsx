@@ -1,8 +1,9 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useThemedStyles } from '@/contexts/ServiceThemeContext';
+import { useThemedStyles, type ThemeLayout, type ThemeVariants } from '@/contexts/ServiceThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TouchableOpacity } from 'react-native';
+import type { DesignTokens } from '@/utils/tokens';
 
 export default function TabLayout() {
   const styles = useThemedStyles(createTabBarStyles);
@@ -98,7 +99,11 @@ export default function TabLayout() {
   );
 }
 
-const createTabBarStyles = (tokens, layout, variants) => ({
+const createTabBarStyles = (
+  tokens: DesignTokens, 
+  layout: ThemeLayout, 
+  variants: ThemeVariants
+) => ({
   activeColor: {
     color: tokens.colors.primary,
   },

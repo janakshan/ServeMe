@@ -24,7 +24,7 @@ export function useServiceLoader(serviceId: string) {
   };
 
   const navigateToService = (serviceId: string) => {
-    router.push(`/(services)/${serviceId}/(tabs)`);
+    router.push(`/(services)/${serviceId}/(tabs)` as any);
   };
 
   return { isLoading, serviceConfig, navigateToService };

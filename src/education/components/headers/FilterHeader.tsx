@@ -118,7 +118,7 @@ const createStyles = (tokens: any) =>
     },
     label: {
       fontSize: tokens.typography.body,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
       marginBottom: tokens.spacing.sm,
       marginHorizontal: tokens.spacing.md,

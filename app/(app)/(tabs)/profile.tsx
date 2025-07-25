@@ -1,7 +1,10 @@
 import {
   useThemedStyles,
   useServiceTheme,
+  type ThemeLayout,
+  type ThemeVariants,
 } from "@/contexts/ServiceThemeContext";
+import type { DesignTokens } from '@/utils/tokens';
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -240,7 +243,7 @@ export default function ProfileScreen() {
   );
 }
 
-const createStyles = (tokens, layout, variants) => {
+const createStyles = (tokens: DesignTokens, layout: ThemeLayout, variants: ThemeVariants) => {
   // Create soft theme-tinted backgrounds for better eye comfort
   const getSoftTintedColors = () => {
     const primaryColor = tokens.colors.primary;

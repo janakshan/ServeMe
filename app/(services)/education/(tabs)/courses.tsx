@@ -492,7 +492,7 @@ const createCourseCardStyles = (tokens: any) =>
     },
     title: {
       fontSize: tokens.typography.subtitle,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
       marginBottom: tokens.spacing.xs,
     },

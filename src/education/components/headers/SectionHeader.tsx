@@ -177,7 +177,7 @@ const createStyles = (tokens: any) =>
     },
     minimalTitle: {
       fontSize: tokens.typography.subtitle,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
     },
     minimalCount: {
       fontSize: tokens.typography.caption,
@@ -200,6 +200,6 @@ const createStyles = (tokens: any) =>
     prominentCount: {
       fontSize: tokens.typography.body,
       color: tokens.colors.onPrimaryContainer,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
     },
   });

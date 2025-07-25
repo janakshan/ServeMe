@@ -54,7 +54,7 @@ export function useSmartBackNavigation() {
    */
   const navigateToService = (serviceType: string, route: string) => {
     // The navigation theme manager will handle theme switching
-    router.push(route);
+    router.push(route as any);
   };
 
   return {

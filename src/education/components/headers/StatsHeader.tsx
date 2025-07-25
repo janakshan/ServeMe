@@ -224,7 +224,7 @@ const createStyles = (tokens: any) =>
     },
     minimalStatNumber: {
       fontSize: tokens.typography.subtitle,
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
       color: tokens.colors.onSurface,
       marginBottom: tokens.spacing.xs,
     },
@@ -259,6 +259,6 @@ const createStyles = (tokens: any) =>
       fontSize: tokens.typography.body,
       color: tokens.colors.onSurface,
       textAlign: "center",
-      fontWeight: tokens.typography.semiBold,
+      fontWeight: tokens.typography.semibold,
     },
   });
