@@ -1,31 +1,40 @@
-// app/(services)/booking/(tabs)/_layout.tsx - FIXED VERSION with back navigation
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';
-import { router } from 'expo-router';
+import { useServiceTheme } from '@/contexts/ServiceThemeContext';
+import { useSmartBackNavigation } from '@/hooks/useSmartBackNavigation';
 
 export default function BookingTabLayout() {
+  const { tokens } = useServiceTheme();
+  const { goToMainApp } = useSmartBackNavigation();
+
+  const handleBackNavigation = () => {
+    console.log('🔙 Going back to main app with smart navigation');
+    goToMainApp(); // Uses smart navigation with proper theme cleanup
+  };
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: '#8E8E93',
-        headerStyle: {
-          backgroundColor: '#007AFF',
+        tabBarActiveTintColor: tokens.colors.primary,
+        tabBarInactiveTintColor: tokens.colors.onSurfaceVariant,
+        tabBarStyle: {
+          backgroundColor: tokens.colors.surface,
+          borderTopColor: tokens.colors.border,
         },
-        headerTintColor: '#fff',
+        headerStyle: {
+          backgroundColor: tokens.colors.primary,
+        },
+        headerTintColor: tokens.colors.onPrimary,
         headerTitleStyle: {
-          fontWeight: 'bold',
+          fontWeight: '600',
         },
         headerLeft: () => (
           <TouchableOpacity
-            onPress={() => {
-              console.log('🔙 Going back to main app');
-              router.push('/(app)/(tabs)');
-            }}
+            onPress={handleBackNavigation}
             style={{ marginLeft: 15, padding: 5 }}
           >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Ionicons name="arrow-back" size={24} color={tokens.colors.onPrimary} />
           </TouchableOpacity>
         ),
       }}

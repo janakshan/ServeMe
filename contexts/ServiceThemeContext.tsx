@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
 import { DesignTokens, professionalAzureTokens, lightTokens, darkTokens } from '@/utils/tokens';
 import { ServiceTypes } from '@/utils/constants';
 
@@ -141,14 +141,8 @@ const serviceThemeConfigs: Record<string, ServiceThemeOverride> = {
       onSurface: '#1C1B1F',
       onBackground: '#1C1B1F',
       onSurfaceVariant: '#49454F',
-      outline: '#79747E',
-      outlineVariant: '#CAC4D0',
-      primaryContainer: '#F2E7FF',
-      onPrimaryContainer: '#21005D',
-      secondaryContainer: '#F2E7FF',
-      onSecondaryContainer: '#1D192B',
-      tertiaryContainer: '#FFE0E6',
-      onTertiaryContainer: '#31111D',
+      border: '#79747E',
+      divider: '#CAC4D0',
     },
     gradients: {
       header: {
@@ -243,9 +237,21 @@ interface ServiceThemeContextType {
   componentVariants: ServiceThemeOverride['componentVariants'];
   gradients: ThemeGradients;
   
+  // Navigation-aware theme state
+  themeStack: string[];
+  previousService: string | null;
+  isTransitioning: boolean;
+  
   // Theme switching functions
   setGlobalTheme: (theme: GlobalTheme) => void;
   setActiveService: (service: string | null) => void;
+  pushServiceTheme: (service: string) => void;
+  popServiceTheme: () => string | null;
+  
+  // Navigation-aware functions
+  onNavigationFocus: (service: string) => void;
+  onNavigationBlur: () => void;
+  resetThemeStack: () => void;
   
   // Utility functions
   getServiceTheme: (service: string) => DesignTokens;
@@ -272,28 +278,37 @@ export function ServiceThemeProvider({
 }: ServiceThemeProviderProps) {
   const [globalTheme, setGlobalTheme] = useState<GlobalTheme>(defaultGlobalTheme);
   const [activeService, setActiveService] = useState<string | null>(defaultService);
+  const [themeStack, setThemeStack] = useState<string[]>([]);
+  const [previousService, setPreviousService] = useState<string | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
 
-  // Compute merged theme tokens
-  const computeThemeTokens = (global: GlobalTheme, service: string | null): DesignTokens => {
-    const baseTheme = globalThemeConfigs[global];
+  // Memoized theme computation for performance
+  const tokens = useMemo(() => {
+    const baseTheme = globalThemeConfigs[globalTheme];
+    console.log(`🎨 Computing tokens for globalTheme: ${globalTheme}, activeService: ${activeService}`);
     
-    if (!service || !serviceThemeConfigs[service]) {
+    if (!activeService || !serviceThemeConfigs[activeService]) {
+      console.log(`🎨 Using base theme (no service override)`);
+      console.log(`🎨 Base theme primary color: ${baseTheme.colors.primary}`);
       return baseTheme;
     }
     
-    const serviceOverride = serviceThemeConfigs[service];
+    const serviceOverride = serviceThemeConfigs[activeService];
+    console.log(`🎨 Applying service override for: ${activeService}`);
+    console.log(`🎨 Service primary color: ${serviceOverride.colors?.primary}`);
     
-    return {
+    const computedTheme = {
       colors: { ...baseTheme.colors, ...serviceOverride.colors },
       typography: { ...baseTheme.typography, ...serviceOverride.typography },
       spacing: { ...baseTheme.spacing, ...serviceOverride.spacing },
       borderRadius: { ...baseTheme.borderRadius, ...serviceOverride.borderRadius },
       shadows: { ...baseTheme.shadows, ...serviceOverride.shadows },
+      gradients: baseTheme.gradients, // Include gradients from base theme
     };
-  };
-
-  // Get current computed tokens
-  const tokens = computeThemeTokens(globalTheme, activeService);
+    
+    console.log(`🎨 Computed theme primary color: ${computedTheme.colors.primary}`);
+    return computedTheme;
+  }, [globalTheme, activeService]);
   
   // Get current layout and component variants
   const currentServiceConfig = activeService ? serviceThemeConfigs[activeService] : null;
@@ -338,15 +353,122 @@ export function ServiceThemeProvider({
     ...(currentServiceConfig?.gradients || {})
   };
 
-  // Utility function to get theme for any service
-  const getServiceTheme = (service: string): DesignTokens => {
-    return computeThemeTokens(globalTheme, service);
-  };
+  // Memoized utility function to get theme for any service
+  const getServiceTheme = useCallback((service: string): DesignTokens => {
+    const baseTheme = globalThemeConfigs[globalTheme];
+    
+    if (!service || !serviceThemeConfigs[service]) {
+      return baseTheme;
+    }
+    
+    const serviceOverride = serviceThemeConfigs[service];
+    
+    return {
+      colors: { ...baseTheme.colors, ...serviceOverride.colors },
+      typography: { ...baseTheme.typography, ...serviceOverride.typography },
+      spacing: { ...baseTheme.spacing, ...serviceOverride.spacing },
+      borderRadius: { ...baseTheme.borderRadius, ...serviceOverride.borderRadius },
+      shadows: { ...baseTheme.shadows, ...serviceOverride.shadows },
+      gradients: baseTheme.gradients, // Include gradients from base theme
+    };
+  }, [globalTheme]);
 
-  // Reset to global theme (no service override)
-  const resetToGlobalTheme = () => {
+  // Memoized callback functions for performance - using functional updates
+  const pushServiceTheme = useCallback((service: string) => {
+    setIsTransitioning(true);
+    
+    // Update previous service tracking using functional updates
+    setActiveService(currentService => {
+      if (currentService && currentService !== service) {
+        setPreviousService(currentService);
+        setThemeStack(prev => [...prev, currentService]);
+      }
+      
+      // Small delay to ensure smooth transition
+      setTimeout(() => setIsTransitioning(false), 100);
+      
+      return service;
+    });
+  }, []); // No dependencies - uses functional updates
+
+  const popServiceTheme = useCallback((): string | null => {
+    setIsTransitioning(true);
+    
+    let returnValue: string | null = null;
+    
+    setThemeStack(prev => {
+      const [previousTheme] = prev.slice(-1);
+      const newStack = prev.slice(0, -1);
+      returnValue = previousTheme || null;
+      
+      setActiveService(currentService => {
+        setPreviousService(currentService);
+        setTimeout(() => setIsTransitioning(false), 100);
+        return previousTheme || null;
+      });
+      
+      return newStack;
+    });
+    
+    return returnValue;
+  }, []); // No dependencies - uses functional updates
+
+  // Navigation-aware functions - optimized to avoid dependencies
+  const onNavigationFocus = useCallback((service: string) => {
+    setActiveService(currentService => {
+      if (service !== currentService) {
+        setIsTransitioning(true);
+        
+        if (currentService && currentService !== service) {
+          setPreviousService(currentService);
+          setThemeStack(prev => [...prev, currentService]);
+        }
+        
+        setTimeout(() => setIsTransitioning(false), 100);
+        return service;
+      }
+      return currentService;
+    });
+  }, []); // No dependencies
+
+  const onNavigationBlur = useCallback(() => {
+    // Don't automatically pop on blur - let explicit navigation handle this
+    // This prevents premature theme switching during navigation transitions
+  }, []);
+
+  const resetThemeStack = useCallback(() => {
+    setThemeStack([]);
+    setPreviousService(null);
     setActiveService(null);
-  };
+    setIsTransitioning(false);
+  }, []);
+
+  // Reset to global theme (no service override) - using functional updates for stability
+  const resetToGlobalTheme = useCallback(() => {
+    setIsTransitioning(true);
+    setActiveService(currentService => {
+      setPreviousService(currentService);
+      setTimeout(() => setIsTransitioning(false), 100);
+      return null;
+    });
+  }, []); // No dependencies - uses functional updates
+
+  // Enhanced setActiveService with transition management - using functional updates for stability
+  const enhancedSetActiveService = useCallback((service: string | null) => {
+    setActiveService(currentService => {
+      if (service === currentService) {
+        console.log(`🎨 Theme: Service ${service} already active, no change needed`);
+        return currentService;
+      }
+      
+      console.log(`🎨 Theme: Switching from ${currentService} to ${service}`);
+      setIsTransitioning(true);
+      setPreviousService(currentService);
+      setTimeout(() => setIsTransitioning(false), 100);
+      
+      return service;
+    });
+  }, []); // No dependencies - uses functional updates
 
   // Gradient utility functions
   const getGradient = (type: keyof ThemeGradients): GradientDefinition => {
@@ -393,8 +515,16 @@ export function ServiceThemeProvider({
     layout,
     componentVariants,
     gradients,
+    themeStack,
+    previousService,
+    isTransitioning,
     setGlobalTheme,
-    setActiveService,
+    setActiveService: enhancedSetActiveService,
+    pushServiceTheme,
+    popServiceTheme,
+    onNavigationFocus,
+    onNavigationBlur,
+    resetThemeStack,
     getServiceTheme,
     resetToGlobalTheme,
     getGradient,

@@ -6,6 +6,7 @@ import { AuthProvider } from '../providers/AuthProvider';
 import { ThemeProvider } from '../providers/ThemeProvider';
 import { ServicesProvider } from '../providers/ServicesProvider';
 import { ServiceThemeProvider } from '../contexts/ServiceThemeContext';
+// import { NavigationThemeManager } from '../components/navigation/NavigationThemeManager';
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -25,6 +26,8 @@ export default function RootLayout() {
       <ThemeProvider>
         <AuthProvider>
           <ServicesProvider>
+            {/* <NavigationThemeManager /> */}
+            {/* Temporarily disabled to fix education theme issue */}
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen name="(auth)" options={{ headerShown: false }} />
