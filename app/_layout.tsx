@@ -1,4 +1,4 @@
-// app/_layout.tsx - UPDATED VERSION with correct imports
+// app/_layout.tsx - Fast navigation transitions enabled
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -6,6 +6,7 @@ import { AuthProvider } from '../providers/AuthProvider';
 import { ThemeProvider } from '../providers/ThemeProvider';
 import { ServicesProvider } from '../providers/ServicesProvider';
 import { ServiceThemeProvider } from '../contexts/ServiceThemeContext';
+import { fastScreenOptions, instantScreenOptions, modalScreenOptions, serviceScreenOptions, authScreenOptions } from '../utils/navigationAnimations';
 // import { NavigationThemeManager } from '../components/navigation/NavigationThemeManager';
 
 // Prevent splash screen from auto-hiding
@@ -28,19 +29,16 @@ export default function RootLayout() {
           <ServicesProvider>
             {/* <NavigationThemeManager /> */}
             {/* Temporarily disabled to fix education theme issue */}
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="index" options={{ headerShown: false }} />
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-              <Stack.Screen name="(app)" options={{ headerShown: false }} />
-              <Stack.Screen name="(services)" options={{ headerShown: false }} />
+            <Stack screenOptions={fastScreenOptions}>
+              <Stack.Screen name="index" options={instantScreenOptions} />
+              <Stack.Screen name="(auth)" options={authScreenOptions} />
+              <Stack.Screen name="(app)" options={instantScreenOptions} />
+              <Stack.Screen name="(services)" options={serviceScreenOptions} />
               <Stack.Screen 
                 name="(modals)" 
-                options={{ 
-                  presentation: 'modal',
-                  headerShown: false 
-                }} 
+                options={modalScreenOptions}
               />
-              <Stack.Screen name="+not-found" />
+              <Stack.Screen name="+not-found" options={fastScreenOptions} />
             </Stack>
           </ServicesProvider>
         </AuthProvider>

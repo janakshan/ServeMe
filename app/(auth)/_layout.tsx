@@ -1,8 +1,9 @@
-// Auth stack layout
+// Auth stack layout - Fast transitions for smooth authentication flow
 
 import { Stack } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { Redirect } from 'expo-router';
+import { authScreenOptions, instantScreenOptions } from '@/utils/navigationAnimations';
 
 export default function AuthLayout() {
   const { isAuthenticated } = useAuth();
@@ -13,48 +14,38 @@ export default function AuthLayout() {
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerStyle: {
-          backgroundColor: '#fff',
-        },
-        headerTintColor: '#000',
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
-      }}
-    >
+    <Stack screenOptions={authScreenOptions}>
       <Stack.Screen 
         name="onboarding" 
-        options={{ headerShown: false }} 
+        options={authScreenOptions} 
       />
       <Stack.Screen 
         name="login" 
-        options={{ headerShown: false }} 
+        options={authScreenOptions} 
       />
       <Stack.Screen 
         name="signup" 
-        options={{ headerShown: false }} 
+        options={authScreenOptions} 
       />
       <Stack.Screen 
         name="forgot-password" 
-        options={{ headerShown: false }} 
+        options={authScreenOptions} 
       />
       <Stack.Screen 
         name="confirm-phone" 
-        options={{ headerShown: false }} 
+        options={authScreenOptions} 
       />
       <Stack.Screen 
         name="enter-otp" 
-        options={{ headerShown: false }} 
+        options={instantScreenOptions} // Instant for OTP flow
       />
       <Stack.Screen 
         name="signup-success" 
-        options={{ headerShown: false }} 
+        options={authScreenOptions} 
       />
       <Stack.Screen 
         name="reset-password" 
-        options={{ headerShown: false }} 
+        options={authScreenOptions} 
       />
     </Stack>
   );

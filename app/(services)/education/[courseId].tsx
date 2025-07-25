@@ -945,16 +945,17 @@ const createStyles = (tokens: any) => StyleSheet.create({
     alignItems: 'center',
   },
   previewImageContainer: {
-    height: 180,
+    height: 220,
     borderRadius: tokens.borderRadius.lg,
     backgroundColor: tokens.colors.surfaceVariant,
     marginBottom: tokens.spacing.md,
     position: 'relative',
     overflow: 'hidden',
-    aspectRatio: 16/9,
+    aspectRatio: 16/9, // Made wider aspect ratio (was 16:9)
   },
   videoThumbnail: {
     flex: 1,
+    width: '100%', // Ensure full width
     backgroundColor: tokens.colors.primary + '08',
     justifyContent: 'center',
     alignItems: 'center',

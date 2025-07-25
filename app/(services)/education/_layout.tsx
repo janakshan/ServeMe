@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import { useServiceLayout } from "@/hooks/useServiceLayout";
 import { ServiceTypes } from "@/utils/constants";
+import { contentScreenOptions } from "@/utils/navigationAnimations";
 
 export default function EducationLayout() {
   const { screenOptions, isTransitioning } = useServiceLayout(ServiceTypes.EDUCATION);
@@ -12,18 +13,14 @@ export default function EducationLayout() {
   }
 
   return (
-    <Stack screenOptions={screenOptions}>
+    <Stack screenOptions={{ ...screenOptions, ...contentScreenOptions }}>
       <Stack.Screen
         name="index"
-        options={{
-          headerShown: false,
-        }}
+        options={contentScreenOptions}
       />
       <Stack.Screen
         name="(tabs)"
-        options={{
-          headerShown: false,
-        }}
+        options={contentScreenOptions}
       />
     </Stack>
   );

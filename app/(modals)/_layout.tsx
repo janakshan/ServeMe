@@ -1,20 +1,20 @@
-// app/(modals)/_layout.tsx - CREATE THIS FILE to fix missing route warning
 import { Stack } from 'expo-router';
+import { modalScreenOptions } from '@/utils/navigationAnimations';
 
 export default function ModalsLayout() {
   return (
-    <Stack>
+    <Stack screenOptions={modalScreenOptions}>
       <Stack.Screen 
         name="notification" 
         options={{ 
-          presentation: 'modal',
+          ...modalScreenOptions,
           title: 'Notifications'
         }} 
       />
       <Stack.Screen 
         name="service-selection" 
         options={{ 
-          presentation: 'modal',
+          ...modalScreenOptions,
           title: 'Select Service'
         }} 
       />

@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { useServiceTheme } from '@/contexts/ServiceThemeContext';
+import { smoothSlideAnimation } from '@/utils/navigationAnimations';
 
 /**
  * Hook for standardized service layout theme management
@@ -60,6 +61,7 @@ export function useServiceLayout(serviceType: string) {
         fontWeight: '600' as const,
       },
       headerBackTitleVisible: false,
+      ...smoothSlideAnimation, // Add smooth slide transitions to service screens
     }
   };
 }

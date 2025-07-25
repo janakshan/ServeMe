@@ -1,7 +1,8 @@
-// app/(app)/_layout.tsx - ENSURE THIS EXISTS
+// app/(app)/_layout.tsx - Instant navigation for main app
 import { Stack } from 'expo-router';
 import { useAuth } from '../../hooks/useAuth';
 import { Redirect } from 'expo-router';
+import { instantScreenOptions } from '../../utils/navigationAnimations';
 
 export default function AppLayout() {
   const { isAuthenticated } = useAuth();
@@ -12,8 +13,8 @@ export default function AppLayout() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    <Stack screenOptions={instantScreenOptions}>
+      <Stack.Screen name="(tabs)" options={instantScreenOptions} />
     </Stack>
   );
 }

@@ -2,6 +2,7 @@ import { Stack, useSegments } from 'expo-router';
 import { useEffect, useRef, useCallback } from 'react';
 import { useServiceTheme } from '@/contexts/ServiceThemeContext';
 import { ServiceTypes } from '@/utils/constants';
+import { serviceScreenOptions } from '@/utils/navigationAnimations';
 
 // Map route segments to service types
 const ROUTE_TO_SERVICE_MAP: Record<string, string> = {
@@ -75,8 +76,8 @@ export default function ServicesLayout() {
   }, []);
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="education" options={{ headerShown: false }} />
+    <Stack screenOptions={serviceScreenOptions}>
+      <Stack.Screen name="education" options={serviceScreenOptions} />
     </Stack>
   );
 }

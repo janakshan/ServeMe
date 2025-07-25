@@ -4,6 +4,7 @@ import { useThemedStyles, type ThemeLayout, type ThemeVariants } from '@/context
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TouchableOpacity } from 'react-native';
 import type { DesignTokens } from '@/utils/tokens';
+import { instantScreenOptions } from '@/utils/navigationAnimations';
 
 export default function TabLayout() {
   const styles = useThemedStyles(createTabBarStyles);
@@ -59,6 +60,7 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           headerShown: false,
+          animation: 'none', // Instant tab switching
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
               name={focused ? "home" : "home-outline"} 
@@ -72,6 +74,7 @@ export default function TabLayout() {
         name="promotions"
         options={{
           title: 'Promotions',
+          animation: 'none', // Instant tab switching
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
               name={focused ? "pricetag" : "pricetag-outline"} 
@@ -86,6 +89,7 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           headerShown: false,
+          animation: 'none', // Instant tab switching
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
               name={focused ? "person" : "person-outline"} 
