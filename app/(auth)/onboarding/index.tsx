@@ -4,7 +4,6 @@ import {
 } from "@/contexts/ServiceThemeContext";
 import { secureStorage } from "@/services/storage/secureStorage";
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
@@ -74,8 +73,6 @@ export default function OnboardingScreen() {
   }, []);
 
   const handleNext = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
     if (currentIndex < onboardingData.length - 1) {
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
@@ -91,16 +88,12 @@ export default function OnboardingScreen() {
   };
 
   const handleSkip = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
     // Mark onboarding as completed when skipping
     await secureStorage.setOnboardingStatus("completed");
     router.replace("/(auth)/login");
   };
 
   const handleBack = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
     if (currentIndex > 0) {
       const prevIndex = currentIndex - 1;
       setCurrentIndex(prevIndex);

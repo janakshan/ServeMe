@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'rea
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
-import * as Haptics from 'expo-haptics';
 
 interface RecommendedCourse {
   id: string;
@@ -58,7 +57,6 @@ export function RecommendedContent() {
   const styles = useThemedStyles(createStyles);
 
   const handleCoursePress = (course: RecommendedCourse) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Alert.alert(
       'Course Details',
       `You selected: ${course.title}\nInstructor: ${course.instructor}`,

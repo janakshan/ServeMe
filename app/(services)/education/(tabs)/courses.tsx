@@ -14,7 +14,6 @@ import {
 } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import * as Haptics from 'expo-haptics';
 import { EducationHeader, EducationScreenHeader } from "@/src/education/components/headers";
 
 const MOCK_COURSES = [
@@ -290,7 +289,6 @@ export default function CoursesScreen() {
   });
 
   const handleCoursePress = (courseId: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push(`/(services)/education/${courseId}` as any);
   };
 

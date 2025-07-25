@@ -17,7 +17,6 @@ import { useLocalSearchParams, Stack } from 'expo-router';
 import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
 import { educationApi } from '@/services/api/education';
 import { EducationScreenHeader } from '@/src/education/components/headers';
-import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { VideoView, useVideoPlayer } from 'expo-video';
 
@@ -164,7 +163,6 @@ export default function CourseDetailScreen() {
   }, [activeTab, tabs, tokens.spacing.lg, tabIndicatorAnimation]);
 
   const handleEnroll = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     Alert.alert(
       'Enroll in Course',
       `Would you like to enroll in "${courseData?.title}" for $${courseData?.price}?`,
@@ -176,18 +174,15 @@ export default function CourseDetailScreen() {
   };
 
   const handleBookmark = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setIsBookmarked(!isBookmarked);
   };
 
 
   const handleShare = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Alert.alert('Share Course', 'Share functionality will be implemented soon!');
   };
 
   const handlePreview = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsVideoLoading(true);
     setShowVideoModal(true);
     // Auto-play when modal opens
@@ -207,8 +202,6 @@ export default function CourseDetailScreen() {
     const newTabId = tabs[tabIndex].id as TabType;
     
     if (newTabId === activeTab) return; // Don't animate if same tab
-    
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     
     // Calculate tab indicator position based on container width and padding
     const screenWidth = Dimensions.get('window').width;
@@ -363,7 +356,6 @@ export default function CourseDetailScreen() {
                   disabled={isLocked}
                   onPress={() => {
                     if (!isLocked) {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                       console.log('Navigate to lesson:', lesson.id);
                     }
                   }}

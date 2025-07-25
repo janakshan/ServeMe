@@ -5,7 +5,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
 import { router } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
-import * as Haptics from 'expo-haptics';
 
 interface UserData {
   name: string;
@@ -23,7 +22,6 @@ export function EducationHomeHeader({ userData }: EducationHomeHeaderProps) {
   const backgroundGradient = getGradient('header');
 
   const handleBackPress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     // Reset theme to global theme before navigating back
     resetToGlobalTheme();
     // Use proper navigation back functionality
@@ -36,7 +34,6 @@ export function EducationHomeHeader({ userData }: EducationHomeHeaderProps) {
   };
 
   const handleRankPress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     // Navigate to leaderboard page
     router.push('/(services)/education/(tabs)/leaderboard');
   };

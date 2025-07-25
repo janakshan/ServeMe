@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity, StyleSheet, Animated, Dimensions } from '
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useServiceTheme } from '@/contexts/ServiceThemeContext';
-import * as Haptics from 'expo-haptics';
 
 interface TabItem {
   name: string;
@@ -75,7 +74,6 @@ export function EducationTabBar({ state, descriptors, navigation }: EducationTab
     });
 
     if (!event.defaultPrevented) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       navigation.navigate(route.name);
     }
   };

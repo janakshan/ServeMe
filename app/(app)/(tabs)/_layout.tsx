@@ -1,18 +1,15 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemedStyles } from '@/contexts/ServiceThemeContext';
-import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Platform, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 
 export default function TabLayout() {
   const styles = useThemedStyles(createTabBarStyles);
   const insets = useSafeAreaInsets();
 
   const handleTabPress = () => {
-    if (Platform.OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    // Tab press handler - haptic feedback removed
   };
 
   return (

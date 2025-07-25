@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-nativ
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
-import * as Haptics from 'expo-haptics';
 
 interface AcademicCardProps {
   title: string;
@@ -73,7 +72,6 @@ export function AcademicCard({
 
   const handlePress = () => {
     if (onPress) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       onPress();
     }
   };

@@ -4,7 +4,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
 import { router } from 'expo-router';
-import * as Haptics from 'expo-haptics';
 
 const { width } = Dimensions.get('window');
 const gridItemWidth = (width - 48) / 2; // Account for padding and margin
@@ -81,7 +80,6 @@ export function QuickAccessGrid() {
   const styles = useThemedStyles(createStyles);
 
   const handleItemPress = (item: QuickAccessItem) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push(item.route as any);
   };
 

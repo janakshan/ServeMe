@@ -4,7 +4,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
 import { router } from 'expo-router';
-import * as Haptics from 'expo-haptics';
 
 interface EducationScreenHeaderProps {
   title: string;
@@ -41,7 +40,6 @@ export function EducationScreenHeader({
   const backgroundGradient = getGradient('header');
 
   const handleBackPress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     // Use proper navigation back functionality
     if (router.canGoBack()) {
       router.back();
@@ -102,7 +100,6 @@ export function EducationScreenHeader({
                       <TouchableOpacity
                         key={index}
                         onPress={() => {
-                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                           action.onPress();
                         }}
                         style={[styles.rightAction, { marginTop: index > 0 ? 8 : 0 }]}
@@ -117,7 +114,6 @@ export function EducationScreenHeader({
                   ) : rightAction ? (
                     <TouchableOpacity
                       onPress={() => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                         rightAction.onPress();
                       }}
                       style={styles.rightAction}
