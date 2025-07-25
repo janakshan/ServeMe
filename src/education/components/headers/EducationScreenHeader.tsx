@@ -42,8 +42,13 @@ export function EducationScreenHeader({
 
   const handleBackPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    // Navigate back to main screen instead of education browse
-    router.push('/(app)/(tabs)/' as any);
+    // Use proper navigation back functionality
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      // Fallback to main screen if no history
+      router.push('/(app)/(tabs)/' as any);
+    }
   };
 
   return (

@@ -26,8 +26,13 @@ export function EducationHomeHeader({ userData }: EducationHomeHeaderProps) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     // Reset theme to global theme before navigating back
     resetToGlobalTheme();
-    // Navigate back to main app
-    router.push('/(app)/(tabs)/' as any);
+    // Use proper navigation back functionality
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      // Fallback to main app if no history
+      router.push('/(app)/(tabs)/' as any);
+    }
   };
 
   const handleRankPress = () => {

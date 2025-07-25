@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,7 @@ import { educationApi } from '@/services/api/education';
 import { EducationScreenHeader } from '@/src/education/components/headers';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
+import { VideoView, useVideoPlayer } from 'expo-video';
 
 
 interface CourseDetail {
@@ -77,29 +77,42 @@ export default function CourseDetailScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
-  const [videoStatus, setVideoStatus] = useState<AVPlaybackStatus | null>(null);
   const [isVideoLoading, setIsVideoLoading] = useState(true);
-  const videoRef = useRef<Video>(null);
   
   // Sample video URL for course preview
   const sampleVideoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
   
-  // Handle video status updates
-  const handleVideoStatusUpdate = useCallback((status: AVPlaybackStatus) => {
-    setVideoStatus(status);
-    if (status.isLoaded) {
-      setIsVideoLoading(false);
+  // Setup video player with expo-video
+  const player = useVideoPlayer(sampleVideoUrl, (player) => {
+    player.loop = false;
+    player.muted = false;
+  });
+  
+  // Handle video player state changes
+  useEffect(() => {
+    if (player) {
+      const subscription = player.addListener('statusChange', (status) => {
+        // Handle different video states
+        if (status.status === 'readyToPlay' || status.status === 'idle') {
+          setIsVideoLoading(false);
+        } else if (status.status === 'loading') {
+          setIsVideoLoading(true);
+        }
+      });
+      return () => subscription.remove();
     }
-  }, []);
+  }, [player]);
+  
   
   // Handle video modal close
-  const closeVideoModal = () => {
+  const closeVideoModal = useCallback(() => {
     setShowVideoModal(false);
     setIsVideoLoading(true);
-    if (videoRef.current) {
-      videoRef.current.pauseAsync();
+    if (player) {
+      player.pause();
+      player.currentTime = 0; // Reset to beginning
     }
-  };
+  }, [player]);
   
   // Animation values for enhanced tabs
   const tabIndicatorAnimation = useRef(new Animated.Value(0)).current;
@@ -116,6 +129,19 @@ export default function CourseDetailScreen() {
     { id: 'instructor', label: 'Instructor', badge: null },
     { id: 'reviews', label: 'Reviews', badge: null }
   ];
+
+  const loadCourseData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      // Use the enhanced API to get course details
+      const courseDetail = await educationApi.getCourseDetails(courseId as string);
+      setCourseData(courseDetail);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to load course details');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [courseId]);
 
   useEffect(() => {
     loadCourseData();
@@ -136,19 +162,6 @@ export default function CourseDetailScreen() {
       tabIndicatorAnimation.setValue(indicatorPosition);
     }
   }, [activeTab, tabs, tokens.spacing.lg, tabIndicatorAnimation]);
-
-  const loadCourseData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      // Use the enhanced API to get course details
-      const courseDetail = await educationApi.getCourseDetails(courseId as string);
-      setCourseData(courseDetail);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to load course details');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [courseId]);
 
   const handleEnroll = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -175,9 +188,18 @@ export default function CourseDetailScreen() {
 
   const handlePreview = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setIsVideoLoading(true); // Reset loading state
+    setIsVideoLoading(true);
     setShowVideoModal(true);
-  }, []);
+    // Auto-play when modal opens
+    if (player) {
+      player.play();
+    }
+    
+    // Fallback to hide loading indicator after 3 seconds
+    setTimeout(() => {
+      setIsVideoLoading(false);
+    }, 3000);
+  }, [player]);
 
 
   // Enhanced tab handler with animations
@@ -821,8 +843,17 @@ export default function CourseDetailScreen() {
           </View>
           
           <View style={styles.videoPlayerContainer}>
-            {/* Enhanced Video Player with expo-av */}
+            {/* Enhanced Video Player with expo-video */}
             <View style={styles.videoPlayer}>
+              <VideoView 
+                style={styles.video}
+                player={player}
+                allowsFullscreen
+                allowsPictureInPicture
+                nativeControls
+                contentFit="contain"
+              />
+              
               {isVideoLoading && (
                 <View style={styles.videoLoadingContainer}>
                   <Animated.View style={[styles.loadingSpinner, {
@@ -835,22 +866,6 @@ export default function CourseDetailScreen() {
                   <Text style={styles.videoLoadingText}>Loading video...</Text>
                 </View>
               )}
-              
-              <Video
-                ref={videoRef}
-                source={{ uri: sampleVideoUrl }}
-                style={styles.video}
-                resizeMode={ResizeMode.CONTAIN}
-                shouldPlay={showVideoModal} // Auto-play when modal opens
-                isLooping={false}
-                useNativeControls={true}
-                onPlaybackStatusUpdate={handleVideoStatusUpdate}
-                onLoad={() => setIsVideoLoading(false)}
-                onError={(error) => {
-                  console.error('Video error:', error);
-                  setIsVideoLoading(false);
-                }}
-              />
             </View>
             
             <View style={styles.videoInfo}>
@@ -858,20 +873,16 @@ export default function CourseDetailScreen() {
               <Text style={styles.videoDescription}>
                 Get a preview of what you'll learn in this comprehensive Tamil Language & Literature course.
               </Text>
-              {videoStatus?.isLoaded && (
-                <View style={styles.videoStats}>
-                  <View style={styles.videoStatItem}>
-                    <Ionicons name="time-outline" size={16} color={tokens.colors.onSurfaceVariant} />
-                    <Text style={styles.videoStatText}>
-                      {Math.floor((videoStatus.durationMillis || 0) / 60000)}:{Math.floor(((videoStatus.durationMillis || 0) % 60000) / 1000).toString().padStart(2, '0')} duration
-                    </Text>
-                  </View>
-                  <View style={styles.videoStatItem}>
-                    <Ionicons name="play-circle" size={16} color={tokens.colors.onSurfaceVariant} />
-                    <Text style={styles.videoStatText}>Auto-play enabled</Text>
-                  </View>
+              <View style={styles.videoStats}>
+                <View style={styles.videoStatItem}>
+                  <Ionicons name="videocam" size={16} color={tokens.colors.onSurfaceVariant} />
+                  <Text style={styles.videoStatText}>HD Quality</Text>
                 </View>
-              )}
+                <View style={styles.videoStatItem}>
+                  <Ionicons name="play-circle" size={16} color={tokens.colors.onSurfaceVariant} />
+                  <Text style={styles.videoStatText}>Auto-play enabled</Text>
+                </View>
+              </View>
             </View>
           </View>
         </SafeAreaView>
