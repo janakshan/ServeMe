@@ -5,3 +5,4 @@ export { StatsHeader } from "./StatsHeader";
 export { InfoHeader } from "./InfoHeader";
 export { EducationHeader } from "./EducationHeader";
 export { EducationScreenHeader } from "./EducationScreenHeader";
+export { MinimalHeader } from "./MinimalHeader";

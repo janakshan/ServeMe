@@ -309,7 +309,6 @@ export default function CoursesScreen() {
       >
         <EducationScreenHeader
           title="Browse Courses"
-          subtitle="Discover quality education for all levels"
           rightAction={{
             icon: "options-outline",
             onPress: handleFilterToggle,

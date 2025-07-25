@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
 import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
 import { educationApi } from '@/services/api/education';
-import { EducationScreenHeader } from '@/src/education/components/headers';
+import { MinimalHeader } from '@/src/education/components/headers';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { VideoView, useVideoPlayer } from 'expo-video';
 
@@ -583,20 +583,9 @@ export default function CourseDetailScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.container}>
-        {/* Standardized Header */}
-        <EducationScreenHeader
-          title={courseData.title}
-          subtitle={`by ${courseData.instructor}`}
-          rightActions={[
-            {
-              icon: isBookmarked ? "bookmark" : "bookmark-outline",
-              onPress: handleBookmark
-            },
-            {
-              icon: "share-outline",
-              onPress: handleShare
-            }
-          ]}
+        {/* Ultra-Minimal Header */}
+        <MinimalHeader
+        title="Course Details"
           onBackPress={() => {
             console.log('Course details: Custom back navigation to courses tab');
             router.push('/(services)/education/(tabs)/courses' as any);
@@ -611,6 +600,36 @@ export default function CourseDetailScreen() {
       >
         {/* Course Overview Card */}
         <View style={styles.courseOverviewCard}>
+          {/* Course Title and Instructor */}
+          <View style={styles.courseTitleSection}>
+            <Text style={styles.courseMainTitle}>{courseData.title}</Text>
+            <Text style={styles.courseInstructor}>by {courseData.instructor}</Text>
+            
+            {/* Action Buttons */}
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                onPress={handleBookmark}
+                style={styles.actionButton}
+              >
+                <Ionicons
+                  name={isBookmarked ? "bookmark" : "bookmark-outline"}
+                  size={24}
+                  color={tokens.colors.primary}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleShare}
+                style={styles.actionButton}
+              >
+                <Ionicons
+                  name="share-outline"
+                  size={24}
+                  color={tokens.colors.primary}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+          
           {/* Enhanced Course Preview */}
           <View style={styles.coursePreviewCard}>
             <View style={styles.previewImageContainer}>
@@ -949,6 +968,50 @@ const createStyles = (tokens: any) => StyleSheet.create({
     elevation: 6,
     borderBottomWidth: 1,
     borderBottomColor: tokens.colors.border + '20',
+  },
+  courseTitleSection: {
+    marginBottom: tokens.spacing.lg,
+    alignItems: 'center',
+  },
+  courseMainTitle: {
+    fontSize: tokens.typography.title + 4,
+    fontWeight: tokens.typography.bold,
+    color: tokens.colors.onSurface,
+    textAlign: 'center',
+    marginBottom: tokens.spacing.xs,
+    paddingHorizontal: tokens.spacing.md,
+    lineHeight: (tokens.typography.title + 4) * 1.2,
+  },
+  courseInstructor: {
+    fontSize: tokens.typography.body,
+    color: tokens.colors.onSurfaceVariant,
+    textAlign: 'center',
+    fontWeight: '500',
+    marginBottom: tokens.spacing.md,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing.md,
+    justifyContent: 'center',
+  },
+  actionButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: tokens.colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: tokens.colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: tokens.colors.border + '40',
   },
   coursePreviewCard: {
     marginBottom: tokens.spacing.xs,

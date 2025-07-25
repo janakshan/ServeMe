@@ -1373,7 +1373,7 @@ export default function TeachersScreen() {
       >
         <EducationScreenHeader
           title="Find Teachers"
-          subtitle="Connect with qualified educators"
+          // subtitle="Connect with qualified educators"
           rightAction={{
             icon: "options-outline",
             onPress: handleFilterToggle,

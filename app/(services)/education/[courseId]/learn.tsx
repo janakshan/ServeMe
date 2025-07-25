@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
@@ -17,7 +18,7 @@ import { useServiceLayout } from '@/hooks/useServiceLayout';
 import { ServiceTypes } from '@/utils/constants';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { LinearGradient } from 'expo-linear-gradient';
-import { EducationScreenHeader } from '@/src/education/components/headers';
+import { MinimalHeader } from '@/src/education/components/headers';
 
 // Enhanced interfaces for learning experience
 interface VideoLesson {
@@ -71,7 +72,12 @@ export default function CourseLearnScreen() {
 
   // Video player setup
   const sampleVideoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
-  const player = useVideoPlayer(currentLesson?.videoUrl || sampleVideoUrl, (player) => {
+  const [currentVideoUrl, setCurrentVideoUrl] = useState<string>(sampleVideoUrl);
+  const [loadingTimeout, setLoadingTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
+  
+  // Create video player with current URL
+  const player = useVideoPlayer(currentVideoUrl, (player) => {
     player.loop = false;
     player.muted = false;
   });
@@ -158,18 +164,85 @@ export default function CourseLearnScreen() {
     loadCourseData();
   }, [courseId]);
 
-  // Handle video player state changes
+  // Update video source when lesson changes
+  useEffect(() => {
+    if (currentLesson?.videoUrl && currentLesson.videoUrl !== currentVideoUrl) {
+      console.log('Updating video for lesson:', currentLesson.title, currentLesson.videoUrl);
+      
+      // Clear any existing loading timeout
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+        setLoadingTimeout(null);
+      }
+      
+      setIsVideoLoading(true);
+      
+      // Replace the video source directly on the player
+      if (player) {
+        player.replace(currentLesson.videoUrl);
+        setCurrentVideoUrl(currentLesson.videoUrl);
+        
+        // Auto-play the new video after a short delay to ensure it's loaded
+        setTimeout(() => {
+          try {
+            player.play();
+            console.log('Auto-playing new video for lesson:', currentLesson.title);
+          } catch (error) {
+            console.warn('Failed to auto-play video:', error);
+          }
+        }, 500);
+      }
+    }
+  }, [currentLesson?.videoUrl, currentVideoUrl, loadingTimeout, player]);
+
+  // Handle video player state changes with improved loading management
   useEffect(() => {
     if (player && currentLesson) {
+      console.log('Setting up video player listeners for lesson:', currentLesson.title);
+      
       const subscription = player.addListener('statusChange', (status) => {
-        if (status.status === 'readyToPlay' || status.status === 'idle') {
-          setIsVideoLoading(false);
-          // Resume from last watched position
+        console.log('Video status change:', status.status);
+        
+        if (status.status === 'readyToPlay') {
+          // Clear any existing timeout
+          if (loadingTimeout) {
+            clearTimeout(loadingTimeout);
+          }
+          
+          // Debounce the loading state change for Android stability
+          const timeout = setTimeout(() => {
+            setIsVideoLoading(false);
+            console.log('Video ready to play - hiding loading');
+          }, 300); // 300ms delay to prevent blinking
+          
+          setLoadingTimeout(timeout);
+          
+          // Resume from last watched position and auto-play
           if (currentLesson.watchTime > 0) {
+            console.log('Resuming from position:', currentLesson.watchTime);
             player.currentTime = currentLesson.watchTime;
           }
+          
+          // Auto-play when video is ready
+          try {
+            player.play();
+            console.log('Auto-playing video when ready for lesson:', currentLesson.title);
+          } catch (error) {
+            console.warn('Failed to auto-play when ready:', error);
+          }
         } else if (status.status === 'loading') {
+          console.log('Video loading - showing loading indicator');
           setIsVideoLoading(true);
+          setIsVideoPlaying(false);
+          // Clear any pending timeout to hide loading
+          if (loadingTimeout) {
+            clearTimeout(loadingTimeout);
+            setLoadingTimeout(null);
+          }
+        } else if (status.status === 'error') {
+          console.error('Video player error');
+          setIsVideoLoading(false);
+          setIsVideoPlaying(false);
         }
       });
 
@@ -191,21 +264,64 @@ export default function CourseLearnScreen() {
         }
       });
 
+      // Handle video playback state changes
+      const playbackSubscription = player.addListener('playbackStateChange', (state) => {
+        console.log('Video playback state change:', state.state);
+        setIsVideoPlaying(state.state === 'playing');
+      });
+
       // Handle video end - simplified approach
       const endSubscription = player.addListener('statusChange', (status) => {
         if (status.status === 'idle') {
           // Video ended or paused
           console.log('Video status changed to idle');
+          setIsVideoPlaying(false);
         }
       });
 
       return () => {
         subscription.remove();
         progressSubscription.remove();
+        playbackSubscription.remove();
         endSubscription.remove();
+        
+        // Clear any pending loading timeout
+        if (loadingTimeout) {
+          clearTimeout(loadingTimeout);
+          setLoadingTimeout(null);
+        }
       };
     }
-  }, [player, currentLesson]);
+  }, [player, currentLesson, loadingTimeout]);
+
+  // Cleanup timeout on component unmount
+  useEffect(() => {
+    return () => {
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+      }
+    };
+  }, []);
+
+  // Handle initial video setup and autoplay
+  useEffect(() => {
+    if (player && currentLesson && !isLoading) {
+      // Small delay to ensure video is ready for initial load
+      const timer = setTimeout(() => {
+        try {
+          if (currentLesson.watchTime > 0) {
+            player.currentTime = currentLesson.watchTime;
+          }
+          player.play();
+          console.log('Initial autoplay for lesson:', currentLesson.title);
+        } catch (error) {
+          console.warn('Initial autoplay failed:', error);
+        }
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [player, currentLesson, isLoading]);
 
   const loadCourseData = async () => {
     try {
@@ -244,6 +360,8 @@ export default function CourseLearnScreen() {
       return;
     }
 
+    console.log('Lesson selected:', lesson.title, lesson.videoUrl);
+
     // Animate lesson change
     Animated.sequence([
       Animated.timing(lessonChangeAnimation, {
@@ -258,7 +376,7 @@ export default function CourseLearnScreen() {
       }),
     ]).start();
 
-    setIsVideoLoading(true);
+    // Update current lesson - this will trigger video player recreation
     setCurrentLesson(lesson);
     
     // Update learning progress
@@ -271,11 +389,9 @@ export default function CourseLearnScreen() {
       });
     }
 
-    if (player) {
-      player.currentTime = lesson.watchTime;
-      player.play();
-    }
-  }, [player, learningProgress, lessonChangeAnimation]);
+    // Note: Video player will be automatically created/updated by useEffect
+    // No need to manually manipulate player here as it will be recreated with new URL
+  }, [learningProgress, lessonChangeAnimation]);
 
   const markLessonCompleted = useCallback((lessonId: string) => {
     if (!courseData) return;
@@ -383,20 +499,41 @@ export default function CourseLearnScreen() {
               <Ionicons name="checkmark" size={20} color={tokens.colors.onPrimary} />
             ) : item.isLocked ? (
               <Ionicons name="lock-closed" size={16} color={tokens.colors.onSurfaceVariant} />
-            ) : isActive ? (
+            ) : isActive && isVideoPlaying ? (
               <Ionicons name="pause" size={16} color={tokens.colors.onPrimary} />
             ) : (
-              <Ionicons name="play" size={16} color={tokens.colors.primary} />
+              <Ionicons name="play" size={16} color={isActive ? tokens.colors.onPrimary : tokens.colors.onSurfaceVariant} />
             )}
           </View>
           
           {/* Progress ring for partially watched lessons */}
           {!item.isCompleted && !item.isLocked && progressPercent > 0 && (
             <View style={styles.progressRing}>
-              <View style={[
-                styles.progressRingFill,
-                { transform: [{ rotate: `${(progressPercent / 100) * 360}deg` }] }
-              ]} />
+              {/* Background circle */}
+              <View style={styles.progressRingTrack} />
+              {/* Progress fill - using border technique but improved */}
+              <View style={styles.progressRingContainer}>
+                {/* Right semicircle - rotates first (0-50%) */}
+                <View style={[
+                  styles.progressRingRight,
+                  {
+                    transform: [{ 
+                      rotate: `${Math.min(progressPercent * 2, 50) * 3.6}deg` 
+                    }]
+                  }
+                ]} />
+                {/* Left semicircle - shows after 50% */}
+                {progressPercent > 50 && (
+                  <View style={[
+                    styles.progressRingLeft,
+                    {
+                      transform: [{ 
+                        rotate: `${Math.min((progressPercent - 50) * 2, 50) * 3.6}deg` 
+                      }]
+                    }
+                  ]} />
+                )}
+              </View>
             </View>
           )}
         </View>
@@ -449,6 +586,7 @@ export default function CourseLearnScreen() {
   if (isLoading) {
     return (
       <>
+        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
         <Stack.Screen options={{ headerShown: false }} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={tokens.colors.primary} />
@@ -461,6 +599,7 @@ export default function CourseLearnScreen() {
   if (!courseData || !currentLesson) {
     return (
       <>
+        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
         <Stack.Screen options={{ headerShown: false }} />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Course not found</Text>
@@ -475,28 +614,32 @@ export default function CourseLearnScreen() {
 
   return (
     <>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       <Stack.Screen options={{ 
         ...screenOptions,
         headerShown: false
       }} />
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <LinearGradient
           colors={backgroundGradient.colors as any}
           start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
           end={{ x: 1, y: 1 }}
           style={styles.gradientBackground}
         >
-          {/* Education Header */}
-          <EducationScreenHeader
-            title={courseData.title}
-            subtitle={`by ${courseData.instructor}`}
-            showBackButton={true}
-            minHeight={160}
+          {/* Ultra-Minimal Header */}
+          <MinimalHeader
+            title="Learn"
             onBackPress={() => {
               console.log('Learn screen: Custom back navigation to course details for courseId:', courseId);
               router.push(`/(services)/education/${courseId}` as any);
             }}
           />
+
+          {/* Course Title Section */}
+          <View style={styles.courseTitleContainer}>
+            <Text style={styles.courseTitle}>{courseData.title}</Text>
+            <Text style={styles.instructorName}>by {courseData.instructor}</Text>
+          </View>
 
           {/* Progress Bar */}
           <View style={styles.progressBarContainer}>
@@ -595,7 +738,7 @@ export default function CourseLearnScreen() {
             <View style={styles.bottomSpacing} />
           </ScrollView>
         </LinearGradient>
-      </SafeAreaView>
+      </View>
     </>
   );
 }
@@ -604,9 +747,30 @@ const createStyles = (tokens: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: tokens.colors.background,
+    paddingTop: 0,
   },
   gradientBackground: {
     flex: 1,
+  },
+  courseTitleContainer: {
+    paddingHorizontal: tokens.spacing.lg,
+    paddingVertical: tokens.spacing.md,
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  courseTitle: {
+    fontSize: tokens.typography.title,
+    fontWeight: '700',
+    color: tokens.colors.onSurface,
+    textAlign: 'center',
+    marginBottom: tokens.spacing.xs,
+    lineHeight: tokens.typography.title * 1.2,
+  },
+  instructorName: {
+    fontSize: tokens.typography.body,
+    color: tokens.colors.onSurfaceVariant,
+    fontWeight: '500',
+    textAlign: 'center',
   },
   courseContentHeader: {
     flexDirection: 'row',
@@ -684,18 +848,6 @@ const createStyles = (tokens: any) => StyleSheet.create({
   },
   headerContent: {
     flex: 1,
-  },
-  courseTitle: {
-    fontSize: tokens.typography.title,
-    fontWeight: '700',
-    color: tokens.colors.onSurface,
-    marginBottom: 2,
-    lineHeight: tokens.typography.title * 1.2,
-  },
-  instructorName: {
-    fontSize: tokens.typography.body,
-    color: tokens.colors.onSurfaceVariant,
-    fontWeight: '500',
   },
   progressBarContainer: {
     paddingHorizontal: tokens.spacing.lg,
@@ -871,24 +1023,54 @@ const createStyles = (tokens: any) => StyleSheet.create({
   },
   progressRing: {
     position: 'absolute',
-    top: -2,
-    left: -2,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 2,
-    borderColor: tokens.colors.primary,
-    borderTopColor: 'transparent',
-    borderRightColor: 'transparent',
+    top: -3,
+    left: -3,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
   },
-  progressRingFill: {
+  progressRingTrack: {
+    position: 'absolute',
     width: '100%',
     height: '100%',
-    borderRadius: 22,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    borderTopColor: tokens.colors.primary,
-    borderRightColor: tokens.colors.primary,
+    borderRadius: 27,
+    borderWidth: 3,
+    borderColor: tokens.colors.border + '20',
+  },
+  progressRingContainer: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    borderRadius: 27,
+    overflow: 'hidden',
+  },
+  progressRingLeft: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '50%',
+    height: '100%',
+    borderTopLeftRadius: 27,
+    borderBottomLeftRadius: 27,
+    borderWidth: 3,
+    borderRightWidth: 0,
+    borderColor: tokens.colors.primary,
+    backgroundColor: 'transparent',
+    transformOrigin: '100% 50%',
+  },
+  progressRingRight: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: '50%',
+    height: '100%',
+    borderTopRightRadius: 27,
+    borderBottomRightRadius: 27,
+    borderWidth: 3,
+    borderLeftWidth: 0,
+    borderColor: tokens.colors.primary,
+    backgroundColor: 'transparent',
+    transformOrigin: '0% 50%',
   },
   lessonContent: {
     flex: 1,

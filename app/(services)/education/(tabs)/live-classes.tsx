@@ -977,7 +977,7 @@ export default function LiveClassesScreen() {
       >
         <EducationScreenHeader
           title="Live Classes"
-          subtitle="Join live sessions with expert teachers"
+          // subtitle="Join live sessions with expert teachers"
           minHeight={240}
           rightActions={[
             {

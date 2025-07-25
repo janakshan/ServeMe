@@ -202,7 +202,7 @@ const createStyles = (tokens: any) => StyleSheet.create({
   brandingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: tokens.spacing.xs,
+    marginBottom: tokens.spacing.md,
     paddingHorizontal: tokens.spacing.md,
     paddingVertical: tokens.spacing.xs,
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
