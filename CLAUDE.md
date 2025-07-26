@@ -13,7 +13,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Language**: TypeScript with strict mode
 - **Navigation**: Expo Router (file-based routing)
 - **Architecture**: Modern React Native with New Architecture enabled
-- **Platform Support**: iOS, Android, and Web
+- **Platform Support**: iOS, Android
+- **Responsive Design**: Fully responsive UI that consistently supports both iOS and Android across all screen sizes
 
 ## Development Commands
 
