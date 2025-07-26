@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useServiceTheme } from '@/contexts/ServiceThemeContext';
+import { useEducationTheme } from '@/contexts/ScopedThemeProviders';
 
 interface TabItem {
   name: string;
@@ -54,7 +54,7 @@ const { width } = Dimensions.get('window');
 const TAB_WIDTH = width / 5;
 
 export function EducationTabBar({ state, descriptors, navigation }: EducationTabBarProps) {
-  const { tokens } = useServiceTheme();
+  const { tokens } = useEducationTheme();
   const animatedValue = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {

@@ -1,12 +1,11 @@
 import { Stack } from "expo-router";
-import { EducationThemeProvider, useEducationTheme } from "@/contexts/ScopedThemeProviders";
-import { contentScreenOptions } from "@/utils/navigationAnimations";
+import { BookingThemeProvider, useBookingTheme } from "@/contexts/ScopedThemeProviders";
 import { View, StyleSheet, StatusBar } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-function EducationLayoutContent() {
-  const { tokens, getGradient } = useEducationTheme();
+function BookingLayoutContent() {
+  const { tokens, getGradient } = useBookingTheme();
   const insets = useSafeAreaInsets();
   const backgroundGradient = getGradient('background');
 
@@ -14,19 +13,18 @@ function EducationLayoutContent() {
     headerShown: true,
     headerStyle: {
       backgroundColor: tokens.colors.primary,
-      elevation: 8,
+      elevation: 6,
       shadowColor: tokens.colors.primary,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.25,
+      shadowRadius: 6,
     },
     headerTintColor: tokens.colors.onPrimary,
     headerTitleStyle: {
-      fontWeight: '600' as const,
+      fontWeight: '700' as const,
       fontSize: tokens.typography.title,
     },
     headerBackTitleVisible: false,
-    ...contentScreenOptions,
   };
 
   return (
@@ -45,11 +43,10 @@ function EducationLayoutContent() {
         <Stack screenOptions={screenOptions}>
           <Stack.Screen
             name="index"
-            options={screenOptions}
-          />
-          <Stack.Screen
-            name="(tabs)"
-            options={screenOptions}
+            options={{
+              ...screenOptions,
+              title: "Booking Service",
+            }}
           />
         </Stack>
       </LinearGradient>
@@ -66,10 +63,10 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function EducationLayout() {
+export default function BookingLayout() {
   return (
-    <EducationThemeProvider>
-      <EducationLayoutContent />
-    </EducationThemeProvider>
+    <BookingThemeProvider>
+      <BookingLayoutContent />
+    </BookingThemeProvider>
   );
 }

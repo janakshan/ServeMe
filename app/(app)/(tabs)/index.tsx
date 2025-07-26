@@ -1,9 +1,5 @@
-import {
-  useServiceTheme,
-  useThemedStyles,
-  type ThemeLayout,
-  type ThemeVariants,
-} from "@/contexts/ServiceThemeContext";
+import { useMainAppTheme, useMainAppThemedStyles } from "@/contexts/MainAppThemeProvider";
+import type { ServiceThemeOverride } from "@/contexts/ServiceThemeContext";
 import type { DesignTokens } from '@/utils/tokens';
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -21,11 +17,15 @@ import {
 } from "react-native";
 import { ScreenHeader } from "../../../components/ui/ScreenHeader";
 import { useServices } from "../../../hooks/useServices";
+import { useRouteGroupNavigation } from "@/utils/navigationStackReset";
 
 // Map service types to local asset images
 const getServiceImage = (serviceType: string) => {
   const imageMap = {
     education: require("../../../assets/images/onbording/edu.png"),
+    booking: require("../../../assets/images/onbording/saloon.png"), // Reuse for now
+    healthcare: require("../../../assets/images/onbording/ser.png"), // Reuse for now  
+    entertainment: require("../../../assets/images/onbording/edu.png"), // Reuse for now
     men_saloon: require("../../../assets/images/onbording/saloon.png"),
     vehicle_repair: require("../../../assets/images/onbording/vec.png"),
     cleaning: require("../../../assets/images/onbording/ser.png"),
@@ -110,7 +110,7 @@ const preloadImages = (imageUrls: string[]) => {
 
 // Loading skeleton component
 const ServiceCardSkeleton = ({ index }: { index: number }) => {
-  const { tokens } = useServiceTheme();
+  const { tokens } = useMainAppTheme();
   const shimmerAnim = useRef(new Animated.Value(0)).current;
   const { width: screenWidth } = Dimensions.get("window");
 
@@ -231,7 +231,7 @@ const ServiceCardSkeleton = ({ index }: { index: number }) => {
 
 // Offer Card Component
 const OfferCard = ({ offer, index }: { offer: any; index: number }) => {
-  const { tokens } = useServiceTheme();
+  const { tokens } = useMainAppTheme();
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
 
@@ -514,8 +514,8 @@ function ServiceCard({
   onPress: () => void;
   index: number;
 }) {
-  const cardStyles = useThemedStyles(createServiceCardStyles);
-  const { tokens } = useServiceTheme();
+  const cardStyles = useMainAppThemedStyles(createServiceCardStyles);
+  const { tokens } = useMainAppTheme();
   const { animatedStyles, handlePressIn, handlePressOut } =
     useServiceCardAnimation(index, true);
 
@@ -524,6 +524,12 @@ function ServiceCard({
     switch (serviceType) {
       case "education":
         return ["#F3E5F5", "#FAF0FF", "#FFFFFF"] as const; // Light purple gradient
+      case "booking":
+        return ["#E3F2FD", "#F0F8FF", "#FFFFFF"] as const; // Light blue gradient
+      case "healthcare":
+        return ["#E8F5E8", "#F2FBF2", "#FFFFFF"] as const; // Light green gradient
+      case "entertainment":
+        return ["#FCE4EC", "#FFF0F6", "#FFFFFF"] as const; // Light pink gradient
       case "men_saloon":
         return ["#FFF3E0", "#FFF8F0", "#FFFFFF"] as const; // Light amber gradient
       case "vehicle_repair":
@@ -572,7 +578,8 @@ function ServiceCard({
 
 export default function HomeScreen() {
   const { services, isLoading, fetchServices } = useServices();
-  const styles = useThemedStyles(createStyles);
+  const styles = useMainAppThemedStyles(createStyles);
+  const { navigateToService } = useRouteGroupNavigation();
 
   // Function to get grid alignment based on service count
   const getGridAlignment = (serviceCount: number) => {
@@ -605,21 +612,30 @@ export default function HomeScreen() {
   const handleServicePress = (serviceId: string, serviceType: string) => {
     console.log("🎯 Service pressed:", { serviceId, serviceType });
 
-    // Route to implemented services with themed welcome pages
+    // Route to implemented services with themed welcome pages using route group navigation
     switch (serviceType) {
       case "education":
-        router.push("/(services)/education");
+        navigateToService('education');
+        break;
+      case "booking":
+        navigateToService('booking');
+        break;
+      case "healthcare":
+        navigateToService('healthcare');
+        break;
+      case "entertainment":
+        navigateToService('entertainment');
         break;
       default:
         // Show alert for other services (not fully implemented yet)
         Alert.alert(
           `${serviceType.charAt(0).toUpperCase() + serviceType.slice(1)} Service`,
-          `The ${serviceType} service will be available soon!\n\nCurrently only the Education service is available.`,
+          `The ${serviceType} service will be available soon!\n\nCurrently available: Education, Booking, Healthcare, and Entertainment services.`,
           [
             { text: "OK" },
             {
               text: "Try Education",
-              onPress: () => router.push("/(services)/education"),
+              onPress: () => navigateToService('education'),
             },
           ]
         );
@@ -724,8 +740,8 @@ export default function HomeScreen() {
 
 const createStyles = (
   tokens: DesignTokens, 
-  layout: ThemeLayout, 
-  variants: ThemeVariants
+  layout: ServiceThemeOverride['layout'], 
+  variants: ServiceThemeOverride['componentVariants']
 ) => {
   // Create soft blue-tinted backgrounds for better eye comfort
   const getSoftTintedColors = () => {

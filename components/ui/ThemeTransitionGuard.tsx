@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { useServiceTheme } from '@/contexts/ServiceThemeContext';
+import { useEducationTheme } from '@/contexts/ScopedThemeProviders';
+import { useMainAppTheme } from '@/contexts/MainAppThemeProvider';
+import { useAuthTheme } from '@/contexts/AuthThemeProvider';
 
 interface ThemeTransitionGuardProps {
   children: React.ReactNode;
@@ -11,7 +13,7 @@ interface ThemeTransitionGuardProps {
 
 /**
  * Component that guards against theme bleeding during navigation transitions
- * Ensures themes are properly applied before rendering children
+ * Works with route-group themes - each route group has its own theme context
  */
 export function ThemeTransitionGuard({ 
   children, 
@@ -19,16 +21,44 @@ export function ThemeTransitionGuard({
   showLoader = false,
   minTransitionTime = 50 
 }: ThemeTransitionGuardProps) {
-  const { activeService, isTransitioning, tokens } = useServiceTheme();
+  // Auto-detect available theme context
+  let tokens, activeService = null;
+  try {
+    const themeContext = useEducationTheme();
+    tokens = themeContext.tokens;
+    activeService = themeContext.serviceType;
+  } catch {
+    try {
+      const themeContext = useMainAppTheme();
+      tokens = themeContext.tokens;
+      activeService = 'main';
+    } catch {
+      try {
+        const themeContext = useAuthTheme();
+        tokens = themeContext.tokens;
+        activeService = 'auth';
+      } catch {
+        // Fallback if no theme context available
+        tokens = {
+          colors: {
+            primary: '#6A1B9A',
+            background: '#FFFFFF',
+          }
+        };
+      }
+    }
+  }
+  
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
 
-    // Check if we're in the expected theme state
-    const isCorrectTheme = activeService === serviceType;
+    // For route-group themes, we're always in the correct theme context
+    // Since each route group has its own theme provider
+    const isCorrectTheme = serviceType ? activeService === serviceType : true;
     
-    if (isCorrectTheme && !isTransitioning) {
+    if (isCorrectTheme) {
       // Add minimum transition time to ensure smooth visual transition
       timeoutId = setTimeout(() => {
         setIsReady(true);
@@ -40,7 +70,7 @@ export function ThemeTransitionGuard({
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [activeService, serviceType, isTransitioning, minTransitionTime]);
+  }, [activeService, serviceType, minTransitionTime]);
 
   // Show loading state during transitions
   if (!isReady && showLoader) {

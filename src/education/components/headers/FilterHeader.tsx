@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
-import { useServiceTheme, useThemedStyles } from "@/contexts/ServiceThemeContext";
+import { useEducationTheme, useScopedThemedStyles } from "@/contexts/ScopedThemeProviders";
 
 interface FilterOption {
   id: string;
@@ -31,8 +31,9 @@ export const FilterHeader: React.FC<FilterHeaderProps> = ({
   selectedValues = [],
   onMultiSelect,
 }) => {
-  const styles = useThemedStyles(createStyles);
-  const { tokens } = useServiceTheme();
+  const themeContext = useEducationTheme();
+  const styles = useScopedThemedStyles(createStyles, themeContext);
+  const { tokens } = themeContext;
 
   const getButtonVariantStyles = (isActive: boolean) => {
     switch (variant) {

@@ -13,9 +13,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
-import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
-import { useServiceLayout } from '@/hooks/useServiceLayout';
-import { ServiceTypes } from '@/utils/constants';
+import { useEducationTheme, useScopedThemedStyles } from '@/contexts/ScopedThemeProviders';
+import { useEducationServiceLayout } from '@/hooks/useScopedServiceLayout';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MinimalHeader } from '@/src/education/components/headers';
@@ -56,9 +55,10 @@ interface CourseData {
 
 export default function CourseLearnScreen() {
   const { courseId } = useLocalSearchParams();
-  const { tokens, getGradient } = useServiceTheme();
-  const { screenOptions } = useServiceLayout(ServiceTypes.EDUCATION);
-  const styles = useThemedStyles(createStyles);
+  const themeContext = useEducationTheme();
+  const { tokens, getGradient } = themeContext;
+  const { screenOptions } = useEducationServiceLayout(themeContext);
+  const styles = useScopedThemedStyles(createStyles, themeContext);
   // State management
   const [courseData, setCourseData] = useState<CourseData | null>(null);
   const [currentLesson, setCurrentLesson] = useState<VideoLesson | null>(null);

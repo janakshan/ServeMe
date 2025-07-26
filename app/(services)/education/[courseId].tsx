@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
-import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
+import { useEducationTheme, useScopedThemedStyles } from '@/contexts/ScopedThemeProviders';
 import { educationApi } from '@/services/api/education';
 import { MinimalHeader } from '@/src/education/components/headers';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -119,8 +119,9 @@ export default function CourseDetailScreen() {
   const tabContentFadeAnimation = useRef(new Animated.Value(1)).current;
   
   
-  const { tokens } = useServiceTheme();
-  const styles = useThemedStyles(createStyles);
+  const themeContext = useEducationTheme();
+  const { tokens } = themeContext;
+  const styles = useScopedThemedStyles(createStyles, themeContext);
   const insets = useSafeAreaInsets();
   
   

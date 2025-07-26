@@ -1,4 +1,4 @@
-import { useThemedStyles, useServiceTheme } from "@/contexts/ServiceThemeContext";
+import { useAuthThemedStyles, useAuthTheme } from "@/contexts/AuthThemeProvider";
 import { useAuth } from "@/hooks/useAuth";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -24,8 +24,8 @@ const SignupScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { signup } = useAuth();
-  const { getGradient } = useServiceTheme();
-  const styles = useThemedStyles(createStyles);
+  const { getGradient } = useAuthTheme();
+  const styles = useAuthThemedStyles(createStyles);
   
   const headerGradient = getGradient('header');
   const buttonGradient = getGradient('button');

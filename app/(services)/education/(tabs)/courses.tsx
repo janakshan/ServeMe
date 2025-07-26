@@ -1,7 +1,4 @@
-import {
-  useServiceTheme,
-  useThemedStyles,
-} from "@/contexts/ServiceThemeContext";
+import { useEducationTheme, useScopedThemedStyles } from "@/contexts/ScopedThemeProviders";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
@@ -174,8 +171,9 @@ interface CourseCardProps {
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({ course, onPress }) => {
-  const styles = useThemedStyles(createCourseCardStyles);
-  const { tokens } = useServiceTheme();
+  const themeContext = useEducationTheme();
+  const styles = useScopedThemedStyles(createCourseCardStyles, themeContext);
+  const { tokens } = themeContext;
 
   const getLevelColor = (level: string) => {
     switch (level) {
@@ -276,8 +274,9 @@ export default function CoursesScreen() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [isFilterVisible, setIsFilterVisible] = useState(false);
-  const styles = useThemedStyles(createStyles);
-  const { tokens, getGradient } = useServiceTheme();
+  const themeContext = useEducationTheme();
+  const styles = useScopedThemedStyles(createStyles, themeContext);
+  const { tokens, getGradient } = themeContext;
 
   const filteredCourses = MOCK_COURSES.filter((course) => {
     const matchesCategory =

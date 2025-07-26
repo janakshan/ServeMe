@@ -1,4 +1,4 @@
-import { useThemedStyles, useServiceTheme } from "@/contexts/ServiceThemeContext";
+import { useAuthTheme, useAuthThemedStyles } from "@/contexts/AuthThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
@@ -22,8 +22,9 @@ const ResetPasswordScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const { getGradient } = useServiceTheme();
-  const styles = useThemedStyles(createStyles);
+  const themeContext = useAuthTheme();
+  const { getGradient } = themeContext;
+  const styles = useAuthThemedStyles(createStyles, themeContext);
   
   const headerGradient = getGradient('header');
   const buttonGradient = getGradient('button');

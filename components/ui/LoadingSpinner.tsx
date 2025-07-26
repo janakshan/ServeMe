@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { useServiceTheme } from '@/contexts/ServiceThemeContext';
+import { useEducationTheme } from '@/contexts/ScopedThemeProviders';
+import { useMainAppTheme } from '@/contexts/MainAppThemeProvider';
+import { useAuthTheme } from '@/contexts/AuthThemeProvider';
 
 interface LoadingSpinnerProps {
   message?: string;
@@ -13,7 +15,27 @@ export function LoadingSpinner({
   size = "large",
   color 
 }: LoadingSpinnerProps) {
-  const { tokens } = useServiceTheme();
+  // Auto-detect available theme context
+  let tokens;
+  try {
+    tokens = useEducationTheme().tokens;
+  } catch {
+    try {
+      tokens = useMainAppTheme().tokens;
+    } catch {
+      try {
+        tokens = useAuthTheme().tokens;
+      } catch {
+        // Fallback tokens if no theme context available
+        tokens = {
+          colors: {
+            primary: '#6A1B9A',
+            onSurface: '#000000',
+          }
+        };
+      }
+    }
+  }
   
   return (
     <View style={styles.container}>

@@ -1,12 +1,11 @@
 import { Stack } from "expo-router";
-import { EducationThemeProvider, useEducationTheme } from "@/contexts/ScopedThemeProviders";
-import { contentScreenOptions } from "@/utils/navigationAnimations";
+import { EntertainmentThemeProvider, useEntertainmentTheme } from "@/contexts/ScopedThemeProviders";
 import { View, StyleSheet, StatusBar } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-function EducationLayoutContent() {
-  const { tokens, getGradient } = useEducationTheme();
+function EntertainmentLayoutContent() {
+  const { tokens, getGradient } = useEntertainmentTheme();
   const insets = useSafeAreaInsets();
   const backgroundGradient = getGradient('background');
 
@@ -22,11 +21,10 @@ function EducationLayoutContent() {
     },
     headerTintColor: tokens.colors.onPrimary,
     headerTitleStyle: {
-      fontWeight: '600' as const,
+      fontWeight: '700' as const,
       fontSize: tokens.typography.title,
     },
     headerBackTitleVisible: false,
-    ...contentScreenOptions,
   };
 
   return (
@@ -45,11 +43,10 @@ function EducationLayoutContent() {
         <Stack screenOptions={screenOptions}>
           <Stack.Screen
             name="index"
-            options={screenOptions}
-          />
-          <Stack.Screen
-            name="(tabs)"
-            options={screenOptions}
+            options={{
+              ...screenOptions,
+              title: "Entertainment Service",
+            }}
           />
         </Stack>
       </LinearGradient>
@@ -66,10 +63,10 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function EducationLayout() {
+export default function EntertainmentLayout() {
   return (
-    <EducationThemeProvider>
-      <EducationLayoutContent />
-    </EducationThemeProvider>
+    <EntertainmentThemeProvider>
+      <EntertainmentLayoutContent />
+    </EntertainmentThemeProvider>
   );
 }

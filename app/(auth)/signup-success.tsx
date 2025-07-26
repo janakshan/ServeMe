@@ -8,18 +8,21 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useThemedStyles, useServiceTheme } from "@/contexts/ServiceThemeContext";
+import { useAuthTheme, useAuthThemedStyles } from "@/contexts/AuthThemeProvider";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouteGroupNavigation } from "@/utils/navigationStackReset";
 
 const SignupSuccessScreen = () => {
-  const { getGradient } = useServiceTheme();
-  const styles = useThemedStyles(createStyles);
+  const themeContext = useAuthTheme();
+  const { getGradient } = themeContext;
+  const styles = useAuthThemedStyles(createStyles, themeContext);
+  const { navigateToMainApp } = useRouteGroupNavigation();
   
   const headerGradient = getGradient('header');
   const backgroundGradient = getGradient('background');
 
   const handleBackToHome = () => {
-    router.replace("/(app)/(tabs)");
+    navigateToMainApp();
   };
 
   // Optional: Auto-navigate after a delay

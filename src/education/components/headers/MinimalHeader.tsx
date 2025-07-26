@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, SafeAreaView, TextStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
+import { useEducationTheme, useScopedThemedStyles } from '@/contexts/ScopedThemeProviders';
 import { router } from 'expo-router';
 
 interface MinimalHeaderProps {
@@ -24,8 +24,9 @@ export function MinimalHeader({
   headerHeight = 60,
   titleStyle
 }: MinimalHeaderProps) {
-  const { tokens, getGradient } = useServiceTheme();
-  const styles = useThemedStyles(createStyles);
+  const themeContext = useEducationTheme();
+  const { tokens, getGradient } = themeContext;
+  const styles = useScopedThemedStyles(createStyles, themeContext);
   
   const backgroundGradient = getGradient('header');
 

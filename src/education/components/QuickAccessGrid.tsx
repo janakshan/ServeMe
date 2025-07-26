@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
+import { useEducationTheme, useScopedThemedStyles } from '@/contexts/ScopedThemeProviders';
 import { router } from 'expo-router';
 
 const { width } = Dimensions.get('window');
@@ -76,8 +76,9 @@ const QUICK_ACCESS_ITEMS: QuickAccessItem[] = [
 ];
 
 export function QuickAccessGrid() {
-  const { tokens } = useServiceTheme();
-  const styles = useThemedStyles(createStyles);
+  const theme = useEducationTheme();
+  const { tokens } = theme;
+  const styles = useScopedThemedStyles(createStyles, theme);
 
   const handleItemPress = (item: QuickAccessItem) => {
     router.push(item.route as any);
@@ -132,7 +133,7 @@ export function QuickAccessGrid() {
   );
 }
 
-const createStyles = (tokens: any) => StyleSheet.create({
+const createStyles = (tokens: any, layout: any, variants: any) => StyleSheet.create({
   container: {
     marginBottom: tokens.spacing.xl,
   },

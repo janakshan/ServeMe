@@ -3,9 +3,7 @@ import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider } from '../providers/AuthProvider';
-import { ThemeProvider } from '../providers/ThemeProvider';
 import { ServicesProvider } from '../providers/ServicesProvider';
-import { ServiceThemeProvider } from '../contexts/ServiceThemeContext';
 import { fastScreenOptions, instantScreenOptions, modalScreenOptions, serviceScreenOptions, authScreenOptions } from '../utils/navigationAnimations';
 // import { NavigationThemeManager } from '../components/navigation/NavigationThemeManager';
 
@@ -23,26 +21,21 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <ServiceThemeProvider>
-      <ThemeProvider>
-        <AuthProvider>
-          <ServicesProvider>
-            {/* <NavigationThemeManager /> */}
-            {/* Temporarily disabled to fix education theme issue */}
-            <Stack screenOptions={fastScreenOptions}>
-              <Stack.Screen name="index" options={instantScreenOptions} />
-              <Stack.Screen name="(auth)" options={authScreenOptions} />
-              <Stack.Screen name="(app)" options={instantScreenOptions} />
-              <Stack.Screen name="(services)" options={serviceScreenOptions} />
-              <Stack.Screen 
-                name="(modals)" 
-                options={modalScreenOptions}
-              />
-              <Stack.Screen name="+not-found" options={fastScreenOptions} />
-            </Stack>
-          </ServicesProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </ServiceThemeProvider>
+    <AuthProvider>
+      <ServicesProvider>
+        {/* Theme providers now scoped to individual route groups for complete isolation */}
+        <Stack screenOptions={fastScreenOptions}>
+          <Stack.Screen name="index" options={instantScreenOptions} />
+          <Stack.Screen name="(auth)" options={authScreenOptions} />
+          <Stack.Screen name="(app)" options={instantScreenOptions} />
+          <Stack.Screen name="(services)" options={{ ...serviceScreenOptions, headerShown: false }} />
+          <Stack.Screen 
+            name="(modals)" 
+            options={modalScreenOptions}
+          />
+          <Stack.Screen name="+not-found" options={fastScreenOptions} />
+        </Stack>
+      </ServicesProvider>
+    </AuthProvider>
   );
 }

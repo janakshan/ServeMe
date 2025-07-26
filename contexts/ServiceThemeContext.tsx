@@ -42,7 +42,7 @@ export type ThemeVariants = ServiceThemeOverride['componentVariants'];
 type GlobalTheme = 'professional-azure' | 'light' | 'dark';
 
 // Service-specific theme configurations
-const serviceThemeConfigs: Record<string, ServiceThemeOverride> = {
+export const serviceThemeConfigs: Record<string, ServiceThemeOverride> = {
   
   [ServiceTypes.EDUCATION]: {
     colors: {
@@ -92,6 +92,171 @@ const serviceThemeConfigs: Record<string, ServiceThemeOverride> = {
       }
     },
     layout: 'academic',
+    componentVariants: {
+      button: 'rounded',
+      input: 'outlined',
+      card: 'bordered',
+    },
+  },
+
+  [ServiceTypes.BOOKING]: {
+    colors: {
+      primary: '#0D47A1',
+      primaryDark: '#1565C0',
+      primaryLight: '#42A5F5',
+      accent: '#2196F3',
+      secondary: '#1976D2',
+      info: '#2196F3',
+      success: '#4CAF50',
+      warning: '#FF9800',
+      error: '#F44336',
+      background: '#F8FCFF',
+      surface: '#FFFFFF',
+      onPrimary: '#FFFFFF',
+      onSecondary: '#FFFFFF',
+      onSurface: '#1A237E',
+      onBackground: '#1A1A1A',
+      onSurfaceVariant: '#546E7A',
+      border: '#E0E0E0',
+      divider: '#F5F5F5',
+    },
+    gradients: {
+      header: {
+        colors: ['#1565C0', '#0D47A1', '#0A3D91'],
+        direction: { x: 0, y: 1 }
+      },
+      card: {
+        colors: ['#E3F2FD', '#F0F8FF', '#FFFFFF'],
+        direction: { x: 0, y: 1 }
+      },
+      button: {
+        colors: ['#42A5F5', '#0D47A1', '#0A3D91'],
+        direction: { x: 0, y: 1 }
+      },
+      background: {
+        colors: ['#F8FCFF', '#F0F6FF'],
+        direction: { x: 0, y: 1 }
+      },
+      surface: {
+        colors: ['#FFFFFF', '#F8FCFF'],
+        direction: { x: 0, y: 1 }
+      },
+      accent: {
+        colors: ['#64B5F6', '#2196F3', '#1976D2'],
+        direction: { x: 0, y: 1 }
+      }
+    },
+    layout: 'card-based',
+    componentVariants: {
+      button: 'default',
+      input: 'default',
+      card: 'elevated',
+    },
+  },
+
+  [ServiceTypes.HEALTHCARE]: {
+    colors: {
+      primary: '#2E7D32',
+      primaryDark: '#1B5E20',
+      primaryLight: '#66BB6A',
+      accent: '#4CAF50',
+      secondary: '#388E3C',
+      info: '#00ACC1',
+      success: '#43A047',
+      warning: '#FF9800',
+      error: '#F44336',
+      background: '#F8FFF8',
+      surface: '#FFFFFF',
+      onPrimary: '#FFFFFF',
+      onSecondary: '#FFFFFF',
+      onSurface: '#1B5E20',
+      onBackground: '#1A1A1A',
+      onSurfaceVariant: '#4A5A4A',
+      border: '#C8E6C9',
+      divider: '#E8F5E8',
+    },
+    gradients: {
+      header: {
+        colors: ['#4CAF50', '#2E7D32', '#1B5E20'],
+        direction: { x: 0, y: 1 }
+      },
+      card: {
+        colors: ['#E8F5E8', '#F2FBF2', '#FFFFFF'],
+        direction: { x: 0, y: 1 }
+      },
+      button: {
+        colors: ['#66BB6A', '#2E7D32', '#1B5E20'],
+        direction: { x: 0, y: 1 }
+      },
+      background: {
+        colors: ['#F8FFF8', '#F0F8F0'],
+        direction: { x: 0, y: 1 }
+      },
+      surface: {
+        colors: ['#FFFFFF', '#F8FFF8'],
+        direction: { x: 0, y: 1 }
+      },
+      accent: {
+        colors: ['#81C784', '#4CAF50', '#2E7D32'],
+        direction: { x: 0, y: 1 }
+      }
+    },
+    layout: 'clinical',
+    componentVariants: {
+      button: 'clinical',
+      input: 'minimal',
+      card: 'flat',
+    },
+  },
+
+  [ServiceTypes.ENTERTAINMENT]: {
+    colors: {
+      primary: '#E91E63',
+      primaryDark: '#AD1457',
+      primaryLight: '#F48FB1',
+      accent: '#FF4081',
+      secondary: '#EC407A',
+      info: '#9C27B0',
+      success: '#4CAF50',
+      warning: '#FF9800',
+      error: '#F44336',
+      background: '#FFF8FB',
+      surface: '#FFFFFF',
+      onPrimary: '#FFFFFF',
+      onSecondary: '#FFFFFF',
+      onSurface: '#AD1457',
+      onBackground: '#1A1A1A',
+      onSurfaceVariant: '#8E24AA',
+      border: '#F8BBD9',
+      divider: '#FCE4EC',
+    },
+    gradients: {
+      header: {
+        colors: ['#FF4081', '#E91E63', '#AD1457'],
+        direction: { x: 0, y: 1 }
+      },
+      card: {
+        colors: ['#FCE4EC', '#FFF0F6', '#FFFFFF'],
+        direction: { x: 0, y: 1 }
+      },
+      button: {
+        colors: ['#F48FB1', '#E91E63', '#AD1457'],
+        direction: { x: 0, y: 1 }
+      },
+      background: {
+        colors: ['#FFF8FB', '#FFF0F5'],
+        direction: { x: 0, y: 1 }
+      },
+      surface: {
+        colors: ['#FFFFFF', '#FFF8FB'],
+        direction: { x: 0, y: 1 }
+      },
+      accent: {
+        colors: ['#F8BBD9', '#FF4081', '#E91E63'],
+        direction: { x: 0, y: 1 }
+      }
+    },
+    layout: 'entertainment',
     componentVariants: {
       button: 'rounded',
       input: 'outlined',

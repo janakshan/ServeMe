@@ -1,12 +1,10 @@
-import {
-  useServiceTheme,
-  useThemedStyles,
-} from "@/contexts/ServiceThemeContext";
+import { useAuthTheme, useAuthThemedStyles } from "@/contexts/AuthThemeProvider";
 import { useAuth } from "@/hooks/useAuth";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { useRouteGroupNavigation } from "@/utils/navigationStackReset";
 import { useEffect, useState } from "react";
 import {
   Pressable,
@@ -26,8 +24,9 @@ const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const { login } = useAuth();
-  const { getGradient } = useServiceTheme();
-  const styles = useThemedStyles(createStyles);
+  const { getGradient } = useAuthTheme();
+  const styles = useAuthThemedStyles(createStyles);
+  const { navigateToMainApp } = useRouteGroupNavigation();
 
   const headerGradient = getGradient("header");
   const buttonGradient = getGradient("button");
@@ -69,7 +68,7 @@ const LoginScreen = () => {
         await SecureStore.deleteItemAsync("remember_me");
       }
 
-      router.replace("/(app)/(tabs)");
+      navigateToMainApp();
     } catch (e: any) {
       setError(e.message || "Login failed");
     } finally {

@@ -1,4 +1,4 @@
-import { useThemedStyles, useServiceTheme } from "@/contexts/ServiceThemeContext";
+import { useAuthTheme, useAuthThemedStyles } from "@/contexts/AuthThemeProvider";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -13,8 +13,9 @@ import { LinearGradient } from "expo-linear-gradient";
 const ConfirmPhoneScreen = () => {
   const [email] = useState("admin@serveme.sg"); // This would come from signup form
 
-  const { getGradient } = useServiceTheme();
-  const styles = useThemedStyles(createStyles);
+  const themeContext = useAuthTheme();
+  const { getGradient } = themeContext;
+  const styles = useAuthThemedStyles(createStyles, themeContext);
   
   const headerGradient = getGradient('header');
   const buttonGradient = getGradient('button');

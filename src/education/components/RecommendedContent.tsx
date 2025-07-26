@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
+import { useEducationTheme, useScopedThemedStyles } from '@/contexts/ScopedThemeProviders';
 
 interface RecommendedCourse {
   id: string;
@@ -53,8 +53,9 @@ const RECOMMENDED_COURSES: RecommendedCourse[] = [
 ];
 
 export function RecommendedContent() {
-  const { tokens } = useServiceTheme();
-  const styles = useThemedStyles(createStyles);
+  const theme = useEducationTheme();
+  const { tokens } = theme;
+  const styles = useScopedThemedStyles(createStyles, theme);
 
   const handleCoursePress = (course: RecommendedCourse) => {
     Alert.alert(
@@ -205,7 +206,7 @@ export function RecommendedContent() {
   );
 }
 
-const createStyles = (tokens: any) => StyleSheet.create({
+const createStyles = (tokens: any, layout: any, variants: any) => StyleSheet.create({
   container: {
     marginBottom: tokens.spacing.xl,
   },

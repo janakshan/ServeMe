@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from "@expo/vector-icons";
-import { useServiceTheme, useThemedStyles } from "@/contexts/ServiceThemeContext";
+import { useEducationTheme, useScopedThemedStyles } from "@/contexts/ScopedThemeProviders";
 import { EducationHeader, EducationScreenHeader } from "@/src/education/components/headers";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -141,8 +141,9 @@ interface LiveClassCardProps {
 }
 
 const LiveClassCard: React.FC<LiveClassCardProps> = ({ liveClass, onPress }) => {
-  const styles = useThemedStyles(createClassCardStyles);
-  const { tokens } = useServiceTheme();
+  const themeContext = useEducationTheme();
+  const styles = useScopedThemedStyles(createClassCardStyles, themeContext);
+  const { tokens } = themeContext;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -284,7 +285,8 @@ const LiveClassCard: React.FC<LiveClassCardProps> = ({ liveClass, onPress }) => 
 
 // Calendar Modal Component
 const CalendarModal = ({ visible, onClose, classes, tokens }) => {
-  const styles = useThemedStyles(createCalendarStyles);
+  const themeContext = useEducationTheme();
+  const styles = useScopedThemedStyles(createCalendarStyles, themeContext);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showMonthPicker, setShowMonthPicker] = useState(false);
@@ -907,8 +909,9 @@ export default function LiveClassesScreen() {
   const [calendarVisible, setCalendarVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isFilterVisible, setIsFilterVisible] = useState(false);
-  const styles = useThemedStyles(createStyles);
-  const { tokens, getGradient } = useServiceTheme();
+  const themeContext = useEducationTheme();
+  const styles = useScopedThemedStyles(createStyles, themeContext);
+  const { tokens, getGradient } = themeContext;
 
   const filteredClasses = MOCK_LIVE_CLASSES.filter(liveClass => {
     const matchesSearch = liveClass.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

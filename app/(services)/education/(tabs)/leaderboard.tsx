@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from "@expo/vector-icons";
-import { useServiceTheme, useThemedStyles } from "@/contexts/ServiceThemeContext";
+import { useEducationTheme, useScopedThemedStyles } from "@/contexts/ScopedThemeProviders";
 import { EducationHeader, EducationScreenHeader, InfoHeader, FilterHeader, SectionHeader } from "@/src/education/components/headers";
 
 const MOCK_LEADERBOARD_DATA = [
@@ -280,8 +280,9 @@ const createLeaderboardRowStyles = (tokens: any) =>
   });
 
 const LeaderboardRow: React.FC<LeaderboardRowProps> = ({ user, onPress }) => {
-  const styles = useThemedStyles(createLeaderboardRowStyles);
-  const { tokens } = useServiceTheme();
+  const themeContext = useEducationTheme();
+  const styles = useScopedThemedStyles(createLeaderboardRowStyles, themeContext);
+  const { tokens } = themeContext;
 
   const getRankColor = (rank: number) => {
     switch (rank) {
@@ -365,8 +366,9 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({ user, onPress }) => {
 export default function LeaderboardScreen() {
   const [selectedFilter, setSelectedFilter] = useState("Overall");
   const [selectedTime, setSelectedTime] = useState("All Time");
-  const styles = useThemedStyles(createStyles);
-  const { tokens, getGradient } = useServiceTheme();
+  const themeContext = useEducationTheme();
+  const styles = useScopedThemedStyles(createStyles, themeContext);
+  const { tokens, getGradient } = themeContext;
 
   const filteredData = MOCK_LEADERBOARD_DATA.filter(user => {
     if (selectedFilter === "Overall") return true;

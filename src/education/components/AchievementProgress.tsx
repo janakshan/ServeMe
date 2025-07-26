@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useServiceTheme } from '@/contexts/ServiceThemeContext';
+import { useEducationTheme } from '@/contexts/ScopedThemeProviders';
 
 interface Achievement {
   id: string;
@@ -31,7 +31,7 @@ export function AchievementProgress({
   nextLevelPoints = 1000,
   variant = 'detailed'
 }: AchievementProgressProps) {
-  const { tokens, getGradient } = useServiceTheme();
+  const { tokens, getGradient } = useEducationTheme();
   
   const progressAnim = useRef(new Animated.Value(0)).current;
   const streakAnim = useRef(new Animated.Value(0)).current;

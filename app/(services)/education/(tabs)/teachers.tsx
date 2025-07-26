@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from "@expo/vector-icons";
-import { useServiceTheme, useThemedStyles } from "@/contexts/ServiceThemeContext";
+import { useEducationTheme, useScopedThemedStyles } from "@/contexts/ScopedThemeProviders";
 import { EducationHeader, EducationScreenHeader } from "@/src/education/components/headers";
 
 const MOCK_TEACHERS = [
@@ -682,8 +682,9 @@ interface TeacherCourseCardProps {
 }
 
 const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({ course, onPress }) => {
-  const styles = useThemedStyles(createTeacherCourseCardStyles);
-  const { tokens } = useServiceTheme();
+  const themeContext = useEducationTheme();
+  const styles = useScopedThemedStyles(createTeacherCourseCardStyles, themeContext);
+  const { tokens } = themeContext;
 
   const getLevelColor = (level: string) => {
     switch (level) {
@@ -766,8 +767,9 @@ interface TeacherLiveClassCardProps {
 }
 
 const TeacherLiveClassCard: React.FC<TeacherLiveClassCardProps> = ({ liveClass, onPress }) => {
-  const styles = useThemedStyles(createTeacherLiveClassCardStyles);
-  const { tokens } = useServiceTheme();
+  const themeContext = useEducationTheme();
+  const styles = useScopedThemedStyles(createTeacherLiveClassCardStyles, themeContext);
+  const { tokens } = themeContext;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -846,8 +848,9 @@ interface TeacherCardProps {
 }
 
 const TeacherCard: React.FC<TeacherCardProps> = ({ teacher, onPress }) => {
-  const styles = useThemedStyles(createTeacherCardStyles);
-  const { tokens } = useServiceTheme();
+  const themeContext = useEducationTheme();
+  const styles = useScopedThemedStyles(createTeacherCardStyles, themeContext);
+  const { tokens } = themeContext;
 
   const getInstitutionIcon = (type: string) => {
     switch (type) {
@@ -955,8 +958,9 @@ interface TeacherModalProps {
 }
 
 const TeacherModal: React.FC<TeacherModalProps> = ({ teacher, visible, onClose }) => {
-  const styles = useThemedStyles(createModalStyles);
-  const { tokens } = useServiceTheme();
+  const themeContext = useEducationTheme();
+  const styles = useScopedThemedStyles(createModalStyles, themeContext);
+  const { tokens } = themeContext;
   const [showAllCourses, setShowAllCourses] = useState(false);
   const [showAllClasses, setShowAllClasses] = useState(false);
 
@@ -1334,8 +1338,9 @@ export default function TeachersScreen() {
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
-  const styles = useThemedStyles(createStyles);
-  const { tokens, getGradient } = useServiceTheme();
+  const themeContext = useEducationTheme();
+  const styles = useScopedThemedStyles(createStyles, themeContext);
+  const { tokens, getGradient } = themeContext;
 
   const filteredTeachers = MOCK_TEACHERS.filter(teacher => {
     const matchesSearch = teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

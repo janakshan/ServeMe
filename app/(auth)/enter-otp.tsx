@@ -1,4 +1,4 @@
-import { useThemedStyles, useServiceTheme } from "@/contexts/ServiceThemeContext";
+import { useAuthTheme, useAuthThemedStyles } from "@/contexts/AuthThemeProvider";
 import { router, useLocalSearchParams } from "expo-router";
 import { useRef, useState } from "react";
 import {
@@ -19,8 +19,9 @@ const EnterOTPScreen = () => {
   const [resendCountdown, setResendCountdown] = useState(0);
   const inputRefs = useRef([]);
 
-  const { getGradient } = useServiceTheme();
-  const styles = useThemedStyles(createStyles);
+  const themeContext = useAuthTheme();
+  const { getGradient } = themeContext;
+  const styles = useAuthThemedStyles(createStyles, themeContext);
   
   const headerGradient = getGradient('header');
   const backgroundGradient = getGradient('background');

@@ -1,13 +1,14 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useThemedStyles, type ThemeLayout, type ThemeVariants } from '@/contexts/ServiceThemeContext';
+import { useMainAppThemedStyles } from '@/contexts/MainAppThemeProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TouchableOpacity } from 'react-native';
 import type { DesignTokens } from '@/utils/tokens';
+import type { ServiceThemeOverride } from '@/contexts/ServiceThemeContext';
 import { instantScreenOptions } from '@/utils/navigationAnimations';
 
 export default function TabLayout() {
-  const styles = useThemedStyles(createTabBarStyles);
+  const styles = useMainAppThemedStyles(createTabBarStyles);
   const insets = useSafeAreaInsets();
 
   const handleTabPress = () => {
@@ -105,8 +106,8 @@ export default function TabLayout() {
 
 const createTabBarStyles = (
   tokens: DesignTokens, 
-  layout: ThemeLayout, 
-  variants: ThemeVariants
+  layout: ServiceThemeOverride['layout'], 
+  variants: ServiceThemeOverride['componentVariants']
 ) => ({
   activeColor: {
     color: tokens.colors.primary,

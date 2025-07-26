@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
+import { useEducationTheme, useScopedThemedStyles } from '@/contexts/ScopedThemeProviders';
 
 interface AcademicCardProps {
   title: string;
@@ -37,8 +37,9 @@ export function AcademicCard({
   style,
   variant = 'default'
 }: AcademicCardProps) {
-  const { tokens, getGradient } = useServiceTheme();
-  const styles = useThemedStyles(createStyles);
+  const themeContext = useEducationTheme();
+  const { tokens, getGradient } = themeContext;
+  const styles = useScopedThemedStyles(createStyles, themeContext);
 
   const getLevelColor = (level: string) => {
     switch (level) {

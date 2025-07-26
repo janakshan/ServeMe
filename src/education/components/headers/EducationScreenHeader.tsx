@@ -2,8 +2,9 @@ import React from 'react';
 import { View, Text, SafeAreaView, StyleSheet, TouchableOpacity, StatusBar } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
+import { useEducationTheme, useScopedThemedStyles } from '@/contexts/ScopedThemeProviders';
 import { router } from 'expo-router';
+import { useRouteGroupNavigation } from '@/utils/navigationStackReset';
 
 interface EducationScreenHeaderProps {
   title: string;
@@ -36,8 +37,10 @@ export function EducationScreenHeader({
   rightActions,
   children 
 }: EducationScreenHeaderProps) {
-  const { tokens, getGradient } = useServiceTheme();
-  const styles = useThemedStyles(createStyles);
+  const themeContext = useEducationTheme();
+  const { tokens, getGradient } = themeContext;
+  const styles = useScopedThemedStyles(createStyles, themeContext);
+  const { backWithReset } = useRouteGroupNavigation();
   
   const backgroundGradient = getGradient('header');
 
@@ -53,9 +56,9 @@ export function EducationScreenHeader({
         console.log('EducationScreenHeader: Going back using router.back()');
         router.back();
       } else {
-        console.log('EducationScreenHeader: No back history, going to education tabs');
-        // Fallback to education main screen if no history
-        router.push('/(services)/education/(tabs)/' as any);
+        console.log('EducationScreenHeader: No back history, using route group back navigation');
+        // Use route group back navigation with stack awareness
+        backWithReset();
       }
     }
   };

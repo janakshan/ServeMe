@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useServiceTheme } from '@/contexts/ServiceThemeContext';
+import { useEducationTheme } from '@/contexts/ScopedThemeProviders';
 
 interface EducationLoaderProps {
   message?: string;
@@ -17,7 +17,7 @@ export function EducationLoader({
   size = 'medium',
   showMessage = true
 }: EducationLoaderProps) {
-  const { tokens, getGradient } = useServiceTheme();
+  const { tokens, getGradient } = useEducationTheme();
   
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;

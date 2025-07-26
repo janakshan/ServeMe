@@ -1,9 +1,5 @@
-import {
-  useThemedStyles,
-  useServiceTheme,
-  type ThemeLayout,
-  type ThemeVariants,
-} from "@/contexts/ServiceThemeContext";
+import { useMainAppTheme, useMainAppThemedStyles } from "@/contexts/MainAppThemeProvider";
+import type { ServiceThemeOverride } from "@/contexts/ServiceThemeContext";
 import type { DesignTokens } from '@/utils/tokens';
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -24,8 +20,8 @@ import { useAuth } from "../../../hooks/useAuth";
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const [darkMode, setDarkMode] = useState(false);
-  const { getGradient } = useServiceTheme();
-  const styles = useThemedStyles(createStyles);
+  const { getGradient } = useMainAppTheme();
+  const styles = useMainAppThemedStyles(createStyles);
 
   const headerGradient = getGradient("header");
   const backgroundGradient = getGradient("background");
@@ -243,7 +239,7 @@ export default function ProfileScreen() {
   );
 }
 
-const createStyles = (tokens: DesignTokens, layout: ThemeLayout, variants: ThemeVariants) => {
+const createStyles = (tokens: DesignTokens, layout: ServiceThemeOverride['layout'], variants: ServiceThemeOverride['componentVariants']) => {
   // Create soft theme-tinted backgrounds for better eye comfort
   const getSoftTintedColors = () => {
     const primaryColor = tokens.colors.primary;

@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useServiceTheme, useThemedStyles } from "@/contexts/ServiceThemeContext";
+import { useEducationTheme, useScopedThemedStyles } from "@/contexts/ScopedThemeProviders";
 
 interface InfoHeaderProps {
   title: string;
@@ -26,8 +26,9 @@ export const InfoHeader: React.FC<InfoHeaderProps> = ({
   backgroundColor,
   textColor,
 }) => {
-  const styles = useThemedStyles(createStyles);
-  const { tokens } = useServiceTheme();
+  const themeContext = useEducationTheme();
+  const styles = useScopedThemedStyles(createStyles, themeContext);
+  const { tokens } = themeContext;
 
   const getVariantStyles = () => {
     switch (variant) {

@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useServiceTheme, useThemedStyles } from "@/contexts/ServiceThemeContext";
+import { useEducationTheme, useScopedThemedStyles } from "@/contexts/ScopedThemeProviders";
 
 interface StatItem {
   id: string;
@@ -27,8 +27,9 @@ export const StatsHeader: React.FC<StatsHeaderProps> = ({
   columns = 3,
   showDividers = false,
 }) => {
-  const styles = useThemedStyles(createStyles);
-  const { tokens } = useServiceTheme();
+  const themeContext = useEducationTheme();
+  const styles = useScopedThemedStyles(createStyles, themeContext);
+  const { tokens } = themeContext;
 
   const getContainerVariantStyles = () => {
     switch (variant) {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
+import { useEducationTheme, useScopedThemedStyles } from '@/contexts/ScopedThemeProviders';
 import { 
   EducationHomeHeader,
   QuickAccessGrid,
@@ -34,7 +34,8 @@ const MOCK_USER_DATA = {
 };
 
 export default function HomeTab() {
-  const styles = useThemedStyles(createStyles);
+  const theme = useEducationTheme();
+  const styles = useScopedThemedStyles(createStyles, theme);
 
   return (
     <View style={styles.container}>
@@ -56,7 +57,7 @@ export default function HomeTab() {
   );
 }
 
-const createStyles = (tokens: any) => {
+const createStyles = (tokens: any, layout: any, variants: any) => {
   const getSmoothBackgroundColors = () => {
     const primaryColor = tokens.colors.primary;
 

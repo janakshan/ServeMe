@@ -1,12 +1,11 @@
 import { Stack } from "expo-router";
-import { EducationThemeProvider, useEducationTheme } from "@/contexts/ScopedThemeProviders";
-import { contentScreenOptions } from "@/utils/navigationAnimations";
+import { HealthcareThemeProvider, useHealthcareTheme } from "@/contexts/ScopedThemeProviders";
 import { View, StyleSheet, StatusBar } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-function EducationLayoutContent() {
-  const { tokens, getGradient } = useEducationTheme();
+function HealthcareLayoutContent() {
+  const { tokens, getGradient } = useHealthcareTheme();
   const insets = useSafeAreaInsets();
   const backgroundGradient = getGradient('background');
 
@@ -14,19 +13,20 @@ function EducationLayoutContent() {
     headerShown: true,
     headerStyle: {
       backgroundColor: tokens.colors.primary,
-      elevation: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: tokens.colors.border,
+      elevation: 2,
       shadowColor: tokens.colors.primary,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.15,
+      shadowRadius: 2,
     },
     headerTintColor: tokens.colors.onPrimary,
     headerTitleStyle: {
-      fontWeight: '600' as const,
+      fontWeight: '500' as const,
       fontSize: tokens.typography.title,
     },
     headerBackTitleVisible: false,
-    ...contentScreenOptions,
   };
 
   return (
@@ -45,11 +45,10 @@ function EducationLayoutContent() {
         <Stack screenOptions={screenOptions}>
           <Stack.Screen
             name="index"
-            options={screenOptions}
-          />
-          <Stack.Screen
-            name="(tabs)"
-            options={screenOptions}
+            options={{
+              ...screenOptions,
+              title: "Healthcare Service",
+            }}
           />
         </Stack>
       </LinearGradient>
@@ -66,10 +65,10 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function EducationLayout() {
+export default function HealthcareLayout() {
   return (
-    <EducationThemeProvider>
-      <EducationLayoutContent />
-    </EducationThemeProvider>
+    <HealthcareThemeProvider>
+      <HealthcareLayoutContent />
+    </HealthcareThemeProvider>
   );
 }

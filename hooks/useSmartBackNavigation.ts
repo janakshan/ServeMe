@@ -1,59 +1,36 @@
 import { useRouter } from 'expo-router';
-import { useServiceTheme } from '@/contexts/ServiceThemeContext';
 
 /**
- * Hook that provides intelligent back navigation with proper theme management
- * Automatically handles theme stack cleanup during navigation
+ * Hook that provides intelligent back navigation for route-group themes
+ * Works without global theme context - navigation is handled by route groups
  */
 export function useSmartBackNavigation() {
   const router = useRouter();
-  const { 
-    themeStack, 
-    popServiceTheme, 
-    resetToGlobalTheme, 
-    activeService 
-  } = useServiceTheme();
 
   /**
-   * Smart back navigation that manages theme stack
+   * Smart back navigation for route-group themes
+   * Route groups handle their own theme context automatically
    */
   const goBack = () => {
-    if (themeStack.length > 0) {
-      // Pop the theme stack and get the previous theme
-      const previousTheme = popServiceTheme();
-      
-      // Navigate back
-      if (router.canGoBack()) {
-        router.back();
-      } else {
-        // Fallback to main app if can't go back
-        resetToGlobalTheme();
-        router.push('/(app)/(tabs)');
-      }
+    if (router.canGoBack()) {
+      router.back();
     } else {
-      // No theme stack, reset to global and navigate to main app
-      resetToGlobalTheme();
-      if (router.canGoBack()) {
-        router.back();
-      } else {
-        router.push('/(app)/(tabs)');
-      }
+      // Fallback to main app if can't go back
+      router.push('/(app)/(tabs)');
     }
   };
 
   /**
-   * Navigate to main app with theme reset
+   * Navigate to main app (route group will handle theme automatically)
    */
   const goToMainApp = () => {
-    resetToGlobalTheme();
     router.push('/(app)/(tabs)');
   };
 
   /**
-   * Navigate to specific service with proper theme management
+   * Navigate to specific service (route group will handle theme automatically)
    */
-  const navigateToService = (serviceType: string, route: string) => {
-    // The navigation theme manager will handle theme switching
+  const navigateToService = (route: string) => {
     router.push(route as any);
   };
 
@@ -62,7 +39,5 @@ export function useSmartBackNavigation() {
     goToMainApp,
     navigateToService,
     canGoBack: router.canGoBack(),
-    hasThemeStack: themeStack.length > 0,
-    currentTheme: activeService,
   };
 }

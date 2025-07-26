@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from "@expo/vector-icons";
-import { useServiceTheme, useThemedStyles } from "@/contexts/ServiceThemeContext";
+import { useEducationTheme, useScopedThemedStyles } from "@/contexts/ScopedThemeProviders";
 import { EducationHeader, EducationScreenHeader } from "@/src/education/components/headers";
 
 const MOCK_EXAMS = [
@@ -208,8 +208,9 @@ interface ExamCardProps {
 }
 
 const ExamCard: React.FC<ExamCardProps> = ({ exam, onPress }) => {
-  const styles = useThemedStyles(createExamCardStyles);
-  const { tokens } = useServiceTheme();
+  const themeContext = useEducationTheme();
+  const styles = useScopedThemedStyles(createExamCardStyles, themeContext);
+  const { tokens } = themeContext;
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -309,8 +310,9 @@ interface ExamModalProps {
 }
 
 const ExamModal: React.FC<ExamModalProps> = ({ exam, visible, onClose }) => {
-  const styles = useThemedStyles(createExamModalStyles);
-  const { tokens } = useServiceTheme();
+  const themeContext = useEducationTheme();
+  const styles = useScopedThemedStyles(createExamModalStyles, themeContext);
+  const { tokens } = themeContext;
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
   const [showResult, setShowResult] = useState(false);
@@ -513,8 +515,9 @@ export default function ExamsScreen() {
   const [selectedSubject, setSelectedSubject] = useState("All");
   const [selectedExam, setSelectedExam] = useState(null);
   const [examModalVisible, setExamModalVisible] = useState(false);
-  const styles = useThemedStyles(createStyles);
-  const { tokens, getGradient } = useServiceTheme();
+  const themeContext = useEducationTheme();
+  const styles = useScopedThemedStyles(createStyles, themeContext);
+  const { tokens, getGradient } = themeContext;
 
   const filteredExams = MOCK_EXAMS.filter(exam => {
     const matchesDifficulty = selectedDifficulty === "All" || 

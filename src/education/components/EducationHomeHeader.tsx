@@ -2,9 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet, StatusBar } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
+import { useEducationTheme, useScopedThemedStyles } from '@/contexts/ScopedThemeProviders';
 import { router } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
+import { useRouteGroupNavigation } from '@/utils/navigationStackReset';
 
 interface UserData {
   name: string;
@@ -15,21 +16,21 @@ interface EducationHomeHeaderProps {
 }
 
 export function EducationHomeHeader({ userData }: EducationHomeHeaderProps) {
-  const { tokens, getGradient, resetToGlobalTheme } = useServiceTheme();
-  const styles = useThemedStyles(createStyles);
+  const theme = useEducationTheme();
+  const { tokens, getGradient } = theme;
+  const styles = useScopedThemedStyles(createStyles, theme);
+  const { navigateToMainApp, backWithReset } = useRouteGroupNavigation();
   
   // Use the same gradient system as teachers screen header
   const backgroundGradient = getGradient('header');
 
   const handleBackPress = () => {
-    // Reset theme to global theme before navigating back
-    resetToGlobalTheme();
-    // Use proper navigation back functionality
+    // Use route group navigation with proper stack reset
     if (router.canGoBack()) {
-      router.back();
+      backWithReset();
     } else {
-      // Fallback to main app if no history
-      router.push('/(app)/(tabs)/' as any);
+      // Fallback to main app with stack reset
+      navigateToMainApp();
     }
   };
 

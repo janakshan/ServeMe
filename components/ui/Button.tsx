@@ -1,7 +1,11 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useServiceTheme, useThemedStyles } from '@/contexts/ServiceThemeContext';
+import { useMainAppTheme } from '@/contexts/MainAppThemeProvider';
+import { useEducationTheme } from '@/contexts/ScopedThemeProviders';
+import { useAuthTheme } from '@/contexts/AuthThemeProvider';
+import type { DesignTokens } from '@/utils/tokens';
+import type { ServiceThemeOverride } from '@/contexts/ServiceThemeContext';
 
 interface ButtonProps {
   title: string;
@@ -11,6 +15,37 @@ interface ButtonProps {
   loading?: boolean;
   variant?: 'primary' | 'secondary' | 'outline';
   useGradient?: boolean;
+  themeType?: 'main-app' | 'education' | 'booking' | 'healthcare' | 'entertainment' | 'auth';
+}
+
+// Hook to get the appropriate theme based on themeType
+function useButtonTheme(themeType?: ButtonProps['themeType']) {
+  try {
+    if (themeType === 'main-app') {
+      return useMainAppTheme();
+    } else if (themeType === 'education') {
+      return useEducationTheme();
+    } else if (themeType === 'auth') {
+      return useAuthTheme();
+    } else {
+      // Auto-detect: try main app first, then education, then auth
+      try {
+        return useMainAppTheme();
+      } catch {
+        try {
+          return useEducationTheme();
+        } catch {
+          try {
+            return useAuthTheme();
+          } catch {
+            return null;
+          }
+        }
+      }
+    }
+  } catch (error) {
+    return null;
+  }
 }
 
 export function Button({ 
@@ -20,10 +55,26 @@ export function Button({
   disabled = false, 
   loading = false,
   variant = 'primary',
-  useGradient = true
+  useGradient = true,
+  themeType
 }: ButtonProps) {
-  const { getGradient } = useServiceTheme();
-  const styles = useThemedStyles(createStyles);
+  const theme = useButtonTheme(themeType);
+  
+  // Fallback if no theme context is available
+  if (!theme) {
+    return (
+      <TouchableOpacity
+        style={[fallbackStyles.button, style]}
+        onPress={onPress}
+        disabled={disabled || loading}
+      >
+        <Text style={fallbackStyles.text}>{title}</Text>
+      </TouchableOpacity>
+    );
+  }
+
+  const { getGradient } = theme;
+  const styles = createThemedStyles(theme.tokens, theme.layout, theme.componentVariants);
 
   const buttonGradient = getGradient('button');
 
@@ -52,7 +103,7 @@ export function Button({
         style={[styles.button, style]}
       >
         <LinearGradient
-          colors={buttonGradient.colors}
+          colors={buttonGradient.colors as readonly [string, string, ...string[]]}
           start={{ x: buttonGradient.direction.x, y: buttonGradient.direction.y }}
           end={{ x: 1, y: 1 }}
           style={[styles.gradientButton, disabled && styles.disabled]}
@@ -75,7 +126,30 @@ export function Button({
   );
 }
 
-const createStyles = (tokens: any) => StyleSheet.create({
+// Fallback styles when no theme context is available
+const fallbackStyles = StyleSheet.create({
+  button: {
+    backgroundColor: '#0D47A1',
+    paddingVertical: 18,
+    paddingHorizontal: 24,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
+  },
+  text: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+});
+
+const createThemedStyles = (
+  tokens: DesignTokens, 
+  layout: ServiceThemeOverride['layout'], 
+  variants: ServiceThemeOverride['componentVariants']
+) => StyleSheet.create({
   button: {
     paddingVertical: tokens.spacing.buttonPadding.vertical,
     paddingHorizontal: tokens.spacing.buttonPadding.horizontal,

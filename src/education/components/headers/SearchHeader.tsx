@@ -1,7 +1,7 @@
 import React from "react";
 import { View, TextInput, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useServiceTheme, useThemedStyles } from "@/contexts/ServiceThemeContext";
+import { useEducationTheme, useScopedThemedStyles } from "@/contexts/ScopedThemeProviders";
 
 interface SearchHeaderProps {
   value: string;
@@ -20,8 +20,9 @@ export const SearchHeader: React.FC<SearchHeaderProps> = ({
   containerStyle,
   showIcon = true,
 }) => {
-  const styles = useThemedStyles(createStyles);
-  const { tokens } = useServiceTheme();
+  const themeContext = useEducationTheme();
+  const styles = useScopedThemedStyles(createStyles, themeContext);
+  const { tokens } = themeContext;
 
   const getVariantStyles = () => {
     switch (variant) {

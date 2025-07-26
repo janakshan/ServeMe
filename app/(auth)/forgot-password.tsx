@@ -1,4 +1,4 @@
-import { useThemedStyles, useServiceTheme } from "@/contexts/ServiceThemeContext";
+import { useAuthTheme, useAuthThemedStyles } from "@/contexts/AuthThemeProvider";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -18,8 +18,9 @@ const ForgotPasswordScreen = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  const { getGradient } = useServiceTheme();
-  const styles = useThemedStyles(createStyles);
+  const themeContext = useAuthTheme();
+  const { getGradient } = themeContext;
+  const styles = useAuthThemedStyles(createStyles, themeContext);
   
   const headerGradient = getGradient('header');
   const buttonGradient = getGradient('button');

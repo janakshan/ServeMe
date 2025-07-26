@@ -1,7 +1,4 @@
-import {
-  useServiceTheme,
-  useThemedStyles,
-} from "@/contexts/ServiceThemeContext";
+import { useAuthTheme, useAuthThemedStyles } from "@/contexts/AuthThemeProvider";
 import { secureStorage } from "@/services/storage/secureStorage";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -63,14 +60,10 @@ export default function OnboardingScreen() {
     new Array(onboardingData.length).fill(true)
   );
   const scrollViewRef = useRef<ScrollView>(null);
-  const { resetToGlobalTheme } = useServiceTheme();
+  const themeContext = useAuthTheme();
+  const styles = useAuthThemedStyles(createStyles, themeContext);
 
-  const styles = useThemedStyles(createStyles);
-
-  // Reset to global theme on component mount
-  React.useEffect(() => {
-    resetToGlobalTheme();
-  }, []);
+  // Theme is already scoped to auth context
 
   const handleNext = async () => {
     if (currentIndex < onboardingData.length - 1) {

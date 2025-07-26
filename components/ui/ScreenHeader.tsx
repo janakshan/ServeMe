@@ -1,16 +1,71 @@
 import React from 'react';
 import { View, Text, SafeAreaView, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useThemedStyles } from '@/contexts/ServiceThemeContext';
+import { useMainAppTheme } from '@/contexts/MainAppThemeProvider';
+import { useEducationTheme } from '@/contexts/ScopedThemeProviders';
+import { useAuthTheme } from '@/contexts/AuthThemeProvider';
+import type { DesignTokens } from '@/utils/tokens';
+import type { ServiceThemeOverride } from '@/contexts/ServiceThemeContext';
 
 interface ScreenHeaderProps {
   title: string;
   subtitle?: string;
   minHeight?: number;
+  themeType?: 'main-app' | 'education' | 'booking' | 'healthcare' | 'entertainment' | 'auth';
 }
 
-export function ScreenHeader({ title, subtitle, minHeight = 160 }: ScreenHeaderProps) {
-  const { styles, gradientColors } = useThemedStyles(createStyles);
+// Hook to get the appropriate theme based on themeType
+function useScreenHeaderTheme(themeType?: ScreenHeaderProps['themeType']) {
+  try {
+    // Try to get theme from context - use the first available
+    if (themeType === 'main-app') {
+      return useMainAppTheme();
+    } else if (themeType === 'education') {
+      return useEducationTheme();
+    } else if (themeType === 'auth') {
+      return useAuthTheme();
+    } else {
+      // Auto-detect: try main app first, then education, then auth
+      try {
+        return useMainAppTheme();
+      } catch {
+        try {
+          return useEducationTheme();
+        } catch {
+          try {
+            return useAuthTheme();
+          } catch {
+            // Fallback: return a minimal theme
+            return null;
+          }
+        }
+      }
+    }
+  } catch (error) {
+    return null;
+  }
+}
+
+export function ScreenHeader({ title, subtitle, minHeight = 160, themeType }: ScreenHeaderProps) {
+  const theme = useScreenHeaderTheme(themeType);
+  
+  // Fallback if no theme context is available
+  if (!theme) {
+    return (
+      <View style={[fallbackStyles.headerSection, { minHeight }]}>
+        <SafeAreaView style={fallbackStyles.headerSafeArea}>
+          <View style={fallbackStyles.headerContent}>
+            <Text style={fallbackStyles.title}>{title}</Text>
+            {subtitle && (
+              <Text style={fallbackStyles.subtitle}>{subtitle}</Text>
+            )}
+          </View>
+        </SafeAreaView>
+      </View>
+    );
+  }
+
+  const { styles, gradientColors } = createThemedStyles(theme.tokens, theme.layout, theme.componentVariants);
 
   return (
     <LinearGradient
@@ -31,7 +86,45 @@ export function ScreenHeader({ title, subtitle, minHeight = 160 }: ScreenHeaderP
   );
 }
 
-const createStyles = (tokens, layout, variants) => {
+// Fallback styles when no theme context is available
+const fallbackStyles = StyleSheet.create({
+  headerSection: {
+    backgroundColor: '#0D47A1',
+    paddingBottom: 24,
+  },
+  headerSafeArea: {
+    backgroundColor: 'transparent',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  headerContent: {
+    width: '100%',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  title: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 32,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  subtitle: {
+    color: '#FFFFFF',
+    fontWeight: '300',
+    fontSize: 16,
+    textAlign: 'center',
+    opacity: 0.9,
+    paddingHorizontal: 24,
+    lineHeight: 20.8,
+  },
+});
+
+const createThemedStyles = (
+  tokens: DesignTokens, 
+  layout: ServiceThemeOverride['layout'], 
+  variants: ServiceThemeOverride['componentVariants']
+) => {
   // Create a subtle gradient that's more professional
   const getSubtleGradient = () => {
     const primaryColor = tokens.colors.primary;

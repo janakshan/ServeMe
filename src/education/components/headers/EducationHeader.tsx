@@ -1,6 +1,6 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import { useThemedStyles } from "@/contexts/ServiceThemeContext";
+import { useEducationTheme, useScopedThemedStyles } from "@/contexts/ScopedThemeProviders";
 import { SearchHeader } from "./SearchHeader";
 import { FilterHeader } from "./FilterHeader";
 import { SectionHeader } from "./SectionHeader";
@@ -85,7 +85,8 @@ export const EducationHeader: React.FC<EducationHeaderProps> = ({
   info,
   children,
 }) => {
-  const styles = useThemedStyles(createStyles);
+  const themeContext = useEducationTheme();
+  const styles = useScopedThemedStyles(createStyles, themeContext);
 
   const getVariantOrder = () => {
     switch (variant) {
