@@ -34,13 +34,13 @@ function AuthLayoutContent() {
       <StatusBar 
         barStyle="light-content" 
         backgroundColor={tokens.colors.primary}
-        translucent={false}
+        translucent={true}
       />
       <LinearGradient
         colors={backgroundGradient.colors}
         start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
         end={{ x: 1 - backgroundGradient.direction.x, y: 1 - backgroundGradient.direction.y }}
-        style={[styles.gradientBackground, { paddingTop: insets.top }]}
+        style={styles.gradientBackground}
       >
         <Stack screenOptions={enhancedAuthScreenOptions}>
           <Stack.Screen 

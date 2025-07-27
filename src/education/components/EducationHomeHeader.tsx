@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, StatusBar } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useEducationTheme, useScopedThemedStyles } from '@/contexts/ScopedThemeProviders';
 import { router } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
 import { useRouteGroupNavigation } from '@/utils/navigationStackReset';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface UserData {
   name: string;
@@ -18,7 +19,8 @@ interface EducationHomeHeaderProps {
 export function EducationHomeHeader({ userData }: EducationHomeHeaderProps) {
   const theme = useEducationTheme();
   const { tokens, getGradient } = theme;
-  const styles = useScopedThemedStyles(createStyles, theme);
+  const insets = useSafeAreaInsets();
+  const styles = useScopedThemedStyles((tokens: any) => createStyles(tokens, insets), theme);
   const { navigateToMainApp, backWithReset } = useRouteGroupNavigation();
   
   // Use the same gradient system as teachers screen header
@@ -47,9 +49,7 @@ export function EducationHomeHeader({ userData }: EducationHomeHeaderProps) {
   };
 
   return (
-    <>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-      <LinearGradient
+    <LinearGradient
         colors={backgroundGradient.colors as any}
         start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
         end={{ x: 1, y: 1 }}
@@ -100,13 +100,12 @@ export function EducationHomeHeader({ userData }: EducationHomeHeaderProps) {
 
 
       </LinearGradient>
-    </>
   );
 }
 
-const createStyles = (tokens: any) => StyleSheet.create({
+const createStyles = (tokens: any, insets: any) => StyleSheet.create({
   headerContainer: {
-    paddingTop: 60,
+    paddingTop: insets.top + 20,
     paddingBottom: tokens.spacing.xl,
     paddingHorizontal: tokens.spacing.lg,
   },
