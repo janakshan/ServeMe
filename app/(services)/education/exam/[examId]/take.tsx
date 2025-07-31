@@ -25,11 +25,104 @@ import Animated, {
   withDelay,
 } from 'react-native-reanimated';
 import { Audio } from 'expo-av';
-import ConfettiCannon from 'react-native-confetti-cannon';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 
 const { width, height } = Dimensions.get('window');
+
+// Celebration Component using Reanimated
+const CelebrationOverlay = ({ onComplete }: { onComplete: () => void }) => {
+  const confettiPieces = Array.from({ length: 20 }, (_, i) => {
+    const translateY = useSharedValue(-100);
+    const translateX = useSharedValue((Math.random() - 0.5) * width);
+    const rotation = useSharedValue(0);
+    const opacity = useSharedValue(1);
+    const scale = useSharedValue(1);
+    
+    React.useEffect(() => {
+      // Staggered start times
+      const startDelay = Math.random() * 500;
+      
+      setTimeout(() => {
+        translateY.value = withTiming(height + 100, { duration: 3000 + Math.random() * 1000 });
+        translateX.value = withTiming(
+          translateX.value + (Math.random() - 0.5) * 200, 
+          { duration: 3000 + Math.random() * 1000 }
+        );
+        rotation.value = withTiming(360 * 4, { duration: 3000 + Math.random() * 1000 });
+        opacity.value = withTiming(0, { duration: 3000 + Math.random() * 1000 });
+        scale.value = withSequence(
+          withTiming(1.2, { duration: 200 }),
+          withTiming(0.8, { duration: 2800 + Math.random() * 1000 })
+        );
+      }, startDelay);
+    }, []);
+    
+    const animatedStyle = useAnimatedStyle(() => ({
+      transform: [
+        { translateX: translateX.value },
+        { translateY: translateY.value },
+        { rotate: `${rotation.value}deg` },
+        { scale: scale.value },
+      ],
+      opacity: opacity.value,
+    }));
+    
+    const colors = ['#6A1B9A', '#10B981', '#F59E0B', '#EF4444', '#3B82F6'];
+    const color = colors[i % colors.length];
+    
+    return (
+      <Animated.View
+        key={i}
+        style={[
+          {
+            position: 'absolute',
+            width: 12,
+            height: 12,
+            backgroundColor: color,
+            borderRadius: 6,
+            top: Math.random() * 100,
+            left: width / 2 + (Math.random() - 0.5) * 100,
+          },
+          animatedStyle,
+        ]}
+      />
+    );
+  });
+  
+  React.useEffect(() => {
+    const timer = setTimeout(onComplete, 4000);
+    return () => clearTimeout(timer);
+  }, [onComplete]);
+  
+  return (
+    <View style={{
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 999,
+      pointerEvents: 'none',
+    }}>
+      {confettiPieces}
+      {/* Celebration Emojis */}
+      <View style={{
+        position: 'absolute',
+        top: '20%',
+        left: 0,
+        right: 0,
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+      }}>
+        <Text style={{ fontSize: 60, textAlign: 'center' }}>🎉</Text>
+        <Text style={{ fontSize: 60, textAlign: 'center' }}>✨</Text>
+        <Text style={{ fontSize: 60, textAlign: 'center' }}>🎊</Text>
+      </View>
+    </View>
+  );
+};
 
 // Mock questions data (in a real app, this would come from an API)
 const MOCK_QUESTIONS = [
@@ -169,7 +262,7 @@ export default function ModernExamTakeScreen() {
   const [correctCount, setCorrectCount] = useState(0);
   const [totalAnswered, setTotalAnswered] = useState(0);
   const [floatingTexts, setFloatingTexts] = useState<Array<{id: string, text: string, color: string}>>([]);
-  const [showConfetti, setShowConfetti] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
   const [achievements, setAchievements] = useState<string[]>([]);
   
   // Animation values
@@ -182,7 +275,6 @@ export default function ModernExamTakeScreen() {
   
   // Sound system
   const [sounds] = useState<{[key: string]: Audio.Sound}>({});
-  const confettiRef = useRef<ConfettiCannon>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   
   // Timer warning states
@@ -376,10 +468,10 @@ export default function ModernExamTakeScreen() {
           playSound('levelUp');
         }
         
-        // Confetti for correct answers
+        // Celebration for correct answer streaks
         if (streak >= 3) {
-          setShowConfetti(true);
-          setTimeout(() => setShowConfetti(false), 3000);
+          setShowCelebration(true);
+          setTimeout(() => setShowCelebration(false), 3000);
         }
         
       } else {
@@ -465,14 +557,11 @@ export default function ModernExamTakeScreen() {
       withDelay(500, withSpring(1, { damping: 10 }))
     );
     
-    // Confetti explosion
-    setShowConfetti(true);
-    confettiRef.current?.start();
+    // Celebration animation
+    setShowCelebration(true);
+    setTimeout(() => setShowCelebration(false), 4000);
     
     playSound('celebration');
-    
-    // Auto-hide confetti after celebration
-    setTimeout(() => setShowConfetti(false), 5000);
   };
   
   // Handle back press with confirmation
@@ -538,17 +627,9 @@ export default function ModernExamTakeScreen() {
         <View style={styles.orb3} />
       </View>
 
-      {/* Confetti */}
-      {showConfetti && (
-        <ConfettiCannon
-          ref={confettiRef}
-          count={100}
-          origin={{x: width/2, y: 0}}
-          explosionSpeed={350}
-          fallSpeed={3000}
-          colors={['#4F46E5', '#10B981', '#F59E0B', '#EF4444']}
-          autoStart={false}
-        />
+      {/* Reanimated Celebration Overlay */}
+      {showCelebration && (
+        <CelebrationOverlay onComplete={() => setShowCelebration(false)} />
       )}
       
       {/* Floating Achievement Texts */}
