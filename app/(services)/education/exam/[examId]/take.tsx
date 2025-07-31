@@ -27,6 +27,7 @@ import Animated, {
 import { Audio } from 'expo-av';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 
 const { width, height } = Dimensions.get('window');
 
@@ -176,10 +177,13 @@ export default function ModernExamTakeScreen() {
   const questionScale = useSharedValue(1);
   const progressValue = useSharedValue(0);
   const celebrationScale = useSharedValue(0);
+  const timerPulse = useSharedValue(1);
+  const timerGlow = useSharedValue(0);
   
   // Sound system
   const [sounds] = useState<{[key: string]: Audio.Sound}>({});
   const confettiRef = useRef<ConfettiCannon>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
   
   // Timer warning states
   const isTimeRunningLow = timeLeft <= 600; // Less than 10 minutes
@@ -262,11 +266,44 @@ export default function ModernExamTakeScreen() {
     }
   }, [timeLeft, showResult]);
   
-  // Update progress animation
+  // Update progress animation and reset scroll position
   useEffect(() => {
     const progress = Math.max(0.01, Math.min(0.99, (currentQuestion + 1) / MOCK_QUESTIONS.length));
     progressValue.value = withSpring(progress);
+    
+    // Additional safeguard: Reset scroll position when question changes
+    // Small delay to ensure DOM is updated
+    const scrollTimer = setTimeout(() => {
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    }, 50);
+    
+    return () => clearTimeout(scrollTimer);
   }, [currentQuestion]);
+  
+  // Timer urgency animations
+  useEffect(() => {
+    if (isTimeCritical) {
+      // Start pulsing animation when time is critical
+      timerPulse.value = withSequence(
+        withTiming(1.1, { duration: 500 }),
+        withTiming(1, { duration: 500 }),
+        withTiming(1.1, { duration: 500 }),
+        withTiming(1, { duration: 500 })
+      );
+      timerGlow.value = withTiming(1, { duration: 300 });
+    } else if (isTimeRunningLow) {
+      // Subtle pulse when time is running low
+      timerPulse.value = withSequence(
+        withTiming(1.05, { duration: 800 }),
+        withTiming(1, { duration: 800 })
+      );
+      timerGlow.value = withTiming(0.5, { duration: 300 });
+    } else {
+      // Normal state
+      timerPulse.value = withTiming(1, { duration: 300 });
+      timerGlow.value = withTiming(0, { duration: 300 });
+    }
+  }, [isTimeCritical, isTimeRunningLow]);
   
   // Play sound effect
   const playSound = async (soundName: string) => {
@@ -297,19 +334,22 @@ export default function ModernExamTakeScreen() {
     setFloatingTexts(prev => prev.filter(item => item.id !== id));
   };
   
-  // Enhanced answer selection with gamification
+  // Enhanced answer selection with gamification and haptics
   const handleAnswerSelect = (answerIndex: number) => {
     const newAnswers = [...selectedAnswers];
     const previousAnswer = newAnswers[currentQuestion];
     newAnswers[currentQuestion] = answerIndex;
     setSelectedAnswers(newAnswers);
     
+    // Haptic feedback
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    
     playSound('buttonTap');
     
     // Animation feedback
     questionScale.value = withSequence(
-      withTiming(0.95, { duration: 100 }),
-      withTiming(1, { duration: 100 })
+      withTiming(0.98, { duration: 150 }),
+      withTiming(1, { duration: 150 })
     );
     
     // If this is a new answer (not changing existing)
@@ -392,6 +432,8 @@ export default function ModernExamTakeScreen() {
       
       setTimeout(() => {
         setCurrentQuestion(currentQuestion + 1);
+        // Reset scroll position to top when moving to next question
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
       }, 200);
     }
   };
@@ -407,6 +449,8 @@ export default function ModernExamTakeScreen() {
       
       setTimeout(() => {
         setCurrentQuestion(currentQuestion - 1);
+        // Reset scroll position to top when moving to previous question
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
       }, 200);
     }
   };
@@ -467,6 +511,15 @@ export default function ModernExamTakeScreen() {
     transform: [{ scale: celebrationScale.value }],
     opacity: celebrationScale.value,
   }));
+  
+  const timerAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: timerPulse.value }],
+  }));
+  
+  const timerGlowStyle = useAnimatedStyle(() => ({
+    shadowOpacity: 0.1 + (timerGlow.value * 0.3),
+    shadowRadius: 4 + (timerGlow.value * 8),
+  }));
 
   return (
     <>
@@ -514,67 +567,120 @@ export default function ModernExamTakeScreen() {
         onBackPress={handleBackPress}
       />
 
-      {/* Timer Section - Moved Above Question */}
+      {/* Enhanced Timer Section - All in One Row */}
       <View style={styles.timerSection}>
-        <View style={styles.timerRow}>
-          <View style={styles.questionProgressSection}>
-            <Text style={styles.questionProgressText}>
-              Question {currentQuestion + 1} of {MOCK_QUESTIONS.length}
+        <View style={styles.enhancedTimerRow}>
+          {/* Question Count */}
+          <View style={styles.questionCountContainer}>
+            <Text style={styles.questionCountNumber}>
+              {currentQuestion + 1}
             </Text>
+            <Text style={styles.questionCountTotal}>
+              of {MOCK_QUESTIONS.length}
+            </Text>
+            <Text style={styles.questionCountLabel}>Questions</Text>
           </View>
           
-          <View style={[
-            styles.timerContainer,
+          {/* Circular Progress Indicator */}
+          <View style={styles.compactCircularProgress}>
+            {/* Background Ring */}
+            <View style={styles.compactProgressRingBackground} />
+            {/* Progress Ring */}
+            <View style={styles.compactProgressRingContainer}>
+              <View 
+                style={[
+                  styles.compactProgressRing,
+                  {
+                    transform: [
+                      { 
+                        rotate: `${(((currentQuestion + 1) / MOCK_QUESTIONS.length) * 180) - 90}deg` 
+                      }
+                    ]
+                  }
+                ]}
+              />
+            </View>
+            {/* Center Content */}
+            <View style={styles.compactProgressCenter}>
+              <Text style={styles.compactProgressPercentage}>
+                {Math.round(((currentQuestion + 1) / MOCK_QUESTIONS.length) * 100)}%
+              </Text>
+            </View>
+          </View>
+          
+          {/* Timer */}
+          <Animated.View style={[
+            styles.compactTimerContainer,
             isTimeRunningLow && styles.timerContainerWarning,
-            isTimeCritical && styles.timerContainerCritical
+            isTimeCritical && styles.timerContainerCritical,
+            timerAnimatedStyle,
+            timerGlowStyle
           ]}>
-            <Ionicons 
-              name={isTimeCritical ? "warning" : "time-outline"} 
-              size={20} 
-              color="#EF4444"
-            />
-            <Text style={styles.timerTextRed}>
-              {formatTime(timeLeft)}
-            </Text>
-          </View>
+            <View style={styles.compactTimerIconContainer}>
+              <Ionicons 
+                name={isTimeCritical ? "warning" : "time-outline"} 
+                size={20} 
+                color="#EF4444"
+              />
+            </View>
+            <View style={styles.compactTimerTextContainer}>
+              <Text style={styles.compactTimerText}>
+                {formatTime(timeLeft)}
+              </Text>
+              <Text style={styles.compactTimerLabel}>Time Left</Text>
+            </View>
+          </Animated.View>
         </View>
         
-        {/* Progress Bar */}
-        <View style={styles.progressContainer}>
-          <View style={styles.progressTrack}>
-            <Animated.View 
-              style={[
-                styles.progressFill,
-                { width: `${((currentQuestion + 1) / MOCK_QUESTIONS.length) * 100}%` }
-              ]}
-            />
+        {/* Enhanced Stats Row */}
+        <View style={styles.enhancedStatsContainer}>
+          <View style={styles.enhancedStatChip}>
+            <View style={styles.statIconWrapper}>
+              <Ionicons name="flash" size={18} color="#6A1B9A" />
+            </View>
+            <View style={styles.statTextWrapper}>
+              <Text style={styles.statValue}>{score}</Text>
+              <Text style={styles.statLabel}>Points</Text>
+            </View>
           </View>
-        </View>
-        
-        {/* Stats Row */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statChip}>
-            <Ionicons name="flash" size={16} color="#4F46E5" />
-            <Text style={styles.statText}>{score} pts</Text>
-          </View>
+          
           {streak > 0 && (
-            <View style={styles.statChip}>
-              <Ionicons name="flame" size={16} color="#F59E0B" />
-              <Text style={styles.statText}>{streak} streak</Text>
+            <View style={[styles.enhancedStatChip, styles.streakChip]}>
+              <View style={styles.statIconWrapper}>
+                <Ionicons name="flame" size={18} color="#F59E0B" />
+              </View>
+              <View style={styles.statTextWrapper}>
+                <Text style={styles.statValue}>{streak}</Text>
+                <Text style={styles.statLabel}>Streak</Text>
+              </View>
             </View>
           )}
-          <View style={styles.statChip}>
-            <Ionicons name="checkmark-circle" size={16} color="#10B981" />
-            <Text style={styles.statText}>
-              {Math.round((correctCount/(totalAnswered || 1)) * 100)}%
-            </Text>
+          
+          <View style={styles.enhancedStatChip}>
+            <View style={styles.statIconWrapper}>
+              <Ionicons name="checkmark-circle" size={18} color="#10B981" />
+            </View>
+            <View style={styles.statTextWrapper}>
+              <Text style={styles.statValue}>
+                {Math.round((correctCount/(totalAnswered || 1)) * 100)}%
+              </Text>
+              <Text style={styles.statLabel}>Accuracy</Text>
+            </View>
           </View>
         </View>
       </View>
 
       {/* Question Content */}
       <Animated.View style={[styles.content, questionAnimatedStyle]}>
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          ref={scrollViewRef}
+          style={styles.scrollView} 
+          showsVerticalScrollIndicator={false}
+          bounces={true}
+          scrollEventThrottle={16}
+          contentContainerStyle={styles.scrollViewContent}
+          keyboardShouldPersistTaps="handled"
+        >
           {/* Question Card */}
           <View style={styles.questionCard}>
             <View style={styles.questionHeader}>
@@ -609,14 +715,14 @@ export default function ModernExamTakeScreen() {
                 <TouchableOpacity
                   key={index}
                   style={[
-                    styles.optionCard,
-                    isSelected && styles.selectedOption,
-                    showResult && isCorrect && styles.correctOption,
-                    showResult && isSelected && !isCorrect && styles.wrongOption,
+                    styles.enhancedOptionCard,
+                    isSelected && styles.enhancedSelectedOption,
+                    showResult && isCorrect && styles.enhancedCorrectOption,
+                    showResult && isSelected && !isCorrect && styles.enhancedWrongOption,
                   ]}
                   onPress={() => handleAnswerSelect(index)}
                   disabled={selectedAnswers[currentQuestion] !== undefined}
-                  activeOpacity={0.7}
+                  activeOpacity={0.85}
                 >
                   <View style={styles.optionContent}>
                     <View style={[
@@ -670,47 +776,55 @@ export default function ModernExamTakeScreen() {
           </View>
         </ScrollView>
 
-        {/* Navigation */}
-        <View style={styles.navigation}>
-          {currentQuestion > 0 && (
-            <TouchableOpacity 
-              style={styles.navButton}
-              onPress={handlePreviousQuestion}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="chevron-back" size={20} color="#6B7280" />
-              <Text style={styles.navText}>Previous</Text>
-            </TouchableOpacity>
-          )}
-          
-          <View style={styles.spacer} />
-          
-          {currentQuestion === MOCK_QUESTIONS.length - 1 ? (
-            <TouchableOpacity 
-              style={styles.submitButton} 
-              onPress={handleSubmitExam}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={['#4F46E5', '#7C3AED']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.submitGradient}
-              >
-                <Ionicons name="checkmark-circle" size={20} color="white" />
-                <Text style={styles.submitText}>Submit Exam</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity 
-              style={styles.nextButton}
-              onPress={handleNextQuestion}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.nextText}>Next</Text>
-              <Ionicons name="chevron-forward" size={20} color="white" />
-            </TouchableOpacity>
-          )}
+        {/* Enhanced Mobile-First Navigation */}
+        <View style={styles.enhancedNavigation}>
+          <View style={styles.navigationSafeArea}>
+            <View style={styles.navigationContent}>
+              {currentQuestion > 0 && (
+                <TouchableOpacity 
+                  style={styles.enhancedNavButton}
+                  onPress={handlePreviousQuestion}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="chevron-back" size={24} color="#6A1B9A" />
+                  <Text style={styles.enhancedNavText}>Previous</Text>
+                </TouchableOpacity>
+              )}
+              
+              <View style={styles.navigationCenter}>
+                <Text style={styles.navigationProgress}>
+                  {currentQuestion + 1} of {MOCK_QUESTIONS.length}
+                </Text>
+              </View>
+              
+              {currentQuestion === MOCK_QUESTIONS.length - 1 ? (
+                <TouchableOpacity 
+                  style={styles.enhancedSubmitButton} 
+                  onPress={handleSubmitExam}
+                  activeOpacity={0.9}
+                >
+                  <LinearGradient
+                    colors={['#6A1B9A', '#8B5CF6']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.enhancedSubmitGradient}
+                  >
+                    <Ionicons name="checkmark-circle" size={24} color="white" />
+                    <Text style={styles.enhancedSubmitText}>Submit</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity 
+                  style={styles.enhancedNextButton}
+                  onPress={handleNextQuestion}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.enhancedNextText}>Next</Text>
+                  <Ionicons name="chevron-forward" size={24} color="white" />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
         </View>
       </Animated.View>
       
@@ -857,6 +971,137 @@ const createStyles = (tokens: any) =>
       shadowRadius: 8,
       elevation: 2,
     },
+    // Enhanced Timer Row - All Components in One Row
+    enhancedTimerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: tokens.spacing.lg,
+      paddingVertical: tokens.spacing.sm,
+      paddingHorizontal: tokens.spacing.md,
+    },
+    
+    // Question Count Styles - Balanced width
+    questionCountContainer: {
+      width: 80, // Fixed width for consistent spacing
+      alignItems: 'flex-start',
+      justifyContent: 'center',
+    },
+    questionCountNumber: {
+      fontSize: 24,
+      fontWeight: '800',
+      color: '#6A1B9A',
+      lineHeight: 28,
+    },
+    questionCountTotal: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: '#6B7280',
+      marginTop: -2,
+    },
+    questionCountLabel: {
+      fontSize: 11,
+      fontWeight: '500',
+      color: '#9CA3AF',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      marginTop: 2,
+    },
+    
+    // Compact Circular Progress Styles
+    compactCircularProgress: {
+      width: 60,
+      height: 60,
+      position: 'relative',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginHorizontal: tokens.spacing.md,
+    },
+    compactProgressRingBackground: {
+      position: 'absolute',
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      borderWidth: 4,
+      borderColor: '#E5E7EB',
+    },
+    compactProgressRingContainer: {
+      position: 'absolute',
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      overflow: 'hidden',
+    },
+    compactProgressRing: {
+      width: 60,
+      height: 30,
+      borderTopLeftRadius: 30,
+      borderTopRightRadius: 30,
+      borderWidth: 4,
+      borderBottomWidth: 0,
+      borderColor: '#6A1B9A',
+      transformOrigin: '50% 100%',
+    },
+    compactProgressCenter: {
+      position: 'absolute',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    compactProgressPercentage: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: '#6A1B9A',
+      lineHeight: 14,
+    },
+    
+    // Compact Timer Styles - Fixed width to balance with question count
+    compactTimerContainer: {
+      width: 130, // Increased width to prevent content cropping
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#FFFFFF',
+      paddingHorizontal: tokens.spacing.md,
+      paddingVertical: tokens.spacing.sm,
+      borderRadius: tokens.borderRadius.lg,
+      borderWidth: 3,
+      borderColor: '#EF4444',
+      shadowColor: '#EF4444',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.25,
+      shadowRadius: 15,
+      elevation: 8,
+      gap: tokens.spacing.sm,
+      minHeight: 56,
+      justifyContent: 'space-between',
+    },
+    compactTimerIconContainer: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: '#FEF2F2',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    compactTimerTextContainer: {
+      alignItems: 'flex-end',
+    },
+    compactTimerText: {
+      fontSize: 18,
+      fontWeight: '800',
+      color: '#EF4444',
+      letterSpacing: 0.3,
+      lineHeight: 20,
+    },
+    compactTimerLabel: {
+      fontSize: 10,
+      fontWeight: '600',
+      color: '#6B7280',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      marginTop: 1,
+    },
+    
+    // Old Timer Row Styles (keeping for backward compatibility)
     timerRow: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -870,6 +1115,52 @@ const createStyles = (tokens: any) =>
       fontSize: 16,
       color: '#6A1B9A',
       fontWeight: '600',
+    },
+    // Enhanced Timer Styles
+    enhancedTimerContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#FFFFFF',
+      paddingHorizontal: tokens.spacing.lg,
+      paddingVertical: tokens.spacing.md,
+      borderRadius: tokens.borderRadius.xl,
+      borderWidth: 2,
+      borderColor: '#FCA5A5',
+      shadowColor: '#EF4444',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.15,
+      shadowRadius: 12,
+      elevation: 6,
+      gap: tokens.spacing.md,
+      minHeight: 70,
+    },
+    timerIconContainer: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: '#FEF2F2',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    timerTextContainer: {
+      alignItems: 'flex-end',
+    },
+    enhancedTimerText: {
+      fontSize: 24,
+      fontWeight: '800',
+      color: '#EF4444',
+      letterSpacing: 0.5,
+      textShadowColor: 'rgba(239, 68, 68, 0.2)',
+      textShadowOffset: { width: 1, height: 1 },
+      textShadowRadius: 2,
+    },
+    timerLabel: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: '#6B7280',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      marginTop: 2,
     },
     timerContainer: {
       flexDirection: 'row',
@@ -916,6 +1207,64 @@ const createStyles = (tokens: any) =>
       shadowRadius: 4,
       elevation: 2,
     },
+    // Circular Progress Styles
+    circularProgressContainer: {
+      alignItems: 'center',
+      marginBottom: tokens.spacing.lg,
+      marginTop: tokens.spacing.md,
+    },
+    circularProgress: {
+      width: 80,
+      height: 80,
+      position: 'relative',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    progressRingBackground: {
+      position: 'absolute',
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      borderWidth: 6,
+      borderColor: '#E5E7EB',
+    },
+    progressRingContainer: {
+      position: 'absolute',
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      overflow: 'hidden',
+    },
+    progressRing: {
+      width: 80,
+      height: 40,
+      borderTopLeftRadius: 40,
+      borderTopRightRadius: 40,
+      borderWidth: 6,
+      borderBottomWidth: 0,
+      borderColor: '#6A1B9A',
+      transformOrigin: '50% 100%',
+    },
+    progressCenter: {
+      position: 'absolute',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    progressPercentage: {
+      fontSize: 16,
+      fontWeight: '800',
+      color: '#6A1B9A',
+      lineHeight: 18,
+    },
+    progressLabel: {
+      fontSize: 10,
+      fontWeight: '600',
+      color: '#6B7280',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      marginTop: 1,
+    },
+    // Old Progress Styles (keeping for backward compatibility)
     progressContainer: {
       marginBottom: tokens.spacing.md,
     },
@@ -930,6 +1279,68 @@ const createStyles = (tokens: any) =>
       backgroundColor: '#4F46E5',
       borderRadius: 3,
     },
+    // Enhanced Stats Styles with better visibility
+    enhancedStatsContainer: {
+      flexDirection: 'row',
+      gap: tokens.spacing.md,
+      justifyContent: 'space-between',
+      marginTop: tokens.spacing.sm,
+      paddingHorizontal: tokens.spacing.xs,
+    },
+    enhancedStatChip: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#FFFFFF',
+      paddingHorizontal: tokens.spacing.md,
+      paddingVertical: tokens.spacing.sm,
+      borderRadius: tokens.borderRadius.lg,
+      gap: tokens.spacing.sm,
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.15,
+      shadowRadius: 18,
+      elevation: 6,
+      borderWidth: 2.5,
+      borderColor: '#D1D5DB',
+      minHeight: 54,
+    },
+    streakChip: {
+      backgroundColor: '#FEF3C7',
+      borderColor: '#F59E0B',
+      borderWidth: 3,
+      shadowColor: '#F59E0B',
+      shadowOpacity: 0.2,
+    },
+    statIconWrapper: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      backgroundColor: '#F8FAFC',
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: '#E2E8F0',
+    },
+    statTextWrapper: {
+      flex: 1,
+      alignItems: 'flex-start',
+    },
+    statValue: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: '#1F2937',
+      lineHeight: 20,
+    },
+    statLabel: {
+      fontSize: 11,
+      fontWeight: '500',
+      color: '#6B7280',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      marginTop: 1,
+    },
+    // Old Stats Styles (keeping for backward compatibility)
     statsContainer: {
       flexDirection: 'row',
       gap: tokens.spacing.sm,
@@ -956,19 +1367,26 @@ const createStyles = (tokens: any) =>
     },
     scrollView: {
       flex: 1,
+    },
+    scrollViewContent: {
       paddingHorizontal: tokens.spacing.lg,
       paddingTop: tokens.spacing.lg,
+      paddingBottom: tokens.spacing.xl * 2, // Extra bottom padding for better scrolling
+      flexGrow: 1,
     },
     questionCard: {
-      backgroundColor: 'white',
-      borderRadius: 20,
+      backgroundColor: '#FFFFFF',
+      borderRadius: 24,
       padding: tokens.spacing.xl,
       marginBottom: tokens.spacing.xl,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.08,
-      shadowRadius: 20,
-      elevation: 4,
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.2,
+      shadowRadius: 25,
+      elevation: 12,
+      borderWidth: 3,
+      borderColor: '#6A1B9A',
+      marginHorizontal: 2, // Space for shadow
     },
     questionHeader: {
       flexDirection: 'row',
@@ -977,37 +1395,58 @@ const createStyles = (tokens: any) =>
       marginBottom: tokens.spacing.lg,
     },
     questionNumber: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      backgroundColor: '#4F46E5',
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: '#6A1B9A',
       justifyContent: 'center',
       alignItems: 'center',
+      shadowColor: '#6A1B9A',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.3,
+      shadowRadius: 6,
+      elevation: 4,
+      borderWidth: 2,
+      borderColor: '#FFFFFF',
     },
     questionNumberText: {
-      fontSize: 16,
-      fontWeight: 'bold',
+      fontSize: 18,
+      fontWeight: '800',
       color: 'white',
+      textShadowColor: 'rgba(0, 0, 0, 0.3)',
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 2,
     },
     pointsBadge: {
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: '#FEF3C7',
-      paddingHorizontal: tokens.spacing.sm,
-      paddingVertical: 6,
-      borderRadius: tokens.borderRadius.md,
-      gap: 4,
+      paddingHorizontal: tokens.spacing.md,
+      paddingVertical: 8,
+      borderRadius: tokens.borderRadius.lg,
+      gap: 6,
+      borderWidth: 1.5,
+      borderColor: '#FCD34D',
+      shadowColor: '#F59E0B',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
+      elevation: 3,
     },
     pointsText: {
-      fontSize: 12,
-      fontWeight: '600',
+      fontSize: 13,
+      fontWeight: '700',
       color: '#D97706',
+      letterSpacing: 0.3,
     },
     questionText: {
-      fontSize: 18,
-      lineHeight: 28,
-      color: '#1F2937',
-      fontWeight: '500',
+      fontSize: 20,
+      lineHeight: 32,
+      color: '#111827',
+      fontWeight: '600',
+      letterSpacing: 0.2,
+      textAlign: 'left',
+      marginBottom: tokens.spacing.sm,
     },
     questionImage: {
       width: '100%',
@@ -1016,11 +1455,61 @@ const createStyles = (tokens: any) =>
       marginVertical: tokens.spacing.md,
       backgroundColor: '#F9FAFB',
     },
-    // Options Styles
+    // Enhanced Options Styles with better scroll handling
     optionsContainer: {
-      gap: tokens.spacing.md,
-      marginBottom: tokens.spacing.xl,
+      gap: tokens.spacing.lg,
+      marginBottom: tokens.spacing.xl * 1.5, // More bottom margin for scrolling
+      paddingHorizontal: 4, // Add horizontal padding for shadow
+      minHeight: 400, // Ensure minimum height for scroll area
     },
+    enhancedOptionCard: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: 20,
+      padding: tokens.spacing.lg,
+      borderWidth: 3,
+      borderColor: '#9CA3AF', // Much more visible gray border
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.18,
+      shadowRadius: 20,
+      elevation: 8,
+      marginVertical: 4,
+      marginHorizontal: 2, // Space for shadow
+      minHeight: 75,
+      transform: [{ scale: 1 }],
+    },
+    enhancedSelectedOption: {
+      borderColor: '#6A1B9A',
+      backgroundColor: '#F8F6FF',
+      transform: [{ scale: 1.03 }],
+      shadowColor: '#6A1B9A',
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.3,
+      shadowRadius: 25,
+      elevation: 12,
+      borderWidth: 4, // Even thicker border for selected state
+    },
+    enhancedCorrectOption: {
+      borderColor: '#10B981',
+      backgroundColor: '#F0FDF4',
+      shadowColor: '#10B981',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.2,
+      shadowRadius: 16,
+      elevation: 6,
+      transform: [{ scale: 1.02 }],
+    },
+    enhancedWrongOption: {
+      borderColor: '#EF4444',
+      backgroundColor: '#FEF2F2',
+      shadowColor: '#EF4444',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.2,
+      shadowRadius: 16,
+      elevation: 6,
+      transform: [{ scale: 0.98 }],
+    },
+    // Old Options Styles (keeping for backward compatibility)
     optionCard: {
       backgroundColor: 'white',
       borderRadius: 20,
@@ -1068,19 +1557,19 @@ const createStyles = (tokens: any) =>
       gap: tokens.spacing.md,
     },
     optionCircle: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: '#F9FAFB',
-      borderWidth: 2.5,
-      borderColor: '#D1D5DB',
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: '#FFFFFF',
+      borderWidth: 2,
+      borderColor: '#E5E7EB',
       justifyContent: 'center',
       alignItems: 'center',
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.05,
-      shadowRadius: 2,
-      elevation: 1,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 4,
+      elevation: 2,
     },
     selectedCircle: {
       backgroundColor: '#6A1B9A',
@@ -1112,10 +1601,11 @@ const createStyles = (tokens: any) =>
       gap: tokens.spacing.sm,
     },
     optionText: {
-      fontSize: 16,
-      lineHeight: 24,
+      fontSize: 17,
+      lineHeight: 26,
       color: '#374151',
       fontWeight: '500',
+      letterSpacing: 0.1,
     },
     optionImage: {
       width: '100%',
@@ -1149,7 +1639,101 @@ const createStyles = (tokens: any) =>
       fontWeight: '600',
       color: '#10B981',
     },
-    // Navigation Styles
+    // Enhanced Mobile-First Navigation Styles
+    enhancedNavigation: {
+      backgroundColor: '#FFFFFF',
+      borderTopWidth: 1,
+      borderTopColor: '#E5E7EB',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: -4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 12,
+      elevation: 8,
+    },
+    navigationSafeArea: {
+      paddingBottom: 20, // Extra padding for home indicator
+    },
+    navigationContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: tokens.spacing.lg,
+      paddingVertical: tokens.spacing.lg,
+      minHeight: 80,
+    },
+    navigationCenter: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    navigationProgress: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: '#6B7280',
+      textAlign: 'center',
+    },
+    enhancedNavButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: tokens.spacing.lg,
+      paddingVertical: tokens.spacing.md,
+      borderRadius: tokens.borderRadius.xl,
+      backgroundColor: '#F8FAFC',
+      borderWidth: 1,
+      borderColor: '#E5E7EB',
+      gap: 8,
+      minWidth: 100,
+      minHeight: 50,
+    },
+    enhancedNavText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#6A1B9A',
+    },
+    enhancedNextButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: tokens.spacing.xl,
+      paddingVertical: tokens.spacing.md,
+      borderRadius: tokens.borderRadius.xl,
+      backgroundColor: '#6A1B9A',
+      gap: 8,
+      shadowColor: '#6A1B9A',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 12,
+      elevation: 6,
+      minWidth: 100,
+      minHeight: 50,
+    },
+    enhancedNextText: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: 'white',
+    },
+    enhancedSubmitButton: {
+      borderRadius: tokens.borderRadius.xl,
+      overflow: 'hidden',
+      shadowColor: '#6A1B9A',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.3,
+      shadowRadius: 16,
+      elevation: 8,
+      minWidth: 120,
+      minHeight: 50,
+    },
+    enhancedSubmitGradient: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: tokens.spacing.xl,
+      paddingVertical: tokens.spacing.md,
+      gap: 8,
+      justifyContent: 'center',
+    },
+    enhancedSubmitText: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: 'white',
+    },
+    // Old Navigation Styles (keeping for backward compatibility)
     navigation: {
       flexDirection: 'row',
       alignItems: 'center',
