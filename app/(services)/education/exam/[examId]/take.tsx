@@ -8,10 +8,12 @@ import {
   Alert,
   Dimensions,
   BackHandler,
+  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useEducationTheme, useScopedThemedStyles } from "@/contexts/ScopedThemeProviders";
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, Stack } from 'expo-router';
+import { MinimalHeader } from '@/src/education/components/headers';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -33,7 +35,13 @@ const MOCK_QUESTIONS = [
   {
     id: "1",
     question: "What is the value of x in the equation 2x + 5 = 15?",
-    options: ["5", "10", "7.5", "20"],
+    questionImage: null,
+    options: [
+      { text: "5", image: null },
+      { text: "10", image: null },
+      { text: "7.5", image: null },
+      { text: "20", image: null }
+    ],
     correctAnswer: 0,
     explanation: "To solve 2x + 5 = 15, subtract 5 from both sides: 2x = 10, then divide by 2: x = 5.",
     points: 10,
@@ -41,7 +49,13 @@ const MOCK_QUESTIONS = [
   {
     id: "2", 
     question: "Which king built the ancient city of Polonnaruwa in Sri Lanka?",
-    options: ["King Dutugemunu", "King Parakramabahu I", "King Kasyapa", "King Vijayabahu I"],
+    questionImage: null,
+    options: [
+      { text: "King Dutugemunu", image: null },
+      { text: "King Parakramabahu I", image: null },
+      { text: "King Kasyapa", image: null },
+      { text: "King Vijayabahu I", image: null }
+    ],
     correctAnswer: 1,
     explanation: "King Parakramabahu I (1153-1186 CE) was responsible for the development of Polonnaruwa as a major city.",
     points: 15,
@@ -49,23 +63,41 @@ const MOCK_QUESTIONS = [
   {
     id: "3",
     question: "What is the main function of the heart in the human circulatory system?",
-    options: ["To produce blood cells", "To pump blood throughout the body", "To filter waste products", "To store oxygen"],
+    questionImage: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop",
+    options: [
+      { text: "To produce blood cells", image: null },
+      { text: "To pump blood throughout the body", image: null },
+      { text: "To filter waste products", image: null },
+      { text: "To store oxygen", image: null }
+    ],
     correctAnswer: 1,
     explanation: "The heart's primary function is to pump blood throughout the body, delivering oxygen and nutrients to tissues.",
     points: 10,
   },
   {
     id: "4",
-    question: "Which literary work is considered the greatest epic poem in Sinhala literature?",
-    options: ["Mahavamsa", "Sasadavata", "Kavsilumina", "Saddharma Ratnavaliya"],
+    question: "Which geometric shape has exactly 3 sides?",
+    questionImage: null,
+    options: [
+      { text: "Square", image: "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=100&h=100&fit=crop" },
+      { text: "Circle", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=100&h=100&fit=crop" },
+      { text: "Triangle", image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=100&h=100&fit=crop" },
+      { text: "Pentagon", image: "https://images.unsplash.com/photo-1596854407944-bf87f6fdd49e?w=100&h=100&fit=crop" }
+    ],
     correctAnswer: 2,
-    explanation: "Kavsilumina, written by Alagiyavanna Mukaveti, is considered one of the greatest works in classical Sinhala literature.",
+    explanation: "A triangle is a polygon with exactly three sides and three angles.",
     points: 20,
   },
   {
     id: "5",
     question: "What is the acceleration due to gravity on Earth?",
-    options: ["9.8 m/s²", "10 m/s²", "8.9 m/s²", "11 m/s²"],
+    questionImage: null,
+    options: [
+      { text: "9.8 m/s²", image: null },
+      { text: "10 m/s²", image: null },
+      { text: "8.9 m/s²", image: null },
+      { text: "11 m/s²", image: null }
+    ],
     correctAnswer: 0,
     explanation: "The standard acceleration due to gravity on Earth is approximately 9.8 m/s².",
     points: 10,
@@ -73,7 +105,7 @@ const MOCK_QUESTIONS = [
 ];
 
 // Sound effects - will be loaded dynamically
-const SOUND_ENABLED = false; // Set to true when sound files are available
+const SOUND_ENABLED = true; // Enabled with proper sound files
 
 interface FloatingTextProps {
   text: string;
@@ -119,9 +151,7 @@ const FloatingText: React.FC<FloatingTextProps> = ({ text, color, onComplete }) 
   );
 };
 
-// Simplified progress components for React Native
-
-export default function GamifiedExamTakeScreen() {
+export default function ModernExamTakeScreen() {
   const themeContext = useEducationTheme();
   const styles = useScopedThemedStyles(createStyles, themeContext);
   const { tokens } = themeContext;
@@ -145,13 +175,18 @@ export default function GamifiedExamTakeScreen() {
   const headerScale = useSharedValue(1);
   const questionScale = useSharedValue(1);
   const progressValue = useSharedValue(0);
-  const timerPulse = useSharedValue(1);
-  const backgroundColorProgress = useSharedValue(0);
   const celebrationScale = useSharedValue(0);
   
   // Sound system
   const [sounds] = useState<{[key: string]: Audio.Sound}>({});
   const confettiRef = useRef<ConfettiCannon>(null);
+  
+  // Timer warning states
+  const isTimeRunningLow = timeLeft <= 600; // Less than 10 minutes
+  const isTimeCritical = timeLeft <= 300; // Less than 5 minutes
+  
+  // Unique ID counter for floating texts
+  const floatingTextCounter = useRef(0);
   
   // Initialize sound effects
   useEffect(() => {
@@ -162,8 +197,29 @@ export default function GamifiedExamTakeScreen() {
       }
       
       try {
-        // Sound loading logic would go here when enabled
-        console.log('Sound system would load audio files here');
+        console.log('Loading exam game sound effects...');
+        
+        // Load all sound effects
+        const soundFiles = {
+          buttonTap: require('@/assets/sounds/buttonTap.mp3'),
+          correct: require('@/assets/sounds/correct.mp3'),
+          wrong: require('@/assets/sounds/wrong.mp3'),
+          levelUp: require('@/assets/sounds/levelUp.mp3'),
+          celebration: require('@/assets/sounds/celebration.mp3'),
+        };
+
+        // Create Audio.Sound objects for each sound
+        for (const [key, soundFile] of Object.entries(soundFiles)) {
+          const { sound } = await Audio.Sound.createAsync(soundFile, {
+            shouldPlay: false,
+            isLooping: false,
+            volume: 0.7, // Set volume to 70%
+          });
+          sounds[key] = sound;
+        }
+        
+        console.log('All exam sound effects loaded successfully!');
+        console.log('✅ buttonTap, correct, wrong, levelUp, celebration sounds ready');
       } catch (error) {
         console.log('Sound loading error:', error);
       }
@@ -182,35 +238,23 @@ export default function GamifiedExamTakeScreen() {
   useEffect(() => {
     const backAction = () => {
       if (showResult) {
-        // If on completion screen, go back to exams
         router.push("/(services)/education/(tabs)/exams" as any);
         return true;
       } else {
-        // If taking exam, show confirmation dialog
         handleBackPress();
         return true;
       }
     };
 
     const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-
     return () => backHandler.remove();
   }, [showResult]);
   
-  // Timer effect with enhanced visuals
+  // Timer effect
   useEffect(() => {
     if (timeLeft > 0 && !showResult) {
       const timer = setTimeout(() => {
         setTimeLeft(timeLeft - 1);
-        
-        // Pulse effect when time is running low
-        if (timeLeft <= 300 && timeLeft % 2 === 0) { // Last 5 minutes
-          timerPulse.value = withSequence(
-            withTiming(1.2, { duration: 200 }),
-            withTiming(1, { duration: 200 })
-          );
-          playSound('tick');
-        }
       }, 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft === 0 && !showResult) {
@@ -222,15 +266,11 @@ export default function GamifiedExamTakeScreen() {
   useEffect(() => {
     const progress = Math.max(0.01, Math.min(0.99, (currentQuestion + 1) / MOCK_QUESTIONS.length));
     progressValue.value = withSpring(progress);
-    
-    // Background color animation based on progress
-    backgroundColorProgress.value = withTiming(progress);
   }, [currentQuestion]);
   
   // Play sound effect
   const playSound = async (soundName: string) => {
     if (!SOUND_ENABLED) {
-      // Visual feedback when sound is disabled
       console.log(`🔊 Sound effect: ${soundName}`);
       return;
     }
@@ -247,7 +287,8 @@ export default function GamifiedExamTakeScreen() {
   
   // Add floating text animation
   const addFloatingText = (text: string, color: string) => {
-    const id = Date.now().toString();
+    floatingTextCounter.current += 1;
+    const id = `floating-${floatingTextCounter.current}-${Date.now()}`;
     setFloatingTexts(prev => [...prev, { id, text, color }]);
   };
   
@@ -288,10 +329,10 @@ export default function GamifiedExamTakeScreen() {
         setScore(prev => prev + pointsEarned);
         
         playSound('correct');
-        addFloatingText(`+${pointsEarned} points!`, tokens.colors.success);
+        addFloatingText(`+${pointsEarned} points!`, '#10B981');
         
         if (streak > 0 && streak % 3 === 0) {
-          addFloatingText(`Streak x${streakMultiplier}!`, tokens.colors.warning);
+          addFloatingText(`Streak x${streakMultiplier}!`, '#F59E0B');
           playSound('levelUp');
         }
         
@@ -305,7 +346,7 @@ export default function GamifiedExamTakeScreen() {
         // Wrong answer feedback
         setStreak(0);
         playSound('wrong');
-        addFloatingText('Try again!', tokens.colors.error);
+        addFloatingText('Try again!', '#EF4444');
       }
       
       // Check for achievements
@@ -319,17 +360,17 @@ export default function GamifiedExamTakeScreen() {
     
     if (correctCount === 1 && !achievements.includes('first_correct')) {
       newAchievements.push('first_correct');
-      addFloatingText('First Correct! 🎉', tokens.colors.primary);
+      addFloatingText('First Correct! 🎉', '#4F46E5');
     }
     
     if (streak >= 5 && !achievements.includes('streak_master')) {
       newAchievements.push('streak_master');
-      addFloatingText('Streak Master! 🔥', tokens.colors.warning);
+      addFloatingText('Streak Master! 🔥', '#F59E0B');
     }
     
     if (correctCount === MOCK_QUESTIONS.length && !achievements.includes('perfect_score')) {
       newAchievements.push('perfect_score');
-      addFloatingText('Perfect Score! 🏆', tokens.colors.success);
+      addFloatingText('Perfect Score! 🏆', '#10B981');
     }
     
     if (newAchievements.length > 0) {
@@ -394,9 +435,9 @@ export default function GamifiedExamTakeScreen() {
   const handleBackPress = () => {
     Alert.alert(
       "Exit Exam?",
-      "Your progress and points will be lost. Are you sure?",
+      "Your progress will be lost. Are you sure?",
       [
-        { text: "Keep Playing! 🎮", style: "cancel" },
+        { text: "Cancel", style: "cancel" },
         { 
           text: "Exit", 
           style: "destructive", 
@@ -422,36 +463,28 @@ export default function GamifiedExamTakeScreen() {
     transform: [{ scale: questionScale.value }],
   }));
   
-  const timerAnimatedStyle = useAnimatedStyle(() => {
-    const clampedValue = Math.max(1, Math.min(1.2, timerPulse.value));
-    return {
-      transform: [{ scale: clampedValue }],
-      backgroundColor: interpolateColor(
-        clampedValue,
-        [1.0, 1.2],
-        [tokens.colors.error + '20', tokens.colors.error + '40']
-      ),
-    };
-  });
-  
-  const backgroundAnimatedStyle = useAnimatedStyle(() => {
-    const clampedProgress = Math.max(0.01, Math.min(0.99, backgroundColorProgress.value));
-    return {
-      backgroundColor: interpolateColor(
-        clampedProgress,
-        [0.01, 0.5, 0.99],
-        [tokens.colors.background, tokens.colors.primary + '10', tokens.colors.success + '15']
-      ),
-    };
-  });
-  
   const celebrationAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: celebrationScale.value }],
     opacity: celebrationScale.value,
   }));
-  
+
   return (
-    <Animated.View style={[styles.container, backgroundAnimatedStyle]}>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <View style={styles.container}>
+      {/* Modern Clean Background */}
+      <LinearGradient
+        colors={['#FAFBFF', '#F5F7FF', '#F0F4FF']}
+        style={styles.backgroundGradient}
+      />
+      
+      {/* Subtle Floating Orbs */}
+      <View style={styles.orbsContainer}>
+        <View style={styles.orb1} />
+        <View style={styles.orb2} />
+        <View style={styles.orb3} />
+      </View>
+
       {/* Confetti */}
       {showConfetti && (
         <ConfettiCannon
@@ -460,7 +493,7 @@ export default function GamifiedExamTakeScreen() {
           origin={{x: width/2, y: 0}}
           explosionSpeed={350}
           fallSpeed={3000}
-          colors={[tokens.colors.primary, tokens.colors.success, tokens.colors.warning, tokens.colors.secondary]}
+          colors={['#4F46E5', '#10B981', '#F59E0B', '#EF4444']}
           autoStart={false}
         />
       )}
@@ -475,113 +508,97 @@ export default function GamifiedExamTakeScreen() {
         />
       ))}
       
-      {/* Enhanced Gaming Header */}
-      <Animated.View style={[styles.header, headerAnimatedStyle]}>
-        <LinearGradient
-          colors={[
-            tokens.colors.primary + 'F0',
-            tokens.colors.primary + 'E0',
-            tokens.colors.success + '20'
-          ]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.headerGradient}
-        >
-          <View style={styles.headerContent}>
-            <TouchableOpacity onPress={handleBackPress} style={styles.closeButton}>
-              <LinearGradient
-                colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
-                style={styles.closeButtonGradient}
-              >
-                <Ionicons name="close" size={24} color={tokens.colors.onPrimary} />
-              </LinearGradient>
-            </TouchableOpacity>
-            
-            <View style={styles.headerCenter}>
-              <View style={styles.gamingBadge}>
-                <LinearGradient
-                  colors={[tokens.colors.warning, tokens.colors.warning + 'CC']}
-                  style={styles.gamingBadgeGradient}
-                >
-                  <Ionicons name="game-controller" size={20} color={tokens.colors.onPrimary} />
-                  <Text style={styles.title}>Gaming Mode</Text>
-                </LinearGradient>
-              </View>
-              <View style={styles.scoreContainer}>
-                <View style={styles.scoreItem}>
-                  <LinearGradient
-                    colors={[tokens.colors.success + '30', tokens.colors.success + '20']}
-                    style={styles.scoreBackground}
-                  >
-                    <Ionicons name="flash" size={16} color={tokens.colors.success} />
-                    <Text style={styles.score}>{score}</Text>
-                  </LinearGradient>
-                </View>
-                {streak > 0 && (
-                  <View style={styles.scoreItem}>
-                    <LinearGradient
-                      colors={[tokens.colors.warning + '30', tokens.colors.warning + '20']}
-                      style={styles.scoreBackground}
-                    >
-                      <Ionicons name="flame" size={16} color={tokens.colors.warning} />
-                      <Text style={styles.streak}>{streak}</Text>
-                    </LinearGradient>
-                  </View>
-                )}
-              </View>
-            </View>
-            
-            <Animated.View style={[styles.timer, timerAnimatedStyle]}>
-              <LinearGradient
-                colors={[tokens.colors.error + '30', tokens.colors.error + '20']}
-                style={styles.timerGradient}
-              >
-                <Ionicons name="time" size={16} color={tokens.colors.error} />
-                <Text style={styles.timerText}>{formatTime(timeLeft)}</Text>
-              </LinearGradient>
-            </Animated.View>
-          </View>
-        </LinearGradient>
-      </Animated.View>
+      {/* Course Details Style Header */}
+      <MinimalHeader
+        title="Mathematics Quiz"
+        onBackPress={handleBackPress}
+      />
 
-      {/* Enhanced Progress Section */}
-      <View style={styles.progressSection}>
-        <View style={styles.progressInfo}>
-          <Text style={styles.questionCounter}>
-            Question {currentQuestion + 1} of {MOCK_QUESTIONS.length}
-          </Text>
-          <Text style={styles.accuracy}>
-            🎯 {totalAnswered > 0 ? Math.round((correctCount/totalAnswered) * 100) : 0}% accuracy
-          </Text>
+      {/* Timer Section - Moved Above Question */}
+      <View style={styles.timerSection}>
+        <View style={styles.timerRow}>
+          <View style={styles.questionProgressSection}>
+            <Text style={styles.questionProgressText}>
+              Question {currentQuestion + 1} of {MOCK_QUESTIONS.length}
+            </Text>
+          </View>
+          
+          <View style={[
+            styles.timerContainer,
+            isTimeRunningLow && styles.timerContainerWarning,
+            isTimeCritical && styles.timerContainerCritical
+          ]}>
+            <Ionicons 
+              name={isTimeCritical ? "warning" : "time-outline"} 
+              size={20} 
+              color="#EF4444"
+            />
+            <Text style={styles.timerTextRed}>
+              {formatTime(timeLeft)}
+            </Text>
+          </View>
         </View>
         
-        {/* Animated Progress Bar */}
-        <View style={styles.progressBarContainer}>
-          <Animated.View
-            style={[
-              styles.progressBar,
-              {
-                width: `${((currentQuestion + 1) / MOCK_QUESTIONS.length) * 100}%`,
-                backgroundColor: tokens.colors.primary,
-              },
-            ]}
-          />
-          <View style={styles.progressOverlay} />
+        {/* Progress Bar */}
+        <View style={styles.progressContainer}>
+          <View style={styles.progressTrack}>
+            <Animated.View 
+              style={[
+                styles.progressFill,
+                { width: `${((currentQuestion + 1) / MOCK_QUESTIONS.length) * 100}%` }
+              ]}
+            />
+          </View>
+        </View>
+        
+        {/* Stats Row */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statChip}>
+            <Ionicons name="flash" size={16} color="#4F46E5" />
+            <Text style={styles.statText}>{score} pts</Text>
+          </View>
+          {streak > 0 && (
+            <View style={styles.statChip}>
+              <Ionicons name="flame" size={16} color="#F59E0B" />
+              <Text style={styles.statText}>{streak} streak</Text>
+            </View>
+          )}
+          <View style={styles.statChip}>
+            <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+            <Text style={styles.statText}>
+              {Math.round((correctCount/(totalAnswered || 1)) * 100)}%
+            </Text>
+          </View>
         </View>
       </View>
 
-      {/* Question Content with Animations */}
-      <Animated.View style={[styles.examScreen, questionAnimatedStyle]}>
-        <ScrollView style={styles.questionContent} showsVerticalScrollIndicator={false}>
-          <LinearGradient
-            colors={[tokens.colors.surface, tokens.colors.surface + 'F0']}
-            style={styles.questionCard}
-          >
+      {/* Question Content */}
+      <Animated.View style={[styles.content, questionAnimatedStyle]}>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          {/* Question Card */}
+          <View style={styles.questionCard}>
+            <View style={styles.questionHeader}>
+              <View style={styles.questionNumber}>
+                <Text style={styles.questionNumberText}>{currentQuestion + 1}</Text>
+              </View>
+              <View style={styles.pointsBadge}>
+                <Ionicons name="diamond" size={16} color="#F59E0B" />
+                <Text style={styles.pointsText}>{MOCK_QUESTIONS[currentQuestion].points} pts</Text>
+              </View>
+            </View>
+            {MOCK_QUESTIONS[currentQuestion].questionImage && (
+              <Image 
+                source={{ uri: MOCK_QUESTIONS[currentQuestion].questionImage }} 
+                style={styles.questionImage}
+                resizeMode="contain"
+              />
+            )}
             <Text style={styles.questionText}>
               {MOCK_QUESTIONS[currentQuestion].question}
             </Text>
-          </LinearGradient>
+          </View>
 
+          {/* Answer Options */}
           <View style={styles.optionsContainer}>
             {MOCK_QUESTIONS[currentQuestion].options.map((option, index) => {
               const isSelected = selectedAnswers[currentQuestion] === index;
@@ -592,108 +609,112 @@ export default function GamifiedExamTakeScreen() {
                 <TouchableOpacity
                   key={index}
                   style={[
-                    styles.optionButton,
+                    styles.optionCard,
                     isSelected && styles.selectedOption,
                     showResult && isCorrect && styles.correctOption,
                     showResult && isSelected && !isCorrect && styles.wrongOption,
                   ]}
                   onPress={() => handleAnswerSelect(index)}
                   disabled={selectedAnswers[currentQuestion] !== undefined}
-                  activeOpacity={0.8}
+                  activeOpacity={0.7}
                 >
-                  <LinearGradient
-                    colors={
-                      showResult && isCorrect
-                        ? [tokens.colors.success + '20', tokens.colors.success + '10']
-                        : showResult && isSelected && !isCorrect
-                        ? [tokens.colors.error + '20', tokens.colors.error + '10']
-                        : isSelected
-                        ? [tokens.colors.primary + '20', tokens.colors.primary + '10']
-                        : [tokens.colors.surface, tokens.colors.surface + 'F0']
-                    }
-                    style={styles.optionGradient}
-                  >
-                    <View style={styles.optionContent}>
-                      <View
-                        style={[
-                          styles.optionIndicator,
-                          isSelected && styles.selectedIndicator,
-                          showResult && isCorrect && styles.correctIndicator,
-                          showResult && isSelected && !isCorrect && styles.wrongIndicator,
-                        ]}
-                      >
-                        {showResult && isCorrect && (
-                          <Ionicons name="checkmark" size={16} color={tokens.colors.onPrimary} />
-                        )}
-                        {showResult && isSelected && !isCorrect && (
-                          <Ionicons name="close" size={16} color={tokens.colors.onPrimary} />
-                        )}
-                        {!showResult && (
-                          <Text style={styles.optionLetter}>
-                            {String.fromCharCode(65 + index)}
-                          </Text>
-                        )}
-                      </View>
+                  <View style={styles.optionContent}>
+                    <View style={[
+                      styles.optionCircle,
+                      isSelected && styles.selectedCircle,
+                      showResult && isCorrect && styles.correctCircle,
+                      showResult && isSelected && !isCorrect && styles.wrongCircle,
+                    ]}>
+                      {showResult && isCorrect ? (
+                        <Ionicons name="checkmark" size={18} color="white" />
+                      ) : showResult && isSelected && !isCorrect ? (
+                        <Ionicons name="close" size={18} color="white" />
+                      ) : (
+                        <Text style={[
+                          styles.optionLetter,
+                          isSelected && styles.selectedLetter
+                        ]}>
+                          {String.fromCharCode(65 + index)}
+                        </Text>
+                      )}
+                    </View>
+                    <View style={styles.optionTextContainer}>
+                      {option.image && (
+                        <Image 
+                          source={{ uri: option.image }} 
+                          style={styles.optionImage}
+                          resizeMode="contain"
+                        />
+                      )}
                       <Text style={[
                         styles.optionText,
+                        isSelected && styles.selectedText,
                         showResult && isCorrect && styles.correctText,
                         showResult && isSelected && !isCorrect && styles.wrongText,
                       ]}>
-                        {option}
+                        {option.text}
                       </Text>
-                      {showResult && isCorrect && (
-                        <View style={styles.pointsBadge}>
-                          <Text style={styles.pointsText}>
-                            +{MOCK_QUESTIONS[currentQuestion].points}
-                          </Text>
-                        </View>
-                      )}
                     </View>
-                  </LinearGradient>
+                    {showResult && isCorrect && (
+                      <View style={styles.correctBadge}>
+                        <Ionicons name="add" size={14} color="#10B981" />
+                        <Text style={styles.correctBadgeText}>
+                          {MOCK_QUESTIONS[currentQuestion].points}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                 </TouchableOpacity>
               );
             })}
           </View>
         </ScrollView>
 
-        {/* Enhanced Navigation */}
-        <View style={styles.navigationButtons}>
-          <TouchableOpacity
-            style={[styles.navButton, currentQuestion === 0 && styles.disabledNavButton]}
-            onPress={handlePreviousQuestion}
-            disabled={currentQuestion === 0}
-          >
-            <Ionicons name="chevron-back" size={20} color={
-              currentQuestion === 0 ? tokens.colors.onSurfaceVariant : tokens.colors.primary
-            } />
-            <Text style={[
-              styles.navButtonText, 
-              currentQuestion === 0 && styles.disabledNavButtonText
-            ]}>
-              Previous
-            </Text>
-          </TouchableOpacity>
-
+        {/* Navigation */}
+        <View style={styles.navigation}>
+          {currentQuestion > 0 && (
+            <TouchableOpacity 
+              style={styles.navButton}
+              onPress={handlePreviousQuestion}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="chevron-back" size={20} color="#6B7280" />
+              <Text style={styles.navText}>Previous</Text>
+            </TouchableOpacity>
+          )}
+          
+          <View style={styles.spacer} />
+          
           {currentQuestion === MOCK_QUESTIONS.length - 1 ? (
-            <TouchableOpacity style={styles.submitButton} onPress={handleSubmitExam}>
+            <TouchableOpacity 
+              style={styles.submitButton} 
+              onPress={handleSubmitExam}
+              activeOpacity={0.8}
+            >
               <LinearGradient
-                colors={[tokens.colors.primary, tokens.colors.primary + 'CC']}
+                colors={['#4F46E5', '#7C3AED']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
                 style={styles.submitGradient}
               >
-                <Ionicons name="trophy" size={20} color={tokens.colors.onPrimary} />
-                <Text style={styles.submitButtonText}>Finish Exam!</Text>
+                <Ionicons name="checkmark-circle" size={20} color="white" />
+                <Text style={styles.submitText}>Submit Exam</Text>
               </LinearGradient>
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity style={styles.navButton} onPress={handleNextQuestion}>
-              <Text style={styles.navButtonText}>Next</Text>
-              <Ionicons name="chevron-forward" size={20} color={tokens.colors.primary} />
+            <TouchableOpacity 
+              style={styles.nextButton}
+              onPress={handleNextQuestion}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.nextText}>Next</Text>
+              <Ionicons name="chevron-forward" size={20} color="white" />
             </TouchableOpacity>
           )}
         </View>
       </Animated.View>
       
-      {/* Epic Exam Completion UI */}
+      {/* Completion Overlay */}
       {showResult && (
         <Animated.View style={[styles.completionOverlay, celebrationAnimatedStyle]}>
           <LinearGradient
@@ -717,216 +738,57 @@ export default function GamifiedExamTakeScreen() {
                   <Ionicons name="trophy" size={60} color={tokens.colors.onPrimary} />
                 </LinearGradient>
               </View>
-              <Text style={styles.completionTitle}>🎉 Exam Complete! 🎉</Text>
-              <Text style={styles.completionSubtitle}>Congratulations on finishing!</Text>
+              <Text style={styles.completionTitle}>🎉 Complete! 🎉</Text>
+              <Text style={styles.completionSubtitle}>Great job on finishing!</Text>
             </View>
 
-            {/* Results Card with Close Button */}
+            {/* Results Card */}
             <View style={styles.resultsCard}>
               <LinearGradient
                 colors={[tokens.colors.surface + 'F0', tokens.colors.surface + 'E0']}
                 style={styles.resultsCardGradient}
               >
-                {/* Close Button Inside Card */}
                 <TouchableOpacity 
-                  style={styles.cardCloseButton}
-                  onPress={() => {
-                    router.push("/(services)/education/(tabs)/exams" as any);
-                  }}
+                  style={styles.closeButton}
+                  onPress={() => router.push("/(services)/education/(tabs)/exams" as any)}
                   activeOpacity={0.8}
                 >
                   <LinearGradient
                     colors={[tokens.colors.error + '20', tokens.colors.error + '30']}
-                    style={styles.cardCloseButtonGradient}
+                    style={styles.closeButtonGradient}
                   >
                     <Ionicons name="close" size={20} color={tokens.colors.error} />
                   </LinearGradient>
                 </TouchableOpacity>
+                
                 <View style={styles.scoreSection}>
-                  <View style={styles.mainScore}>
-                    <Text style={styles.scoreLabel}>Final Score</Text>
-                    <Text style={styles.scoreValue}>
-                      {Math.round((correctCount / MOCK_QUESTIONS.length) * 100)}%
-                    </Text>
-                    <View style={styles.scoreBar}>
-                      <LinearGradient
-                        colors={[tokens.colors.success, tokens.colors.success + 'AA']}
-                        style={[
-                          styles.scoreBarFill,
-                          { width: `${Math.round((correctCount / MOCK_QUESTIONS.length) * 100)}%` }
-                        ]}
-                      />
-                    </View>
-                  </View>
+                  <Text style={styles.scoreLabel}>Final Score</Text>
+                  <Text style={styles.scoreValue}>
+                    {Math.round((correctCount / MOCK_QUESTIONS.length) * 100)}%
+                  </Text>
                 </View>
 
-                {/* Statistics Grid */}
-                <View style={styles.statsGrid}>
-                  <View style={styles.statisticItem}>
-                    <LinearGradient
-                      colors={[tokens.colors.primary + '20', tokens.colors.primary + '10']}
-                      style={styles.statBackground}
-                    >
-                      <Ionicons name="flash" size={24} color={tokens.colors.primary} />
-                      <Text style={styles.statValue}>{score}</Text>
-                      <Text style={styles.statLabel}>Total Points</Text>
-                    </LinearGradient>
-                  </View>
-
-                  <View style={styles.statisticItem}>
-                    <LinearGradient
-                      colors={[tokens.colors.success + '20', tokens.colors.success + '10']}
-                      style={styles.statBackground}
-                    >
-                      <Ionicons name="checkmark-circle" size={24} color={tokens.colors.success} />
-                      <Text style={styles.statValue}>{correctCount}/{MOCK_QUESTIONS.length}</Text>
-                      <Text style={styles.statLabel}>Correct</Text>
-                    </LinearGradient>
-                  </View>
-
-                  <View style={styles.statisticItem}>
-                    <LinearGradient
-                      colors={[tokens.colors.warning + '20', tokens.colors.warning + '10']}
-                      style={styles.statBackground}
-                    >
-                      <Ionicons name="flame" size={24} color={tokens.colors.warning} />
-                      <Text style={styles.statValue}>
-                        {Math.max(...selectedAnswers.map((_, i) => {
-                          let currentStreak = 0;
-                          for (let j = 0; j <= i; j++) {
-                            if (selectedAnswers[j] === MOCK_QUESTIONS[j].correctAnswer) {
-                              currentStreak++;
-                            } else {
-                              currentStreak = 0;
-                            }
-                          }
-                          return currentStreak;
-                        }))}
-                      </Text>
-                      <Text style={styles.statLabel}>Best Streak</Text>
-                    </LinearGradient>
-                  </View>
-
-                  <View style={styles.statisticItem}>
-                    <LinearGradient
-                      colors={[tokens.colors.secondary + '20', tokens.colors.secondary + '10']}
-                      style={styles.statBackground}
-                    >
-                      <Ionicons name="medal" size={24} color={tokens.colors.secondary} />
-                      <Text style={styles.statValue}>{achievements.length}</Text>
-                      <Text style={styles.statLabel}>Achievements</Text>
-                    </LinearGradient>
-                  </View>
-                </View>
-
-                {/* Achievement Badges */}
-                {achievements.length > 0 && (
-                  <View style={styles.achievementsSection}>
-                    <Text style={styles.achievementsTitle}>🏆 Achievements Unlocked</Text>
-                    <View style={styles.badgesContainer}>
-                      {achievements.map((achievement) => (
-                        <View key={achievement} style={styles.achievementBadge}>
-                          <LinearGradient
-                            colors={[tokens.colors.warning, tokens.colors.warning + 'CC']}
-                            style={styles.badgeGradient}
-                          >
-                            <Ionicons 
-                              name={
-                                achievement === 'first_correct' ? 'star' :
-                                achievement === 'streak_master' ? 'flame' :
-                                achievement === 'perfect_score' ? 'trophy' : 'medal'
-                              } 
-                              size={20} 
-                              color={tokens.colors.onPrimary} 
-                            />
-                          </LinearGradient>
-                          <Text style={styles.badgeText}>
-                            {achievement === 'first_correct' ? 'First Correct!' :
-                             achievement === 'streak_master' ? 'Streak Master!' :
-                             achievement === 'perfect_score' ? 'Perfect Score!' : 'Achievement'}
-                          </Text>
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-                )}
-
-                {/* Performance Message */}
-                <View style={styles.performanceMessage}>
-                  <LinearGradient
-                    colors={
-                      Math.round((correctCount / MOCK_QUESTIONS.length) * 100) >= 80
-                        ? [tokens.colors.success + '20', tokens.colors.success + '10']
-                        : Math.round((correctCount / MOCK_QUESTIONS.length) * 100) >= 60
-                        ? [tokens.colors.warning + '20', tokens.colors.warning + '10']
-                        : [tokens.colors.error + '20', tokens.colors.error + '10']
-                    }
-                    style={styles.messageBackground}
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity
+                    style={styles.primaryButton}
+                    onPress={() => router.push("/(services)/education/(tabs)/exams" as any)}
                   >
-                    <Text style={styles.performanceText}>
-                      {Math.round((correctCount / MOCK_QUESTIONS.length) * 100) >= 80
-                        ? "🌟 Outstanding Performance! You're mastering this subject!"
-                        : Math.round((correctCount / MOCK_QUESTIONS.length) * 100) >= 60
-                        ? "👍 Good Work! Keep practicing to improve further!"
-                        : "💪 Keep Learning! Every attempt makes you stronger!"}
-                    </Text>
-                  </LinearGradient>
+                    <LinearGradient
+                      colors={[tokens.colors.primary, tokens.colors.primary + 'CC']}
+                      style={styles.buttonGradient}
+                    >
+                      <Ionicons name="refresh" size={20} color={tokens.colors.onPrimary} />
+                      <Text style={styles.primaryButtonText}>Take Another</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
                 </View>
               </LinearGradient>
-            </View>
-
-            {/* Action Buttons */}
-            <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={styles.secondaryButton}
-                onPress={() => {
-                  // TODO: Implement share functionality
-                  Alert.alert("Share", "Share functionality coming soon!");
-                }}
-              >
-                <LinearGradient
-                  colors={[tokens.colors.surface, tokens.colors.surface + 'E0']}
-                  style={styles.buttonGradient}
-                >
-                  <Ionicons name="share-social" size={20} color={tokens.colors.onSurface} />
-                  <Text style={styles.secondaryButtonText}>Share Results</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.backToExamsButton}
-                onPress={() => {
-                  router.push("/(services)/education/(tabs)/exams" as any);
-                }}
-              >
-                <LinearGradient
-                  colors={[tokens.colors.success, tokens.colors.success + 'CC']}
-                  style={styles.buttonGradient}
-                >
-                  <Ionicons name="arrow-back" size={20} color={tokens.colors.onPrimary} />
-                  <Text style={styles.backToExamsButtonText}>Back to Exams</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.primaryButton}
-                onPress={() => {
-                  router.push("/(services)/education/(tabs)/exams" as any);
-                }}
-              >
-                <LinearGradient
-                  colors={[tokens.colors.primary, tokens.colors.primary + 'CC']}
-                  style={styles.buttonGradient}
-                >
-                  <Ionicons name="rocket" size={20} color={tokens.colors.onPrimary} />
-                  <Text style={styles.primaryButtonText}>Take Another!</Text>
-                </LinearGradient>
-              </TouchableOpacity>
             </View>
           </LinearGradient>
         </Animated.View>
       )}
-    </Animated.View>
+      </View>
+    </>
   );
 }
 
@@ -934,287 +796,430 @@ const createStyles = (tokens: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
+      backgroundColor: '#FAFBFF',
     },
-    header: {
-      paddingTop: tokens.spacing.xl + tokens.spacing.md,
-      ...tokens.shadows.lg,
-    },
-    headerGradient: {
-      paddingBottom: tokens.spacing.md,
-    },
-    headerContent: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingHorizontal: tokens.spacing.md,
-      paddingTop: tokens.spacing.md,
-    },
-    closeButton: {
-      borderRadius: tokens.borderRadius.full,
-      overflow: 'hidden',
-    },
-    closeButtonGradient: {
-      padding: tokens.spacing.sm,
-      borderRadius: tokens.borderRadius.full,
-    },
-    headerCenter: {
-      flex: 1,
-      alignItems: 'center',
-    },
-    gamingBadge: {
-      borderRadius: tokens.borderRadius.lg,
-      overflow: 'hidden',
-      marginBottom: tokens.spacing.sm,
-      ...tokens.shadows.md,
-    },
-    gamingBadgeGradient: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: tokens.spacing.md,
-      paddingVertical: tokens.spacing.sm,
-      gap: tokens.spacing.xs,
-    },
-    title: {
-      fontSize: tokens.typography.subtitle,
-      fontWeight: tokens.typography.bold,
-      color: tokens.colors.onPrimary,
-    },
-    scoreContainer: {
-      flexDirection: 'row',
-      gap: tokens.spacing.sm,
-    },
-    scoreItem: {
-      borderRadius: tokens.borderRadius.lg,
-      overflow: 'hidden',
-      ...tokens.shadows.sm,
-    },
-    scoreBackground: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: tokens.spacing.md,
-      paddingVertical: tokens.spacing.sm,
-      gap: tokens.spacing.xs,
-    },
-    score: {
-      fontSize: tokens.typography.body,
-      fontWeight: 'bold',
-      color: tokens.colors.success,
-    },
-    streak: {
-      fontSize: tokens.typography.body,
-      fontWeight: 'bold',
-      color: tokens.colors.warning,
-    },
-    timer: {
-      borderRadius: tokens.borderRadius.lg,
-      overflow: 'hidden',
-      ...tokens.shadows.sm,
-    },
-    timerGradient: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: tokens.spacing.md,
-      paddingVertical: tokens.spacing.sm,
-      gap: tokens.spacing.xs,
-    },
-    timerText: {
-      fontSize: tokens.typography.body,
-      color: tokens.colors.error,
-      fontWeight: "bold",
-    },
-    progressSection: {
-      padding: tokens.spacing.md,
-      backgroundColor: tokens.colors.surface + 'E0',
-    },
-    progressInfo: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: tokens.spacing.sm,
-    },
-    questionCounter: {
-      fontSize: tokens.typography.body,
-      color: tokens.colors.onSurface,
-      fontWeight: '600',
-    },
-    accuracy: {
-      fontSize: tokens.typography.body,
-      color: tokens.colors.primary,
-      fontWeight: '600',
-    },
-    progressBarContainer: {
-      height: 8,
-      backgroundColor: tokens.colors.surfaceVariant,
-      borderRadius: tokens.borderRadius.sm,
-      overflow: 'hidden',
-    },
-    progressBar: {
-      height: '100%',
-      borderRadius: tokens.borderRadius.sm,
-    },
-    progressOverlay: {
+    backgroundGradient: {
       position: 'absolute',
       top: 0,
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'rgba(255,255,255,0.1)',
     },
-    examScreen: {
+    orbsContainer: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 1,
+    },
+    orb1: {
+      position: 'absolute',
+      top: '15%',
+      right: '20%',
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: '#E0E7FF',
+      opacity: 0.3,
+    },
+    orb2: {
+      position: 'absolute',
+      bottom: '30%',
+      left: '15%',
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      backgroundColor: '#DBEAFE',
+      opacity: 0.25,
+    },
+    orb3: {
+      position: 'absolute',
+      top: '45%',
+      left: '25%',
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: '#EDE9FE',
+      opacity: 0.2,
+    },
+    // Timer Section Styles (moved above question)
+    timerSection: {
+      backgroundColor: 'white',
+      paddingHorizontal: tokens.spacing.lg,
+      paddingTop: tokens.spacing.md,
+      paddingBottom: tokens.spacing.lg,
+      borderBottomWidth: 1,
+      borderBottomColor: '#F1F5F9',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+    timerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: tokens.spacing.md,
+    },
+    questionProgressSection: {
       flex: 1,
     },
-    questionContent: {
+    questionProgressText: {
+      fontSize: 16,
+      color: '#6A1B9A',
+      fontWeight: '600',
+    },
+    timerContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#FEF2F2',
+      paddingHorizontal: tokens.spacing.md,
+      paddingVertical: 10,
+      borderRadius: tokens.borderRadius.xl,
+      gap: 8,
+      borderWidth: 1,
+      borderColor: '#FCA5A5',
+      shadowColor: '#EF4444',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    timerText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: '#374151',
+    },
+    timerTextRed: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: '#EF4444',
+    },
+    timerTextWarning: {
+      color: '#EF4444',
+      fontWeight: '700',
+    },
+    timerContainerWarning: {
+      backgroundColor: '#FEF2F2',
+      borderWidth: 1,
+      borderColor: '#FECACA',
+    },
+    timerContainerCritical: {
+      backgroundColor: '#FEE2E2',
+      borderWidth: 1,
+      borderColor: '#FBBF24',
+      shadowColor: '#EF4444',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    progressContainer: {
+      marginBottom: tokens.spacing.md,
+    },
+    progressTrack: {
+      height: 6,
+      backgroundColor: '#E5E7EB',
+      borderRadius: 3,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      height: '100%',
+      backgroundColor: '#4F46E5',
+      borderRadius: 3,
+    },
+    statsContainer: {
+      flexDirection: 'row',
+      gap: tokens.spacing.sm,
+      justifyContent: 'center',
+    },
+    statChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#F8FAFC',
+      paddingHorizontal: tokens.spacing.sm,
+      paddingVertical: 6,
+      borderRadius: tokens.borderRadius.md,
+      gap: 4,
+    },
+    statText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: '#374151',
+    },
+    // Content Styles
+    content: {
       flex: 1,
-      padding: tokens.spacing.md,
+      zIndex: 5,
+    },
+    scrollView: {
+      flex: 1,
+      paddingHorizontal: tokens.spacing.lg,
+      paddingTop: tokens.spacing.lg,
     },
     questionCard: {
-      padding: tokens.spacing.lg,
-      borderRadius: tokens.borderRadius.lg,
+      backgroundColor: 'white',
+      borderRadius: 20,
+      padding: tokens.spacing.xl,
       marginBottom: tokens.spacing.xl,
-      ...tokens.shadows.md,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.08,
+      shadowRadius: 20,
+      elevation: 4,
+    },
+    questionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: tokens.spacing.lg,
+    },
+    questionNumber: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: '#4F46E5',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    questionNumberText: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: 'white',
+    },
+    pointsBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#FEF3C7',
+      paddingHorizontal: tokens.spacing.sm,
+      paddingVertical: 6,
+      borderRadius: tokens.borderRadius.md,
+      gap: 4,
+    },
+    pointsText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: '#D97706',
     },
     questionText: {
-      fontSize: tokens.typography.subtitle,
-      color: tokens.colors.onSurface,
+      fontSize: 18,
       lineHeight: 28,
+      color: '#1F2937',
       fontWeight: '500',
     },
+    questionImage: {
+      width: '100%',
+      height: 200,
+      borderRadius: tokens.borderRadius.md,
+      marginVertical: tokens.spacing.md,
+      backgroundColor: '#F9FAFB',
+    },
+    // Options Styles
     optionsContainer: {
       gap: tokens.spacing.md,
       marginBottom: tokens.spacing.xl,
     },
-    optionButton: {
-      borderRadius: tokens.borderRadius.md,
-      overflow: 'hidden',
-      ...tokens.shadows.sm,
-    },
-    optionGradient: {
-      padding: tokens.spacing.md,
+    optionCard: {
+      backgroundColor: 'white',
+      borderRadius: 20,
+      padding: tokens.spacing.lg,
+      borderWidth: 2.5,
+      borderColor: '#D1D5DB', // More visible gray border
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.08,
+      shadowRadius: 15,
+      elevation: 3,
+      marginVertical: 4,
     },
     selectedOption: {
+      borderColor: '#6A1B9A',
+      backgroundColor: '#F3F0FF',
       transform: [{ scale: 1.02 }],
+      shadowColor: '#6A1B9A',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.15,
+      shadowRadius: 12,
+      elevation: 4,
     },
     correctOption: {
-      borderWidth: 2,
-      borderColor: tokens.colors.success,
+      borderColor: '#10B981',
+      backgroundColor: '#F0FDF4',
+      shadowColor: '#10B981',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+      elevation: 3,
     },
     wrongOption: {
-      borderWidth: 2,
-      borderColor: tokens.colors.error,
+      borderColor: '#EF4444',
+      backgroundColor: '#FEF2F2',
+      shadowColor: '#EF4444',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+      elevation: 3,
     },
     optionContent: {
-      flexDirection: "row",
-      alignItems: "center",
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: tokens.spacing.md,
     },
-    optionIndicator: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      backgroundColor: tokens.colors.surfaceVariant,
-      justifyContent: "center",
-      alignItems: "center",
-      marginRight: tokens.spacing.md,
+    optionCircle: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: '#F9FAFB',
+      borderWidth: 2.5,
+      borderColor: '#D1D5DB',
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
     },
-    selectedIndicator: {
-      backgroundColor: tokens.colors.primary,
+    selectedCircle: {
+      backgroundColor: '#6A1B9A',
+      borderColor: '#6A1B9A',
+      shadowColor: '#6A1B9A',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 2,
     },
-    correctIndicator: {
-      backgroundColor: tokens.colors.success,
+    correctCircle: {
+      backgroundColor: '#10B981',
+      borderColor: '#10B981',
     },
-    wrongIndicator: {
-      backgroundColor: tokens.colors.error,
+    wrongCircle: {
+      backgroundColor: '#EF4444',
+      borderColor: '#EF4444',
     },
     optionLetter: {
-      fontSize: tokens.typography.body,
-      color: tokens.colors.onSurface,
-      fontWeight: "600",
+      fontSize: 16,
+      fontWeight: '700',
+      color: '#6B7280',
+    },
+    selectedLetter: {
+      color: 'white',
+    },
+    optionTextContainer: {
+      flex: 1,
+      gap: tokens.spacing.sm,
     },
     optionText: {
-      fontSize: tokens.typography.body,
-      color: tokens.colors.onSurface,
-      flex: 1,
-      lineHeight: 22,
+      fontSize: 16,
+      lineHeight: 24,
+      color: '#374151',
+      fontWeight: '500',
+    },
+    optionImage: {
+      width: '100%',
+      height: 120,
+      borderRadius: tokens.borderRadius.sm,
+      backgroundColor: '#F9FAFB',
+    },
+    selectedText: {
+      color: '#1F2937',
+      fontWeight: '600',
     },
     correctText: {
-      color: tokens.colors.success,
+      color: '#059669',
       fontWeight: '600',
     },
     wrongText: {
-      color: tokens.colors.error,
+      color: '#DC2626',
+      fontWeight: '500',
     },
-    pointsBadge: {
-      backgroundColor: tokens.colors.success,
+    correctBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#DCFCE7',
       paddingHorizontal: tokens.spacing.sm,
-      paddingVertical: tokens.spacing.xs,
+      paddingVertical: 4,
       borderRadius: tokens.borderRadius.sm,
+      gap: 2,
     },
-    pointsText: {
-      color: tokens.colors.onPrimary,
-      fontSize: tokens.typography.caption,
+    correctBadgeText: {
+      fontSize: 12,
       fontWeight: '600',
+      color: '#10B981',
     },
-    navigationButtons: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      padding: tokens.spacing.md,
-      backgroundColor: tokens.colors.surface + 'F0',
+    // Navigation Styles
+    navigation: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: tokens.spacing.lg,
+      paddingVertical: tokens.spacing.lg,
+      backgroundColor: 'white',
       borderTopWidth: 1,
-      borderTopColor: tokens.colors.border,
+      borderTopColor: '#F1F5F9',
     },
     navButton: {
       flexDirection: 'row',
       alignItems: 'center',
       paddingHorizontal: tokens.spacing.md,
       paddingVertical: tokens.spacing.sm,
-      borderRadius: tokens.borderRadius.md,
+      borderRadius: tokens.borderRadius.lg,
+      backgroundColor: '#F8FAFC',
+      gap: 6,
       borderWidth: 1,
-      borderColor: tokens.colors.primary,
-      minWidth: 100,
-      justifyContent: 'center',
-      gap: tokens.spacing.xs,
+      borderColor: '#E5E7EB',
     },
-    disabledNavButton: {
-      borderColor: tokens.colors.surfaceVariant,
+    navText: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: '#6B7280',
     },
-    navButtonText: {
-      fontSize: tokens.typography.body,
-      color: tokens.colors.primary,
-      fontWeight: "600",
+    spacer: {
+      flex: 1,
     },
-    disabledNavButtonText: {
-      color: tokens.colors.onSurfaceVariant,
+    nextButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: tokens.spacing.lg,
+      paddingVertical: tokens.spacing.md,
+      borderRadius: tokens.borderRadius.lg,
+      backgroundColor: '#4F46E5',
+      gap: 8,
+      shadowColor: '#4F46E5',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 12,
+      elevation: 4,
+    },
+    nextText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: 'white',
     },
     submitButton: {
-      borderRadius: tokens.borderRadius.md,
+      borderRadius: tokens.borderRadius.lg,
       overflow: 'hidden',
-      minWidth: 140,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.15,
+      shadowRadius: 16,
+      elevation: 6,
     },
     submitGradient: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: tokens.spacing.md,
-      paddingVertical: tokens.spacing.sm,
-      justifyContent: 'center',
-      gap: tokens.spacing.xs,
+      paddingHorizontal: tokens.spacing.xl,
+      paddingVertical: tokens.spacing.md,
+      gap: 8,
     },
-    submitButtonText: {
-      fontSize: tokens.typography.body,
-      color: tokens.colors.onPrimary,
-      fontWeight: "600",
+    submitText: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: 'white',
     },
-    floatingText: {
-      position: 'absolute',
-      top: height * 0.4,
-      left: width * 0.4,
-      zIndex: 1000,
-    },
-    floatingTextContent: {
-      fontSize: tokens.typography.title,
-      fontWeight: 'bold',
-      textShadowColor: 'rgba(0,0,0,0.3)',
-      textShadowOffset: { width: 1, height: 1 },
-      textShadowRadius: 3,
-    },
-    // Epic Completion UI Styles
+    
+    // Completion overlay styles (keeping existing)
     completionOverlay: {
       position: 'absolute',
       top: 0,
@@ -1271,7 +1276,7 @@ const createStyles = (tokens: any) =>
       ...tokens.shadows.lg,
       position: 'relative',
     },
-    cardCloseButton: {
+    closeButton: {
       position: 'absolute',
       top: tokens.spacing.md,
       right: tokens.spacing.md,
@@ -1280,7 +1285,7 @@ const createStyles = (tokens: any) =>
       zIndex: 10,
       ...tokens.shadows.sm,
     },
-    cardCloseButtonGradient: {
+    closeButtonGradient: {
       width: 32,
       height: 32,
       borderRadius: tokens.borderRadius.full,
@@ -1290,9 +1295,6 @@ const createStyles = (tokens: any) =>
     scoreSection: {
       alignItems: 'center',
       marginBottom: tokens.spacing.xl,
-    },
-    mainScore: {
-      alignItems: 'center',
     },
     scoreLabel: {
       fontSize: tokens.typography.body,
@@ -1306,119 +1308,10 @@ const createStyles = (tokens: any) =>
       color: tokens.colors.primary,
       marginBottom: tokens.spacing.md,
     },
-    scoreBar: {
-      width: 200,
-      height: 8,
-      backgroundColor: tokens.colors.surfaceVariant,
-      borderRadius: tokens.borderRadius.sm,
-      overflow: 'hidden',
-    },
-    scoreBarFill: {
-      height: '100%',
-      borderRadius: tokens.borderRadius.sm,
-    },
-    statsGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'space-between',
-      marginBottom: tokens.spacing.xl,
-    },
-    statisticItem: {
-      width: '48%',
-      marginBottom: tokens.spacing.md,
-    },
-    statBackground: {
-      borderRadius: tokens.borderRadius.lg,
-      padding: tokens.spacing.lg,
-      alignItems: 'center',
-      ...tokens.shadows.sm,
-    },
-    statValue: {
-      fontSize: tokens.typography.title,
-      fontWeight: 'bold',
-      color: tokens.colors.onSurface,
-      marginTop: tokens.spacing.sm,
-      marginBottom: tokens.spacing.xs,
-    },
-    statLabel: {
-      fontSize: tokens.typography.caption,
-      color: tokens.colors.onSurfaceVariant,
-      fontWeight: '500',
-      textAlign: 'center',
-    },
-    achievementsSection: {
-      marginBottom: tokens.spacing.xl,
-    },
-    achievementsTitle: {
-      fontSize: tokens.typography.subtitle,
-      fontWeight: 'bold',
-      color: tokens.colors.onSurface,
-      textAlign: 'center',
-      marginBottom: tokens.spacing.md,
-    },
-    badgesContainer: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'center',
-      gap: tokens.spacing.md,
-    },
-    achievementBadge: {
-      alignItems: 'center',
-      minWidth: 80,
-    },
-    badgeGradient: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: tokens.spacing.xs,
-      ...tokens.shadows.md,
-    },
-    badgeText: {
-      fontSize: tokens.typography.caption,
-      color: tokens.colors.onSurface,
-      fontWeight: '600',
-      textAlign: 'center',
-    },
-    performanceMessage: {
-      marginBottom: tokens.spacing.lg,
-    },
-    messageBackground: {
-      borderRadius: tokens.borderRadius.lg,
-      padding: tokens.spacing.lg,
-      ...tokens.shadows.sm,
-    },
-    performanceText: {
-      fontSize: tokens.typography.body,
-      color: tokens.colors.onSurface,
-      textAlign: 'center',
-      fontWeight: '500',
-      lineHeight: 22,
-    },
     actionButtons: {
-      flexDirection: 'row',
       width: '100%',
-      gap: tokens.spacing.sm,
-      flexWrap: 'wrap',
     },
     primaryButton: {
-      flex: 1,
-      minWidth: '30%',
-      borderRadius: tokens.borderRadius.lg,
-      overflow: 'hidden',
-      ...tokens.shadows.md,
-    },
-    secondaryButton: {
-      flex: 1,
-      minWidth: '30%',
-      borderRadius: tokens.borderRadius.lg,
-      overflow: 'hidden',
-      ...tokens.shadows.sm,
-    },
-    backToExamsButton: {
-      flex: 1,
-      minWidth: '30%',
       borderRadius: tokens.borderRadius.lg,
       overflow: 'hidden',
       ...tokens.shadows.md,
@@ -1432,16 +1325,6 @@ const createStyles = (tokens: any) =>
       gap: tokens.spacing.sm,
     },
     primaryButtonText: {
-      fontSize: tokens.typography.subtitle,
-      color: tokens.colors.onPrimary,
-      fontWeight: 'bold',
-    },
-    secondaryButtonText: {
-      fontSize: tokens.typography.subtitle,
-      color: tokens.colors.onSurface,
-      fontWeight: '600',
-    },
-    backToExamsButtonText: {
       fontSize: tokens.typography.subtitle,
       color: tokens.colors.onPrimary,
       fontWeight: 'bold',
