@@ -31,18 +31,24 @@ export function MinimalHeader({
   const backgroundGradient = getGradient('header');
 
   const handleBackPress = () => {
+    // Add haptic feedback to confirm button press
+    if (typeof require !== 'undefined') {
+      try {
+        const Haptics = require('expo-haptics');
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } catch (e) {
+        // Haptics not available, ignore
+      }
+    }
+    
     if (onBackPress) {
-      console.log('MinimalHeader: Using custom onBackPress');
       onBackPress();
     } else {
-      // Default navigation behavior
-      console.log('MinimalHeader: handleBackPress called, canGoBack:', router.canGoBack());
+      // Default navigation behavior - try router.back() first, then fallback to exams tab
       if (router.canGoBack()) {
-        console.log('MinimalHeader: Going back using router.back()');
         router.back();
       } else {
-        console.log('MinimalHeader: No back history, going to education tabs');
-        router.push('/(services)/education/(tabs)/' as any);
+        router.push('/(services)/education/(tabs)/exams');
       }
     }
   };
@@ -62,6 +68,9 @@ export function MinimalHeader({
               <TouchableOpacity
                 onPress={handleBackPress}
                 style={styles.backButton}
+                activeOpacity={0.7}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                testID="minimal-header-back-button"
               >
                 <Ionicons
                   name="arrow-back"
@@ -88,6 +97,8 @@ export function MinimalHeader({
 const createStyles = (tokens: any) => StyleSheet.create({
   headerContainer: {
     // Remove fixed height - let SafeAreaView + content determine height
+    zIndex: 10,
+    elevation: 10,
   },
   safeArea: {
     backgroundColor: 'transparent',
@@ -108,6 +119,8 @@ const createStyles = (tokens: any) => StyleSheet.create({
     borderRadius: 24,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     marginRight: tokens.spacing.md,
+    zIndex: 100,
+    elevation: 5,
   },
   titleContainer: {
     flex: 1,

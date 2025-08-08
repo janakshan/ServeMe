@@ -13,6 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useEducationTheme, useScopedThemedStyles } from "@/contexts/ScopedThemeProviders";
 import { router, useLocalSearchParams, Stack } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MinimalHeader } from '@/src/education/components/headers';
 import Animated, {
   useSharedValue,
@@ -249,6 +250,7 @@ export default function ModernExamTakeScreen() {
   const themeContext = useEducationTheme();
   const styles = useScopedThemedStyles(createStyles, themeContext);
   const { tokens } = themeContext;
+  const insets = useSafeAreaInsets();
   
   // Core exam state
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -334,9 +336,11 @@ export default function ModernExamTakeScreen() {
   useEffect(() => {
     const backAction = () => {
       if (showResult) {
-        router.push("/(services)/education/(tabs)/exams" as any);
+        // Direct navigation from result screen
+        router.push("/(services)/education/(tabs)/exams");
         return true;
       } else {
+        // Show confirmation dialog for active exam
         handleBackPress();
         return true;
       }
@@ -574,7 +578,10 @@ export default function ModernExamTakeScreen() {
         { 
           text: "Exit", 
           style: "destructive", 
-          onPress: () => router.back() 
+          onPress: () => {
+            // Navigate back to exams tab
+            router.push("/(services)/education/(tabs)/exams");
+          }
         }
       ]
     );
@@ -859,7 +866,7 @@ export default function ModernExamTakeScreen() {
 
         {/* Enhanced Mobile-First Navigation */}
         <View style={styles.enhancedNavigation}>
-          <View style={styles.navigationSafeArea}>
+          <View style={[styles.navigationSafeArea, { paddingBottom: Math.max(insets.bottom, 8) }]}>
             <View style={styles.navigationContent}>
               {currentQuestion > 0 && (
                 <TouchableOpacity 
@@ -945,7 +952,7 @@ export default function ModernExamTakeScreen() {
               >
                 <TouchableOpacity 
                   style={styles.closeButton}
-                  onPress={() => router.push("/(services)/education/(tabs)/exams" as any)}
+                  onPress={() => router.push("/(services)/education/(tabs)/exams")}
                   activeOpacity={0.8}
                 >
                   <LinearGradient
@@ -966,7 +973,7 @@ export default function ModernExamTakeScreen() {
                 <View style={styles.actionButtons}>
                   <TouchableOpacity
                     style={styles.primaryButton}
-                    onPress={() => router.push("/(services)/education/(tabs)/exams" as any)}
+                    onPress={() => router.push("/(services)/education/(tabs)/exams")}
                   >
                     <LinearGradient
                       colors={[tokens.colors.primary, tokens.colors.primary + 'CC']}
@@ -1007,6 +1014,7 @@ const createStyles = (tokens: any) =>
       right: 0,
       bottom: 0,
       zIndex: 1,
+      pointerEvents: 'none', // Allow touches to pass through
     },
     orb1: {
       position: 'absolute',
@@ -1041,9 +1049,9 @@ const createStyles = (tokens: any) =>
     // Timer Section Styles (moved above question)
     timerSection: {
       backgroundColor: 'white',
-      paddingHorizontal: tokens.spacing.lg,
-      paddingTop: tokens.spacing.md,
-      paddingBottom: tokens.spacing.lg,
+      paddingHorizontal: 16,     // 8px grid: 16px
+      paddingTop: 8,             // 8px grid: 8px (adjusted)
+      paddingBottom: 12,         // 8px grid: 12px  
       borderBottomWidth: 1,
       borderBottomColor: '#F1F5F9',
       shadowColor: '#000',
@@ -1057,9 +1065,9 @@ const createStyles = (tokens: any) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginBottom: tokens.spacing.lg,
-      paddingVertical: tokens.spacing.sm,
-      paddingHorizontal: tokens.spacing.md,
+      marginBottom: 12,          // 8px grid: 12px
+      paddingVertical: 8,        // 8px grid: 8px (adjusted back to grid)
+      paddingHorizontal: 12,     // 8px grid: 12px
     },
     
     // Question Count Styles - Balanced width
@@ -1450,24 +1458,24 @@ const createStyles = (tokens: any) =>
       flex: 1,
     },
     scrollViewContent: {
-      paddingHorizontal: tokens.spacing.lg,
-      paddingTop: tokens.spacing.lg,
-      paddingBottom: tokens.spacing.xl * 2, // Extra bottom padding for better scrolling
+      paddingHorizontal: 16,     // Consistent with other horizontal padding
+      paddingTop: 12,            // Reduced from lg (16px) to 12px
+      paddingBottom: 32,         // Reduced from xl * 2 (48px) to 32px
       flexGrow: 1,
     },
     questionCard: {
       backgroundColor: '#FFFFFF',
-      borderRadius: 24,
-      padding: tokens.spacing.xl,
-      marginBottom: tokens.spacing.xl,
+      borderRadius: 20,          // Slightly reduced from 24px
+      padding: 20,               // Reduced from xl (24px) to 20px
+      marginBottom: 20,          // Reduced from xl (24px) to 20px
       shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 0.2,
-      shadowRadius: 25,
-      elevation: 12,
-      borderWidth: 3,
+      shadowOffset: { width: 0, height: 6 }, // Reduced shadow
+      shadowOpacity: 0.15,       // Slightly reduced opacity
+      shadowRadius: 20,          // Reduced shadow radius
+      elevation: 8,              // Reduced elevation
+      borderWidth: 2,            // Reduced from 3px to 2px
       borderColor: '#6A1B9A',
-      marginHorizontal: 2, // Space for shadow
+      marginHorizontal: 2,       // Space for shadow
     },
     questionHeader: {
       flexDirection: 'row',
@@ -1545,18 +1553,18 @@ const createStyles = (tokens: any) =>
     },
     enhancedOptionCard: {
       backgroundColor: '#FFFFFF',
-      borderRadius: 20,
-      padding: tokens.spacing.lg,
-      borderWidth: 3,
-      borderColor: '#9CA3AF', // Much more visible gray border
+      borderRadius: 16,          // 8px grid: 16px
+      padding: 16,               // 8px grid: 16px (adjusted back to grid)
+      borderWidth: 2,            // Clean border
+      borderColor: '#9CA3AF',    // Much more visible gray border
       shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.18,
-      shadowRadius: 20,
-      elevation: 8,
-      marginVertical: 4,
-      marginHorizontal: 2, // Space for shadow
-      minHeight: 75,
+      shadowOffset: { width: 0, height: 4 }, // Subtle shadow
+      shadowOpacity: 0.12,       // Reduced opacity
+      shadowRadius: 12,          // Shadow radius
+      elevation: 4,              // Android elevation
+      marginVertical: 8,         // 8px grid: 8px (adjusted for better separation)
+      marginHorizontal: 2,       // Space for shadow
+      minHeight: 64,             // 8px grid: 64px
       transform: [{ scale: 1 }],
     },
     enhancedSelectedOption: {
@@ -1732,14 +1740,14 @@ const createStyles = (tokens: any) =>
       elevation: 8,
     },
     navigationSafeArea: {
-      paddingBottom: 20, // Extra padding for home indicator
+      // Dynamic padding handled in component with useSafeAreaInsets
     },
     navigationContent: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: tokens.spacing.lg,
-      paddingVertical: tokens.spacing.lg,
-      minHeight: 80,
+      paddingHorizontal: 16, // Consistent with modern spacing
+      paddingVertical: 12,   // Reduced from 16px for efficiency
+      minHeight: 56,         // Reduced from 80px (30% height reduction)
     },
     navigationCenter: {
       flex: 1,
@@ -1754,15 +1762,15 @@ const createStyles = (tokens: any) =>
     enhancedNavButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: tokens.spacing.lg,
-      paddingVertical: tokens.spacing.md,
-      borderRadius: tokens.borderRadius.xl,
+      paddingHorizontal: 16,     // Consistent with navigation padding
+      paddingVertical: 10,       // Matched with Next button
+      borderRadius: 24,          // Modern pill shape
       backgroundColor: '#F8FAFC',
       borderWidth: 1,
       borderColor: '#E5E7EB',
-      gap: 8,
-      minWidth: 100,
-      minHeight: 50,
+      gap: 6,                    // Consistent with Next button
+      minWidth: 80,              // Slightly smaller for secondary action
+      minHeight: 44,             // Standard touch target
     },
     enhancedNavText: {
       fontSize: 16,
@@ -1772,18 +1780,18 @@ const createStyles = (tokens: any) =>
     enhancedNextButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: tokens.spacing.xl,
-      paddingVertical: tokens.spacing.md,
-      borderRadius: tokens.borderRadius.xl,
+      paddingHorizontal: 20,     // Reduced from xl (24px) to 20px
+      paddingVertical: 10,       // Reduced from md (12px) to 10px
+      borderRadius: 24,          // Modern pill shape
       backgroundColor: '#6A1B9A',
-      gap: 8,
+      gap: 6,                    // Slightly reduced gap
       shadowColor: '#6A1B9A',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 12,
-      elevation: 6,
-      minWidth: 100,
-      minHeight: 50,
+      shadowOffset: { width: 0, height: 2 }, // Reduced shadow
+      shadowOpacity: 0.25,       // Slightly reduced opacity
+      shadowRadius: 8,           // Reduced shadow radius
+      elevation: 4,              // Reduced elevation
+      minWidth: 88,              // Slightly reduced minimum width
+      minHeight: 44,             // Standard touch target (reduced from 50px)
     },
     enhancedNextText: {
       fontSize: 16,
@@ -1791,22 +1799,22 @@ const createStyles = (tokens: any) =>
       color: 'white',
     },
     enhancedSubmitButton: {
-      borderRadius: tokens.borderRadius.xl,
+      borderRadius: 24,          // Modern pill shape (8px grid: 24px)
       overflow: 'hidden',
       shadowColor: '#6A1B9A',
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 0.3,
-      shadowRadius: 16,
-      elevation: 8,
-      minWidth: 120,
-      minHeight: 50,
+      shadowOffset: { width: 0, height: 4 }, // Consistent with other buttons
+      shadowOpacity: 0.25,       // Slightly reduced
+      shadowRadius: 12,          // Consistent shadow
+      elevation: 6,              // Moderate elevation
+      minWidth: 100,             // Consistent with other buttons
+      minHeight: 48,             // Accessibility standard (8px grid: 48px)
     },
     enhancedSubmitGradient: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: tokens.spacing.xl,
-      paddingVertical: tokens.spacing.md,
-      gap: 8,
+      paddingHorizontal: 20,     // 8px grid: 20px (consistent with Next button)
+      paddingVertical: 10,       // 8px grid: 10px (consistent with Next button) 
+      gap: 8,                    // 8px grid: 8px
       justifyContent: 'center',
     },
     enhancedSubmitText: {

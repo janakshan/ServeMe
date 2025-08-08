@@ -51,6 +51,28 @@ function EducationLayoutContent() {
             name="(tabs)"
             options={screenOptions}
           />
+          <Stack.Screen
+            name="exam/[examId]"
+            options={{
+              ...screenOptions,
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="exam/[examId]/take"
+            options={{
+              headerShown: false,
+              gestureEnabled: true,
+            }}
+          />
+          <Stack.Screen
+            name="[courseId]"
+            options={screenOptions}
+          />
+          <Stack.Screen
+            name="[courseId]/learn"
+            options={screenOptions}
+          />
         </Stack>
       </LinearGradient>
     </View>
