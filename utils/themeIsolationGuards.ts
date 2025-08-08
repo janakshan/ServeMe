@@ -117,16 +117,18 @@ export const THEME_CONTEXT_REGISTRY = {
   EntertainmentTheme: 'entertainment',
 } as const;
 
-// Development-only theme debugging utilities
+// Development-only theme debugging utilities with conditional logging
+const ENABLE_THEME_DEBUG_LOGS = false; // Set to true to enable detailed theme access logging
+
 export const ThemeDebugUtils = {
   logThemeAccess: (contextName: string, routeGroup: string) => {
-    if (__DEV__) {
+    if (__DEV__ && ENABLE_THEME_DEBUG_LOGS) {
       console.log(`🎨 Theme Access: ${contextName} used in ${routeGroup} route group`);
     }
   },
   
   validateAllContexts: () => {
-    if (__DEV__) {
+    if (__DEV__ && ENABLE_THEME_DEBUG_LOGS) {
       const currentRouteGroup = getCurrentRouteGroup();
       console.log(`🔍 Current Route Group: ${currentRouteGroup}`);
       console.log(`📋 Available Contexts:`, ROUTE_GROUP_BOUNDARIES[currentRouteGroup as keyof typeof ROUTE_GROUP_BOUNDARIES] || 'None detected');
@@ -134,10 +136,18 @@ export const ThemeDebugUtils = {
   },
   
   checkIsolationIntegrity: () => {
-    if (__DEV__) {
+    if (__DEV__ && ENABLE_THEME_DEBUG_LOGS) {
       console.log('🛡️ Theme Isolation System Status: Active');
       console.log('📊 Registered Contexts:', Object.keys(THEME_CONTEXT_REGISTRY));
       console.log('🚧 Route Group Boundaries:', ROUTE_GROUP_BOUNDARIES);
+    }
+  },
+
+  // Force enable debug logging (for development debugging when needed)
+  enableDebugLogging: () => {
+    if (__DEV__) {
+      console.log('🎨 Theme Debug Logging Enabled');
+      // Note: This will require module reload to take effect due to const
     }
   }
 };

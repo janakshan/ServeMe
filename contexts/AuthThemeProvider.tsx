@@ -119,9 +119,6 @@ export function useAuthTheme(): AuthThemeContextType {
   validateThemeContextAccess('AuthTheme', 'auth', context);
   validateRouteGroupBoundary('AuthTheme');
   
-  // Debug logging in development
-  ThemeDebugUtils.logThemeAccess('AuthTheme', 'auth');
-  
   if (!context) {
     throw new Error('useAuthTheme must be used within an AuthThemeProvider');
   }

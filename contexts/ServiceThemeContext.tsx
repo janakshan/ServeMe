@@ -329,17 +329,12 @@ export function ServiceThemeProvider({
   // Memoized theme computation for performance
   const tokens = useMemo(() => {
     const baseTheme = globalThemeConfigs[globalTheme];
-    console.log(`🎨 Computing tokens for globalTheme: ${globalTheme}, activeService: ${activeService}`);
     
     if (!activeService || !serviceThemeConfigs[activeService]) {
-      console.log(`🎨 Using base theme (no service override)`);
-      console.log(`🎨 Base theme primary color: ${baseTheme.colors.primary}`);
       return baseTheme;
     }
     
     const serviceOverride = serviceThemeConfigs[activeService];
-    console.log(`🎨 Applying service override for: ${activeService}`);
-    console.log(`🎨 Service primary color: ${serviceOverride.colors?.primary}`);
     
     const computedTheme = {
       colors: { ...baseTheme.colors, ...serviceOverride.colors },
@@ -350,7 +345,6 @@ export function ServiceThemeProvider({
       gradients: baseTheme.gradients, // Include gradients from base theme
     };
     
-    console.log(`🎨 Computed theme primary color: ${computedTheme.colors.primary}`);
     return computedTheme;
   }, [globalTheme, activeService]);
   
@@ -501,11 +495,9 @@ export function ServiceThemeProvider({
   const enhancedSetActiveService = useCallback((service: string | null) => {
     setActiveService(currentService => {
       if (service === currentService) {
-        console.log(`🎨 Theme: Service ${service} already active, no change needed`);
         return currentService;
       }
       
-      console.log(`🎨 Theme: Switching from ${currentService} to ${service}`);
       setIsTransitioning(true);
       setPreviousService(currentService);
       setTimeout(() => setIsTransitioning(false), 100);
@@ -552,7 +544,7 @@ export function ServiceThemeProvider({
     }
   };
 
-  const contextValue: ServiceThemeContextType = {
+  const contextValue: ServiceThemeContextType = useMemo(() => ({
     activeService,
     globalTheme,
     tokens,
@@ -574,7 +566,25 @@ export function ServiceThemeProvider({
     getGradient,
     getServiceGradient,
     createServiceCardGradient,
-  };
+  }), [
+    activeService,
+    globalTheme,
+    tokens,
+    layout,
+    componentVariants,
+    gradients,
+    themeStack,
+    previousService,
+    isTransitioning,
+    enhancedSetActiveService,
+    pushServiceTheme,
+    popServiceTheme,
+    onNavigationFocus,
+    onNavigationBlur,
+    resetThemeStack,
+    getServiceTheme,
+    resetToGlobalTheme
+  ]);
 
   return (
     <ServiceThemeContext.Provider value={contextValue}>

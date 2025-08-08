@@ -86,9 +86,6 @@ export function useEducationTheme(): ScopedThemeContextType {
   validateThemeContextAccess('EducationTheme', 'education', context);
   validateRouteGroupBoundary('EducationTheme');
   
-  // Debug logging in development
-  ThemeDebugUtils.logThemeAccess('EducationTheme', 'education');
-  
   if (!context) {
     throw new Error('useEducationTheme must be used within an EducationThemeProvider');
   }
@@ -155,9 +152,6 @@ export function useBookingTheme(): ScopedThemeContextType {
   // Enforce strict theme isolation
   validateThemeContextAccess('BookingTheme', 'booking', context);
   validateRouteGroupBoundary('BookingTheme');
-  
-  // Debug logging in development
-  ThemeDebugUtils.logThemeAccess('BookingTheme', 'booking');
   
   if (!context) {
     throw new Error('useBookingTheme must be used within a BookingThemeProvider');
@@ -226,9 +220,6 @@ export function useHealthcareTheme(): ScopedThemeContextType {
   validateThemeContextAccess('HealthcareTheme', 'healthcare', context);
   validateRouteGroupBoundary('HealthcareTheme');
   
-  // Debug logging in development
-  ThemeDebugUtils.logThemeAccess('HealthcareTheme', 'healthcare');
-  
   if (!context) {
     throw new Error('useHealthcareTheme must be used within a HealthcareThemeProvider');
   }
@@ -295,9 +286,6 @@ export function useEntertainmentTheme(): ScopedThemeContextType {
   // Enforce strict theme isolation
   validateThemeContextAccess('EntertainmentTheme', 'entertainment', context);
   validateRouteGroupBoundary('EntertainmentTheme');
-  
-  // Debug logging in development
-  ThemeDebugUtils.logThemeAccess('EntertainmentTheme', 'entertainment');
   
   if (!context) {
     throw new Error('useEntertainmentTheme must be used within an EntertainmentThemeProvider');

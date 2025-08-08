@@ -92,9 +92,6 @@ export function useMainAppTheme(): MainAppThemeContextType {
   validateThemeContextAccess('MainAppTheme', 'main', context);
   validateRouteGroupBoundary('MainAppTheme');
   
-  // Debug logging in development
-  ThemeDebugUtils.logThemeAccess('MainAppTheme', 'main');
-  
   if (!context) {
     throw new Error('useMainAppTheme must be used within a MainAppThemeProvider');
   }
