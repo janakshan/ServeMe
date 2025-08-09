@@ -41,6 +41,10 @@ export type {
   HistoricalPerformanceData 
 } from './HistoricalPerformanceChart';
 
+export { StudyGroupShare } from './StudyGroupShare';
+export { TeacherDashboardNotification } from './TeacherDashboardNotification';
+export { ParentNotification } from './ParentNotification';
+
 // Utility Exports
 export { 
   CelebrationSystem,

@@ -32,6 +32,9 @@ import {
   EnhancedResultsScreen,
   AchievementUnlock,
   ShareableResultCard,
+  StudyGroupShare,
+  TeacherDashboardNotification,
+  ParentNotification,
   NextStepsRecommendations,
   PerformanceBreakdown,
   HistoricalPerformanceChart,
@@ -282,6 +285,10 @@ export default function ModernExamTakeScreen() {
   const [unlockedAchievements, setUnlockedAchievements] = useState<Achievement[]>([]);
   const [showAchievementUnlock, setShowAchievementUnlock] = useState(false);
   const [showShareCard, setShowShareCard] = useState(false);
+  const [shareCardTemplate, setShareCardTemplate] = useState<'modern' | 'minimalist' | 'celebration' | 'achievement'>('modern');
+  const [showStudyGroupShare, setShowStudyGroupShare] = useState(false);
+  const [showTeacherDashboard, setShowTeacherDashboard] = useState(false);
+  const [showParentNotification, setShowParentNotification] = useState(false);
   const [currentResultsView, setCurrentResultsView] = useState<'summary' | 'breakdown' | 'next-steps'>('summary');
   
   // Gamification state
@@ -1035,6 +1042,9 @@ export default function ModernExamTakeScreen() {
             router.push("/(services)/education/(tabs)/exams");
           }}
           onShare={() => setShowShareCard(true)}
+          onShareWithStudyGroup={() => setShowStudyGroupShare(true)}
+          onSendToTeacher={() => setShowTeacherDashboard(true)}
+          onNotifyParents={() => setShowParentNotification(true)}
         />
       )}
 
@@ -1072,15 +1082,78 @@ export default function ModernExamTakeScreen() {
               CelebrationSystem.getPerformanceLevel(enhancedResults.percentage)
             )
           }}
-          template="modern"
+          template={shareCardTemplate}
           visible={showShareCard}
           onClose={() => setShowShareCard(false)}
+          onTemplateChange={(newTemplate) => setShareCardTemplate(newTemplate)}
           onShare={(imageUri) => {
             console.log('Sharing result card:', imageUri);
             setShowShareCard(false);
           }}
         />
       )}
+
+      {/* Study Group Sharing */}
+      <StudyGroupShare
+        visible={showStudyGroupShare}
+        onClose={() => setShowStudyGroupShare(false)}
+        examResult={{
+          examTitle: enhancedResults?.examTitle || 'Mathematics Quiz',
+          percentage: enhancedResults?.percentage || 0,
+          score: enhancedResults?.totalScore || 0,
+          timeSpent: enhancedResults?.timeSpent || 0,
+          achievements: enhancedResults?.achievements || []
+        }}
+        onShareWithGroup={(groupId, message) => {
+          console.log('Sharing with study group:', groupId, message);
+          // Implement study group sharing logic
+        }}
+      />
+
+      {/* Teacher Dashboard Notification */}
+      <TeacherDashboardNotification
+        visible={showTeacherDashboard}
+        onClose={() => setShowTeacherDashboard(false)}
+        examResult={{
+          examId: enhancedResults?.examId || 'mock-exam-1',
+          examTitle: enhancedResults?.examTitle || 'Mathematics Quiz',
+          subject: enhancedResults?.subject || 'Mathematics',
+          percentage: enhancedResults?.percentage || 0,
+          score: enhancedResults?.totalScore || 0,
+          totalQuestions: enhancedResults?.totalQuestions || 0,
+          correctAnswers: enhancedResults?.correctAnswers || 0,
+          timeSpent: enhancedResults?.timeSpent || 0,
+          achievements: enhancedResults?.achievements || [],
+          previousAttemptScore: 75 // Mock previous score
+        }}
+        onSendToTeacher={(teacherId, settings) => {
+          console.log('Sending to teacher:', teacherId, settings);
+          // Implement teacher dashboard integration
+        }}
+      />
+
+      {/* Parent Notification */}
+      <ParentNotification
+        visible={showParentNotification}
+        onClose={() => setShowParentNotification(false)}
+        examResult={{
+          examId: enhancedResults?.examId || 'mock-exam-1',
+          examTitle: enhancedResults?.examTitle || 'Mathematics Quiz',
+          subject: enhancedResults?.subject || 'Mathematics',
+          percentage: enhancedResults?.percentage || 0,
+          score: enhancedResults?.totalScore || 0,
+          totalQuestions: enhancedResults?.totalQuestions || 0,
+          correctAnswers: enhancedResults?.correctAnswers || 0,
+          timeSpent: enhancedResults?.timeSpent || 0,
+          achievements: enhancedResults?.achievements || [],
+          streak: enhancedResults?.streakCount || 0,
+          previousBestScore: 85 // Mock previous best
+        }}
+        onSendToParents={(settings, selectedParents) => {
+          console.log('Sending to parents:', settings, selectedParents);
+          // Implement parent notification logic
+        }}
+      />
       </View>
     </>
   );

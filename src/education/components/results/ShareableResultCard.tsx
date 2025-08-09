@@ -62,6 +62,7 @@ export interface ShareableResultCardProps {
   data: ShareableResultData;
   template?: 'modern' | 'minimalist' | 'celebration' | 'achievement';
   onShare?: (imageUri: string) => void;
+  onTemplateChange?: (template: 'modern' | 'minimalist' | 'celebration' | 'achievement') => void;
   visible: boolean;
   onClose: () => void;
 }
@@ -325,6 +326,7 @@ export const ShareableResultCard: React.FC<ShareableResultCardProps> = ({
   data,
   template = 'modern',
   onShare,
+  onTemplateChange,
   visible,
   onClose,
 }) => {
@@ -465,7 +467,7 @@ export const ShareableResultCard: React.FC<ShareableResultCardProps> = ({
                   template === templateOption.key && styles.activeTemplateButton,
                 ]}
                 onPress={() => {
-                  // Template switching would be handled by parent component
+                  onTemplateChange?.(templateOption.key as any);
                 }}
               >
                 <Ionicons 

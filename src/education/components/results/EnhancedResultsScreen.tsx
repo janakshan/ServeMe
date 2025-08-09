@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -63,9 +63,12 @@ interface EnhancedResultsScreenProps {
   onRetake?: () => void;
   onNextQuiz?: () => void;
   onShare?: (resultCard: any) => void;
+  onShareWithStudyGroup?: () => void;
+  onSendToTeacher?: () => void;
+  onNotifyParents?: () => void;
 }
 
-// Enhanced Celebration Component with multiple stages
+// Optimized Enhanced Celebration Component with performance improvements
 const MultiStageCelebration = ({ 
   percentage, 
   onComplete,
@@ -78,13 +81,19 @@ const MultiStageCelebration = ({
   const stage1Opacity = useSharedValue(0);
   const stage2Scale = useSharedValue(0);
   const stage3Rotation = useSharedValue(0);
-  const confettiAnimations = useRef(Array.from({ length: 30 }, () => ({
-    translateY: useSharedValue(-100),
-    translateX: useSharedValue((Math.random() - 0.5) * screenWidth),
-    rotation: useSharedValue(0),
-    opacity: useSharedValue(1),
-    scale: useSharedValue(1),
-  }))).current;
+  
+  // Optimized confetti - pre-initialize shared values but only render when needed
+  const confettiAnimations = useRef(
+    Array.from({ length: 15 }, () => ({
+      translateY: useSharedValue(-100),
+      translateX: useSharedValue((Math.random() - 0.5) * screenWidth),
+      rotation: useSharedValue(0),
+      opacity: useSharedValue(1),
+      scale: useSharedValue(0.8 + Math.random() * 0.4),
+    }))
+  ).current;
+
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const getCelebrationLevel = (score: number) => {
     if (score >= 90) return 'epic';
@@ -95,56 +104,60 @@ const MultiStageCelebration = ({
   const celebrationLevel = getCelebrationLevel(percentage);
 
   useEffect(() => {
-    const runCelebration = async () => {
-      // Stage 1: Initial burst
-      stage1Opacity.value = withTiming(1, { duration: 500 });
+    // Optimized celebration sequence with faster execution
+    const runCelebration = () => {
+      // Stage 1: Immediate burst (reduced from 500ms to 300ms)
+      stage1Opacity.value = withTiming(1, { duration: 300 });
       
+      // Initialize confetti only for epic celebrations
       if (celebrationLevel === 'epic') {
-        await new Promise(resolve => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-          setTimeout(resolve, 100);
-        });
+        setShowConfetti(true);
         
-        // Epic confetti
-        confettiAnimations.forEach((anim, i) => {
-          const delay = Math.random() * 500;
-          setTimeout(() => {
-            anim.translateY.value = withTiming(screenHeight + 100, { 
-              duration: 3000 + Math.random() * 1000,
+        // Lightweight haptic feedback without async overhead
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        
+        // Optimized confetti animation
+        setTimeout(() => {
+          confettiAnimations.forEach((anim) => {
+            const duration = 2000 + Math.random() * 500; // Reduced duration
+            anim.translateY.value = withTiming(screenHeight + 50, { 
+              duration,
               easing: Easing.out(Easing.quad)
             });
-            anim.rotation.value = withTiming(360 * 3, { duration: 3000 });
+            anim.rotation.value = withTiming(180 + Math.random() * 180, { duration });
             anim.opacity.value = withTiming(0, { 
-              duration: 3000,
+              duration,
               easing: Easing.out(Easing.quad)
             });
-          }, delay);
-        });
+          });
+        }, 100);
       }
 
-      // Stage 2: Achievement reveal
+      // Stage 2: Faster achievement reveal (reduced from 800ms to 400ms)
       setTimeout(() => {
         stage2Scale.value = withSpring(1, { 
-          tension: 100, 
-          friction: 6 
+          tension: 120, // Increased tension for faster animation
+          friction: 7 
         });
         
         if (celebrationLevel !== 'supportive') {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         }
-      }, 800);
+      }, 400);
 
-      // Stage 3: Content reveal
+      // Stage 3: Faster content reveal (reduced from 1500ms to 800ms)
       setTimeout(() => {
         stage3Rotation.value = withSpring(360, { 
-          tension: 80, 
+          tension: 100, // Increased tension
           friction: 8 
         });
-        runOnJS(onComplete)();
-      }, 1500);
+        // Complete celebration faster
+        setTimeout(() => runOnJS(onComplete)(), 200);
+      }, 800);
     };
 
-    runCelebration();
+    // Use requestAnimationFrame for smoother initial render
+    requestAnimationFrame(runCelebration);
   }, [percentage]);
 
   const stage1AnimatedStyle = useAnimatedStyle(() => ({
@@ -177,8 +190,8 @@ const MultiStageCelebration = ({
 
   return (
     <View style={styles.celebrationContainer}>
-      {/* Epic confetti for high scores */}
-      {celebrationLevel === 'epic' && (
+      {/* Optimized confetti for high scores - only render when needed */}
+      {celebrationLevel === 'epic' && showConfetti && (
         <View style={styles.confettiContainer}>
           {confettiAnimations.map((anim, i) => (
             <Animated.View
@@ -230,6 +243,9 @@ export const EnhancedResultsScreen: React.FC<EnhancedResultsScreenProps> = ({
   onRetake,
   onNextQuiz,
   onShare,
+  onShareWithStudyGroup,
+  onSendToTeacher,
+  onNotifyParents,
 }) => {
   const themeContext = useEducationTheme();
   const { tokens } = themeContext;
@@ -237,62 +253,95 @@ export const EnhancedResultsScreen: React.FC<EnhancedResultsScreenProps> = ({
   
   const [celebrationComplete, setCelebrationComplete] = useState(false);
   const [currentView, setCurrentView] = useState<'celebration' | 'summary' | 'details'>('celebration');
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [preloadSummary, setPreloadSummary] = useState(false);
   
   const containerOpacity = useSharedValue(0);
-  const contentScale = useSharedValue(0.8);
+  const contentScale = useSharedValue(0.9); // Start closer to final size
   const scrollY = useSharedValue(0);
 
   useEffect(() => {
-    // Initial entrance animation
-    containerOpacity.value = withTiming(1, { duration: 300 });
-    contentScale.value = withSpring(1, { tension: 100, friction: 8 });
+    // Optimized initial entrance animation
+    const initializeScreen = () => {
+      setIsInitialized(true);
+      containerOpacity.value = withTiming(1, { duration: 200 }); // Faster
+      contentScale.value = withSpring(1, { tension: 150, friction: 10 }); // Snappier
+    };
+
+    // Use requestAnimationFrame for smoother initialization
+    requestAnimationFrame(initializeScreen);
   }, []);
 
   const handleCelebrationComplete = () => {
     setCelebrationComplete(true);
-    setTimeout(() => {
-      setCurrentView('summary');
-    }, 500);
+    // Immediate transition for faster response
+    setCurrentView('summary');
   };
+
+  // Preload summary view during celebration
+  useEffect(() => {
+    if (isInitialized && !preloadSummary) {
+      // Preload after a short delay to allow celebration to start
+      setTimeout(() => {
+        setPreloadSummary(true);
+      }, 200);
+    }
+  }, [isInitialized, preloadSummary]);
 
   const containerAnimatedStyle = useAnimatedStyle(() => ({
     opacity: containerOpacity.value,
     transform: [{ scale: contentScale.value }],
   }));
 
-  const getPerformanceLevel = (percentage: number) => {
-    if (percentage >= 90) return 'epic';
-    if (percentage >= 70) return 'great';
-    return 'supportive';
-  };
+  // Memoize expensive calculations
+  const performanceData = useMemo(() => {
+    const getPerformanceLevel = (percentage: number) => {
+      if (percentage >= 90) return 'epic';
+      if (percentage >= 70) return 'great';
+      return 'supportive';
+    };
 
-  const getPerformanceColor = (level: string) => {
-    switch (level) {
-      case 'epic': return '#10B981';
-      case 'great': return '#3B82F6';
-      default: return '#6B7280';
-    }
-  };
+    const getPerformanceColor = (level: string) => {
+      switch (level) {
+        case 'epic': return '#10B981';
+        case 'great': return '#3B82F6';
+        default: return '#6B7280';
+      }
+    };
 
-  const performanceLevel = getPerformanceLevel(resultData.percentage);
-  const performanceColor = getPerformanceColor(performanceLevel);
+    const level = getPerformanceLevel(resultData.percentage);
+    return {
+      level,
+      color: getPerformanceColor(level)
+    };
+  }, [resultData.percentage]);
 
+  // Show celebration view with loading optimization
   if (currentView === 'celebration') {
     return (
       <View style={styles.overlayContainer}>
         <LinearGradient
           colors={[
-            `${performanceColor}20`,
-            `${performanceColor}10`,
-            `${performanceColor}05`,
+            `${performanceData.color}20`,
+            `${performanceData.color}10`,
+            `${performanceData.color}05`,
           ]}
           style={styles.backgroundGradient}
         >
-          <MultiStageCelebration
-            percentage={resultData.percentage}
-            onComplete={handleCelebrationComplete}
-            styles={styles}
-          />
+          {isInitialized ? (
+            <MultiStageCelebration
+              percentage={resultData.percentage}
+              onComplete={handleCelebrationComplete}
+              styles={styles}
+            />
+          ) : (
+            // Minimal loading state while initializing
+            <View style={styles.celebrationContainer}>
+              <Text style={styles.celebrationEmoji}>
+                {resultData.percentage >= 90 ? '🏆' : resultData.percentage >= 70 ? '⭐' : '📚'}
+              </Text>
+            </View>
+          )}
         </LinearGradient>
       </View>
     );
@@ -322,11 +371,11 @@ export const EnhancedResultsScreen: React.FC<EnhancedResultsScreenProps> = ({
             {/* Performance Summary Card */}
             <View style={styles.summaryCard}>
               <LinearGradient
-                colors={[`${performanceColor}15`, `${performanceColor}05`]}
+                colors={[`${performanceData.color}15`, `${performanceData.color}05`]}
                 style={styles.summaryGradient}
               >
                 <View style={styles.summaryContent}>
-                  <Text style={[styles.finalScore, { color: performanceColor }]}>
+                  <Text style={[styles.finalScore, { color: performanceData.color }]}>
                     {Math.round(resultData.percentage)}%
                   </Text>
                   <Text style={styles.scoreLabel}>Final Score</Text>
@@ -363,7 +412,7 @@ export const EnhancedResultsScreen: React.FC<EnhancedResultsScreenProps> = ({
                 <Text style={styles.statLabel}>Questions</Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: performanceColor }]}>
+                <Text style={[styles.statValue, { color: performanceData.color }]}>
                   {Math.round((resultData.correctAnswers / resultData.totalQuestions) * 100)}%
                 </Text>
                 <Text style={styles.statLabel}>Accuracy</Text>
@@ -417,6 +466,68 @@ export const EnhancedResultsScreen: React.FC<EnhancedResultsScreenProps> = ({
                   </LinearGradient>
                 </TouchableOpacity>
               )}
+            </View>
+
+            {/* Social Sharing Section */}
+            <View style={styles.socialSection}>
+              <Text style={[styles.socialTitle, { color: tokens.colors.onSurface }]}>
+                Share Your Success
+              </Text>
+              <View style={styles.socialButtons}>
+                <TouchableOpacity style={styles.socialButton} onPress={onShare}>
+                  <LinearGradient
+                    colors={[tokens.colors.primary + '15', tokens.colors.primary + '10']}
+                    style={styles.socialButtonGradient}
+                  >
+                    <Ionicons name="image" size={24} color={tokens.colors.primary} />
+                    <Text style={[styles.socialButtonText, { color: tokens.colors.primary }]}>
+                      Result Card
+                    </Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+
+                {onShareWithStudyGroup && (
+                  <TouchableOpacity style={styles.socialButton} onPress={onShareWithStudyGroup}>
+                    <LinearGradient
+                      colors={[tokens.colors.secondary + '15', tokens.colors.secondary + '10']}
+                      style={styles.socialButtonGradient}
+                    >
+                      <Ionicons name="people" size={24} color={tokens.colors.secondary} />
+                      <Text style={[styles.socialButtonText, { color: tokens.colors.secondary }]}>
+                        Study Group
+                      </Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                )}
+
+                {onSendToTeacher && (
+                  <TouchableOpacity style={styles.socialButton} onPress={onSendToTeacher}>
+                    <LinearGradient
+                      colors={[tokens.colors.success + '15', tokens.colors.success + '10']}
+                      style={styles.socialButtonGradient}
+                    >
+                      <Ionicons name="school" size={24} color={tokens.colors.success} />
+                      <Text style={[styles.socialButtonText, { color: tokens.colors.success }]}>
+                        Teacher
+                      </Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                )}
+
+                {onNotifyParents && (
+                  <TouchableOpacity style={styles.socialButton} onPress={onNotifyParents}>
+                    <LinearGradient
+                      colors={[tokens.colors.warning + '15', tokens.colors.warning + '10']}
+                      style={styles.socialButtonGradient}
+                    >
+                      <Ionicons name="heart" size={24} color={tokens.colors.warning} />
+                      <Text style={[styles.socialButtonText, { color: tokens.colors.warning }]}>
+                        Parents
+                      </Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
 
             {/* Performance Insights Teaser */}
@@ -705,6 +816,42 @@ const createStyles = (tokens: any) => StyleSheet.create({
   secondaryButtonText: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  socialSection: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  socialTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  socialButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    justifyContent: 'space-between',
+  },
+  socialButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    width: '48%', // Two buttons per row for better alignment
+    minWidth: 140,
+    marginBottom: 8,
+  },
+  socialButtonGradient: {
+    flexDirection: 'column', // Stack icon and text vertically for better alignment
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    gap: 8,
+  },
+  socialButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'center',
+    lineHeight: 16,
   },
   insightsTeaser: {
     marginHorizontal: 20,
