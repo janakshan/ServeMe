@@ -5,6 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider } from '../providers/AuthProvider';
 import { ServicesProvider } from '../providers/ServicesProvider';
 import { fastScreenOptions, instantScreenOptions, modalScreenOptions, serviceScreenOptions, authScreenOptions } from '../utils/navigationAnimations';
+import { initializeSoundService } from '../src/education/services/soundService';
 // import { NavigationThemeManager } from '../components/navigation/NavigationThemeManager';
 
 // Prevent splash screen from auto-hiding
@@ -12,12 +13,25 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   useEffect(() => {
-    // Hide splash screen after a delay
-    const timer = setTimeout(() => {
-      SplashScreen.hideAsync();
-    }, 2000);
+    const initializeApp = async () => {
+      try {
+        // Initialize sound service early for better performance
+        await initializeSoundService();
+        
+        // Hide splash screen after initialization
+        setTimeout(() => {
+          SplashScreen.hideAsync();
+        }, 2000);
+      } catch (error) {
+        console.warn('⚠️ App initialization error:', error);
+        // Hide splash screen even if sound service fails
+        setTimeout(() => {
+          SplashScreen.hideAsync();
+        }, 2000);
+      }
+    };
 
-    return () => clearTimeout(timer);
+    initializeApp();
   }, []);
 
   return (

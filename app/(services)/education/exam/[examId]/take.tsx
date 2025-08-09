@@ -28,6 +28,25 @@ import Animated, {
 import { Audio } from 'expo-av';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
+import { 
+  EnhancedResultsScreen,
+  AchievementUnlock,
+  ShareableResultCard,
+  NextStepsRecommendations,
+  PerformanceBreakdown,
+  HistoricalPerformanceChart,
+  CelebrationSystem,
+  soundService,
+  executeCelebrationFeedback
+} from '@/src/education/components/results';
+import type { 
+  ExamResultData,
+  Achievement,
+  ExamResult,
+  UserStats,
+  ShareableResultData,
+  NextStepsData
+} from '@/src/education/components/results';
 
 const { width, height } = Dimensions.get('window');
 
@@ -258,6 +277,13 @@ export default function ModernExamTakeScreen() {
   const [timeLeft, setTimeLeft] = useState(45 * 60); // 45 minutes in seconds
   const [showResult, setShowResult] = useState(false);
   
+  // Enhanced results system state
+  const [enhancedResults, setEnhancedResults] = useState<ExamResultData | null>(null);
+  const [unlockedAchievements, setUnlockedAchievements] = useState<Achievement[]>([]);
+  const [showAchievementUnlock, setShowAchievementUnlock] = useState(false);
+  const [showShareCard, setShowShareCard] = useState(false);
+  const [currentResultsView, setCurrentResultsView] = useState<'summary' | 'breakdown' | 'next-steps'>('summary');
+  
   // Gamification state
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
@@ -286,49 +312,33 @@ export default function ModernExamTakeScreen() {
   // Unique ID counter for floating texts
   const floatingTextCounter = useRef(0);
   
-  // Initialize sound effects
+  // Initialize enhanced sound service
   useEffect(() => {
-    const loadSounds = async () => {
-      if (!SOUND_ENABLED) {
-        console.log('Sound system disabled - enable in code when sound files are available');
-        return;
-      }
-      
+    const initializeEnhancedSounds = async () => {
       try {
-        console.log('Loading exam game sound effects...');
-        
-        // Load all sound effects
-        const soundFiles = {
-          buttonTap: require('@/assets/sounds/buttonTap.mp3'),
-          correct: require('@/assets/sounds/correct.mp3'),
-          wrong: require('@/assets/sounds/wrong.mp3'),
-          levelUp: require('@/assets/sounds/levelUp.mp3'),
-          celebration: require('@/assets/sounds/celebration.mp3'),
-        };
-
-        // Create Audio.Sound objects for each sound
-        for (const [key, soundFile] of Object.entries(soundFiles)) {
-          const { sound } = await Audio.Sound.createAsync(soundFile, {
-            shouldPlay: false,
-            isLooping: false,
-            volume: 0.7, // Set volume to 70%
-          });
-          sounds[key] = sound;
-        }
-        
-        console.log('All exam sound effects loaded successfully!');
-        console.log('✅ buttonTap, correct, wrong, levelUp, celebration sounds ready');
+        // Preload exam-specific sounds
+        await soundService.preloadSounds([
+          'correct',
+          'wrong', 
+          'celebration',
+          'achievement',
+          'level_up',
+          'button_tap',
+          'success',
+          'positive',
+          'gentle'
+        ]);
+        console.log('✅ Enhanced sound service initialized for exam');
       } catch (error) {
-        console.log('Sound loading error:', error);
+        console.log('Enhanced sound service initialization error:', error);
       }
     };
     
-    loadSounds();
+    initializeEnhancedSounds();
     
+    // Cleanup on unmount
     return () => {
-      Object.values(sounds).forEach(sound => {
-        sound?.unloadAsync();
-      });
+      soundService.cleanup();
     };
   }, []);
 
@@ -401,21 +411,18 @@ export default function ModernExamTakeScreen() {
     }
   }, [isTimeCritical, isTimeRunningLow]);
   
-  // Play sound effect
+  // Play sound effect using enhanced sound service
   const playSound = async (soundName: string) => {
-    if (!SOUND_ENABLED) {
-      console.log(`🔊 Sound effect: ${soundName}`);
-      return;
-    }
+    const soundMap: Record<string, any> = {
+      'buttonTap': 'button_tap',
+      'correct': 'correct',
+      'wrong': 'wrong',
+      'levelUp': 'level_up',
+      'celebration': 'celebration'
+    };
     
-    try {
-      const sound = sounds[soundName];
-      if (sound) {
-        await sound.replayAsync();
-      }
-    } catch (error) {
-      console.log('Sound play error:', error);
-    }
+    const enhancedSoundType = soundMap[soundName] || soundName;
+    await soundService.playSound(enhancedSoundType, { volume: 0.6 });
   };
   
   // Add floating text animation
@@ -551,11 +558,97 @@ export default function ModernExamTakeScreen() {
     }
   };
   
-  // Epic completion celebration
-  const handleSubmitExam = () => {
+  // Epic completion celebration with enhanced results
+  const handleSubmitExam = async () => {
+    // Calculate results
+    const finalScore = score;
+    const finalCorrectCount = correctCount;
+    const finalPercentage = Math.round((finalCorrectCount / MOCK_QUESTIONS.length) * 100);
+    
+    // Create exam result data for celebration system
+    const examResult: ExamResult = {
+      examId: 'mock-exam-1',
+      score: finalScore,
+      percentage: finalPercentage,
+      totalQuestions: MOCK_QUESTIONS.length,
+      correctAnswers: finalCorrectCount,
+      timeSpent: (45 * 60) - timeLeft, // Total time - remaining time
+      timeLimit: 45 * 60,
+      difficulty: 'intermediate',
+      subject: 'Mathematics',
+      topics: ['Algebra', 'Geometry', 'Physics'],
+      previousAttempts: 1,
+      streak: streak,
+      questionsAnalysis: MOCK_QUESTIONS.map((q, index) => ({
+        correct: selectedAnswers[index] === q.correctAnswer,
+        timeSpent: 60, // Mock time per question
+        difficulty: 'medium'
+      }))
+    };
+
+    // Mock user stats
+    const userStats: UserStats = {
+      totalExams: 15,
+      totalCorrect: 120,
+      currentStreak: streak,
+      longestStreak: Math.max(streak, 7),
+      averageScore: 78,
+      subjectMastery: { 'Mathematics': 82, 'Science': 75, 'English': 88 },
+      achievements: ['first_success', 'streak_starter'],
+      level: 3,
+      xp: 2450,
+      weeklyGoal: 5,
+      weeklyProgress: 3
+    };
+
+    // Check for unlocked achievements
+    const newAchievements = CelebrationSystem.checkAchievements(examResult, userStats);
+    
+    // Execute adaptive celebration based on performance
+    const performanceLevel = CelebrationSystem.getPerformanceLevel(finalPercentage);
+    await executeCelebrationFeedback(performanceLevel);
+
+    // Create enhanced results data
+    const enhancedResultsData: ExamResultData = {
+      examId: 'mock-exam-1',
+      examTitle: 'Mathematics Quiz - Algebra & Geometry',
+      totalQuestions: MOCK_QUESTIONS.length,
+      correctAnswers: finalCorrectCount,
+      totalScore: finalScore,
+      maxScore: MOCK_QUESTIONS.reduce((sum, q) => sum + q.points, 0),
+      percentage: finalPercentage,
+      timeSpent: (45 * 60) - timeLeft,
+      timeLimit: 45 * 60,
+      questionResults: MOCK_QUESTIONS.map((q, index) => ({
+        id: q.id,
+        question: q.question,
+        selectedAnswer: selectedAnswers[index] ?? -1,
+        correctAnswer: q.correctAnswer,
+        isCorrect: selectedAnswers[index] === q.correctAnswer,
+        timeSpent: 60, // Mock time
+        points: selectedAnswers[index] === q.correctAnswer ? q.points : 0,
+        explanation: q.explanation
+      })),
+      achievements: newAchievements.map(a => a.title),
+      newBadges: newAchievements.filter(a => a.rarity === 'rare' || a.rarity === 'epic').map(a => a.title),
+      xpEarned: CelebrationSystem.calculateXPBonus(examResult, userStats),
+      streakCount: streak,
+      difficulty: 'intermediate',
+      subject: 'Mathematics'
+    };
+
+    setEnhancedResults(enhancedResultsData);
+    setUnlockedAchievements(newAchievements);
     setShowResult(true);
     
-    // Epic celebration sequence
+    // Show achievements if any were unlocked
+    if (newAchievements.length > 0) {
+      setTimeout(() => {
+        setShowAchievementUnlock(true);
+      }, 1500); // Delay to let celebration finish
+    }
+
+    // Epic celebration sequence (keeping original for now)
     celebrationScale.value = withSequence(
       withTiming(0, { duration: 0 }),
       withDelay(500, withSpring(1, { damping: 10 }))
@@ -916,78 +1009,77 @@ export default function ModernExamTakeScreen() {
         </View>
       </Animated.View>
       
-      {/* Completion Overlay */}
-      {showResult && (
-        <Animated.View style={[styles.completionOverlay, celebrationAnimatedStyle]}>
-          <LinearGradient
-            colors={[
-              tokens.colors.primary + 'E0',
-              tokens.colors.success + 'D0',
-              tokens.colors.warning + 'C0',
-              tokens.colors.primary + 'F0'
-            ]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.completionGradient}
-          >
-            {/* Completion Header */}
-            <View style={styles.completionHeader}>
-              <View style={styles.trophyContainer}>
-                <LinearGradient
-                  colors={[tokens.colors.warning, tokens.colors.warning + 'CC']}
-                  style={styles.trophyBackground}
-                >
-                  <Ionicons name="trophy" size={60} color={tokens.colors.onPrimary} />
-                </LinearGradient>
-              </View>
-              <Text style={styles.completionTitle}>🎉 Complete! 🎉</Text>
-              <Text style={styles.completionSubtitle}>Great job on finishing!</Text>
-            </View>
+      {/* Enhanced Results System */}
+      {showResult && enhancedResults && (
+        <EnhancedResultsScreen
+          resultData={enhancedResults}
+          onClose={() => {
+            setShowResult(false);
+            router.push("/(services)/education/(tabs)/exams");
+          }}
+          onRetake={() => {
+            // Reset exam state for retake
+            setCurrentQuestion(0);
+            setSelectedAnswers([]);
+            setTimeLeft(45 * 60);
+            setScore(0);
+            setStreak(0);
+            setCorrectCount(0);
+            setTotalAnswered(0);
+            setShowResult(false);
+            setEnhancedResults(null);
+            setUnlockedAchievements([]);
+          }}
+          onNextQuiz={() => {
+            setShowResult(false);
+            router.push("/(services)/education/(tabs)/exams");
+          }}
+          onShare={() => setShowShareCard(true)}
+        />
+      )}
 
-            {/* Results Card */}
-            <View style={styles.resultsCard}>
-              <LinearGradient
-                colors={[tokens.colors.surface + 'F0', tokens.colors.surface + 'E0']}
-                style={styles.resultsCardGradient}
-              >
-                <TouchableOpacity 
-                  style={styles.closeButton}
-                  onPress={() => router.push("/(services)/education/(tabs)/exams")}
-                  activeOpacity={0.8}
-                >
-                  <LinearGradient
-                    colors={[tokens.colors.error + '20', tokens.colors.error + '30']}
-                    style={styles.closeButtonGradient}
-                  >
-                    <Ionicons name="close" size={20} color={tokens.colors.error} />
-                  </LinearGradient>
-                </TouchableOpacity>
-                
-                <View style={styles.scoreSection}>
-                  <Text style={styles.scoreLabel}>Final Score</Text>
-                  <Text style={styles.scoreValue}>
-                    {Math.round((correctCount / MOCK_QUESTIONS.length) * 100)}%
-                  </Text>
-                </View>
+      {/* Achievement Unlock Modal */}
+      <AchievementUnlock
+        achievements={unlockedAchievements}
+        onComplete={() => {
+          setShowAchievementUnlock(false);
+          setUnlockedAchievements([]);
+        }}
+        onViewAll={() => {
+          setShowAchievementUnlock(false);
+          // Navigate to achievements screen
+          router.push("/(services)/education/(tabs)/index");
+        }}
+      />
 
-                <View style={styles.actionButtons}>
-                  <TouchableOpacity
-                    style={styles.primaryButton}
-                    onPress={() => router.push("/(services)/education/(tabs)/exams")}
-                  >
-                    <LinearGradient
-                      colors={[tokens.colors.primary, tokens.colors.primary + 'CC']}
-                      style={styles.buttonGradient}
-                    >
-                      <Ionicons name="refresh" size={20} color={tokens.colors.onPrimary} />
-                      <Text style={styles.primaryButtonText}>Take Another</Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </View>
-              </LinearGradient>
-            </View>
-          </LinearGradient>
-        </Animated.View>
+      {/* Shareable Result Card */}
+      {showShareCard && enhancedResults && (
+        <ShareableResultCard
+          data={{
+            examTitle: enhancedResults.examTitle,
+            subject: enhancedResults.subject,
+            score: enhancedResults.totalScore,
+            percentage: enhancedResults.percentage,
+            totalQuestions: enhancedResults.totalQuestions,
+            correctAnswers: enhancedResults.correctAnswers,
+            timeSpent: enhancedResults.timeSpent,
+            difficulty: enhancedResults.difficulty,
+            performanceLevel: CelebrationSystem.getPerformanceLevel(enhancedResults.percentage),
+            streak: enhancedResults.streakCount,
+            achievements: enhancedResults.achievements,
+            userName: 'Student', // This would come from user context
+            celebrationConfig: CelebrationSystem.getCelebrationConfig(
+              CelebrationSystem.getPerformanceLevel(enhancedResults.percentage)
+            )
+          }}
+          template="modern"
+          visible={showShareCard}
+          onClose={() => setShowShareCard(false)}
+          onShare={(imageUri) => {
+            console.log('Sharing result card:', imageUri);
+            setShowShareCard(false);
+          }}
+        />
       )}
       </View>
     </>

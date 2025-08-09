@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useEducationTheme } from '@/contexts/ScopedThemeProviders';
+import { Achievement } from './results/AchievementUnlock';
+import { soundService, executeHaptic } from '../services/soundService';
 
-interface Achievement {
+interface LegacyAchievement {
   id: string;
   title: string;
   icon: keyof typeof Ionicons.glyphMap;
@@ -15,12 +17,14 @@ interface Achievement {
 }
 
 interface AchievementProgressProps {
-  achievements: Achievement[];
+  achievements: LegacyAchievement[] | Achievement[];
   currentStreak?: number;
   totalPoints?: number;
   level?: number;
   nextLevelPoints?: number;
   variant?: 'compact' | 'detailed';
+  onAchievementUnlock?: (achievements: Achievement[]) => void;
+  newlyUnlocked?: Achievement[];
 }
 
 export function AchievementProgress({
@@ -29,7 +33,9 @@ export function AchievementProgress({
   totalPoints = 0,
   level = 1,
   nextLevelPoints = 1000,
-  variant = 'detailed'
+  variant = 'detailed',
+  onAchievementUnlock,
+  newlyUnlocked = []
 }: AchievementProgressProps) {
   const { tokens, getGradient } = useEducationTheme();
   
@@ -46,8 +52,14 @@ export function AchievementProgress({
       useNativeDriver: false,
     }).start();
 
-    // Animate streak counter
+    // Animate streak counter with sound feedback
     if (currentStreak > 0) {
+      // Play streak sound for significant streaks
+      if (currentStreak >= 7 || currentStreak % 5 === 0) {
+        soundService.playSound('level_up', { volume: 0.6 });
+        executeHaptic('success');
+      }
+      
       Animated.sequence([
         Animated.timing(streakAnim, {
           toValue: 1.2,
@@ -64,17 +76,62 @@ export function AchievementProgress({
       ]).start();
     }
 
-    // Animate points counter
+    // Animate points counter with celebration for level ups
+    const previousPoints = pointsAnim._value;
     Animated.timing(pointsAnim, {
       toValue: totalPoints,
       duration: 2000,
       easing: Easing.out(Easing.quad),
       useNativeDriver: false,
     }).start();
+
+    // Check for level up celebration
+    const previousLevel = Math.floor(previousPoints / nextLevelPoints);
+    const currentLevel = Math.floor(totalPoints / nextLevelPoints);
+    if (currentLevel > previousLevel) {
+      soundService.executeCelebrationFeedback('great');
+    }
+
   }, [currentStreak, totalPoints]);
+
+  // Handle newly unlocked achievements
+  useEffect(() => {
+    if (newlyUnlocked.length > 0) {
+      // Trigger achievement unlock celebrations
+      setTimeout(() => {
+        onAchievementUnlock?.(newlyUnlocked);
+      }, 500); // Small delay to let other animations settle
+    }
+  }, [newlyUnlocked, onAchievementUnlock]);
 
   const levelProgress = (totalPoints % nextLevelPoints) / nextLevelPoints;
   const gradientColors = getGradient('accent').colors;
+
+  // Helper function to check if achievement is legacy format
+  const isLegacyAchievement = (achievement: LegacyAchievement | Achievement): achievement is LegacyAchievement => {
+    return 'progress' in achievement && 'maxProgress' in achievement && 'unlocked' in achievement;
+  };
+
+  // Convert legacy achievements to new format if needed
+  const normalizedAchievements = achievements.map((achievement): LegacyAchievement => {
+    if (isLegacyAchievement(achievement)) {
+      return achievement;
+    } else {
+      // Convert new Achievement to legacy format for backward compatibility
+      return {
+        id: achievement.id,
+        title: achievement.title,
+        icon: achievement.icon,
+        progress: achievement.progress?.current || 1,
+        maxProgress: achievement.progress?.total || 1,
+        unlocked: true, // New achievements are always unlocked
+        color: achievement.rarity === 'legendary' ? '#FFD700' :
+               achievement.rarity === 'epic' ? '#8B5CF6' :
+               achievement.rarity === 'rare' ? '#3B82F6' :
+               achievement.rarity === 'uncommon' ? '#10B981' : '#6B7280'
+      };
+    }
+  });
 
   return (
     <View style={styles.container}>
@@ -165,7 +222,7 @@ export function AchievementProgress({
           Achievements
         </Text>
         <View style={styles.achievementsGrid}>
-          {achievements.slice(0, variant === 'compact' ? 4 : 6).map((achievement, index) => (
+          {normalizedAchievements.slice(0, variant === 'compact' ? 4 : 6).map((achievement, index) => (
             <AchievementBadge
               key={achievement.id}
               achievement={achievement}
@@ -173,10 +230,10 @@ export function AchievementProgress({
               tokens={tokens}
             />
           ))}
-          {achievements.length > (variant === 'compact' ? 4 : 6) && (
+          {normalizedAchievements.length > (variant === 'compact' ? 4 : 6) && (
             <View style={[styles.moreBadge, { backgroundColor: tokens.colors.surfaceVariant }]}>
               <Text style={[styles.moreText, { color: tokens.colors.onSurfaceVariant }]}>
-                +{achievements.length - (variant === 'compact' ? 4 : 6)}
+                +{normalizedAchievements.length - (variant === 'compact' ? 4 : 6)}
               </Text>
             </View>
           )}
@@ -187,7 +244,7 @@ export function AchievementProgress({
 }
 
 interface AchievementBadgeProps {
-  achievement: Achievement;
+  achievement: LegacyAchievement;
   delay: number;
   tokens: any;
 }
@@ -214,7 +271,15 @@ function AchievementBadge({ achievement, delay, tokens }: AchievementBadgeProps)
       easing: Easing.out(Easing.quad),
       useNativeDriver: false,
     }).start();
-  }, [delay, achievement.progress, achievement.maxProgress]);
+
+    // Play achievement sound and haptic if newly unlocked
+    if (achievement.unlocked && achievement.progress >= achievement.maxProgress) {
+      setTimeout(() => {
+        soundService.playSound('achievement', { volume: 0.5 });
+        executeHaptic('success');
+      }, delay + 100);
+    }
+  }, [delay, achievement.progress, achievement.maxProgress, achievement.unlocked]);
 
   const isCompleted = achievement.progress >= achievement.maxProgress;
   const progressPercentage = (achievement.progress / achievement.maxProgress) * 100;
