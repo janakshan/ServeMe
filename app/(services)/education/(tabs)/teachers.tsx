@@ -7,8 +7,10 @@ import {
   StyleSheet,
   Modal,
   Image,
+  Dimensions,
 } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
+import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from "@expo/vector-icons";
 import { useEducationTheme, useScopedThemedStyles } from "@/contexts/ScopedThemeProviders";
 import { EducationHeader, EducationScreenHeader } from "@/src/education/components/headers";
@@ -218,15 +220,19 @@ const MOCK_TEACHERS = [
         studentImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
         comment: "Prof. Sivasubramaniam's teaching methods are exceptional. His clear explanations of complex mathematical concepts helped me achieve A+ in A/L Combined Mathematics. Highly recommended!",
         rating: 5,
-        date: "2024-12-15"
+        date: "2024-12-15",
+        reviewType: "video",
+        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        videoDuration: "2:30"
       },
       {
         id: "2",
         studentName: "Priya Rajaratnam",
-        studentImage: "https://images.unsplash.com/photo-1494790108755-2616b612b90c?w=100&h=100&fit=crop&crop=face",
+        studentImage: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&h=100&fit=crop&crop=face",
         comment: "Amazing teacher! His problem-solving techniques and practical approach made A/L mathematics much easier to understand. Thanks to him, I got selected for Engineering at University of Moratuwa.",
         rating: 5,
-        date: "2024-11-28"
+        date: "2024-11-28",
+        reviewType: "text"
       },
       {
         id: "3",
@@ -234,7 +240,10 @@ const MOCK_TEACHERS = [
         studentImage: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
         comment: "Excellent teacher with great patience. He always made sure every student understood the concepts before moving forward. His classes were always engaging and productive.",
         rating: 5,
-        date: "2024-11-10"
+        date: "2024-11-10",
+        reviewType: "video",
+        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+        videoDuration: "1:45"
       }
     ]
   },
@@ -378,7 +387,8 @@ const MOCK_TEACHERS = [
         studentImage: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
         comment: "Dr. Priya's biology classes were incredibly informative and well-structured. Her practical approach to teaching botany helped me understand plant biology thoroughly. Got A+ in A/L Biology!",
         rating: 5,
-        date: "2024-12-10"
+        date: "2024-12-10",
+        reviewType: "text"
       },
       {
         id: "2",
@@ -386,7 +396,10 @@ const MOCK_TEACHERS = [
         studentImage: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
         comment: "Best biology teacher ever! Her field work sessions and lab demonstrations made learning so much more interesting. Highly recommend her classes.",
         rating: 5,
-        date: "2024-11-25"
+        date: "2024-11-25",
+        reviewType: "video",
+        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+        videoDuration: "1:20"
       }
     ]
   },
@@ -878,13 +891,13 @@ const TeacherCard: React.FC<TeacherCardProps> = ({ teacher, onPress }) => {
               source={{ uri: teacher.profileImage }}
               style={styles.profileImage}
               onError={() => {
-                // Fallback to text avatar if image fails
+                // Fallback to placeholder if image fails
               }}
             />
           ) : (
-            <Text style={styles.avatarText}>
-              {teacher.name.split(" ").map((n: string) => n[0]).join("")}
-            </Text>
+            <View style={styles.placeholderContainerSmall}>
+              <Ionicons name="person" size={24} color={tokens.colors.onPrimary} />
+            </View>
           )}
         </View>
         <View style={styles.headerInfo}>
@@ -951,6 +964,167 @@ const TeacherCard: React.FC<TeacherCardProps> = ({ teacher, onPress }) => {
   );
 };
 
+interface StudentRecommendationsSectionProps {
+  recommendations: any[];
+  tokens: any;
+  styles: any;
+}
+
+const StudentRecommendationsSection: React.FC<StudentRecommendationsSectionProps> = ({ 
+  recommendations, 
+  tokens, 
+  styles 
+}) => {
+  const [showAllReviews, setShowAllReviews] = useState(false);
+  const [expandedReviews, setExpandedReviews] = useState<Set<string>>(new Set());
+  const [playingVideo, setPlayingVideo] = useState<string | null>(null);
+
+  const toggleReviewExpansion = (reviewId: string) => {
+    const newExpanded = new Set(expandedReviews);
+    if (newExpanded.has(reviewId)) {
+      newExpanded.delete(reviewId);
+    } else {
+      newExpanded.add(reviewId);
+    }
+    setExpandedReviews(newExpanded);
+  };
+
+  const handleVideoPress = (reviewId: string) => {
+    if (playingVideo === reviewId) {
+      setPlayingVideo(null);
+    } else {
+      setPlayingVideo(reviewId);
+    }
+  };
+
+  const displayedRecommendations = showAllReviews ? recommendations : recommendations.slice(0, 2);
+
+  return (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Student Recommendations</Text>
+        <View style={styles.sectionHeaderRight}>
+          <Text style={styles.sectionSubtitle}>{recommendations.length} reviews</Text>
+          {recommendations.length > 2 && (
+            <TouchableOpacity 
+              onPress={() => setShowAllReviews(!showAllReviews)}
+              style={styles.viewToggleButton}
+            >
+              <Text style={styles.viewToggleText}>
+                {showAllReviews ? 'Show Less' : 'View All'}
+              </Text>
+              <Ionicons 
+                name={showAllReviews ? 'chevron-up' : 'chevron-down'} 
+                size={16} 
+                color={tokens.colors.primary} 
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+      <View style={styles.recommendationsContainer}>
+        {displayedRecommendations.map((recommendation: any) => {
+          const isExpanded = expandedReviews.has(recommendation.id);
+          const shouldTruncate = recommendation.comment.length > 150;
+          const displayComment = shouldTruncate && !isExpanded 
+            ? recommendation.comment.substring(0, 150) + '...' 
+            : recommendation.comment;
+
+          return (
+            <View key={recommendation.id} style={styles.recommendationCard}>
+              <View style={styles.recommendationHeader}>
+                <View style={styles.recommendationHeaderLeft}>
+                  <Image
+                    source={{ uri: recommendation.studentImage }}
+                    style={styles.studentImage}
+                  />
+                  <View style={styles.studentInfo}>
+                    <Text style={styles.studentName}>{recommendation.studentName}</Text>
+                    <View style={styles.recommendationRating}>
+                      {[...Array(5)].map((_, index) => (
+                        <Ionicons
+                          key={index}
+                          name="star"
+                          size={12}
+                          color={index < recommendation.rating ? tokens.colors.warning : tokens.colors.border}
+                        />
+                      ))}
+                    </View>
+                  </View>
+                </View>
+                <View style={styles.recommendationHeaderRight}>
+                  {recommendation.reviewType === 'video' && (
+                    <TouchableOpacity 
+                      style={[styles.videoReviewButton, playingVideo === recommendation.id && styles.videoReviewButtonActive]}
+                      onPress={() => handleVideoPress(recommendation.id)}
+                    >
+                      <Ionicons 
+                        name={playingVideo === recommendation.id ? "pause" : "play"} 
+                        size={14} 
+                        color={tokens.colors.primary} 
+                      />
+                      <Text style={styles.videoDurationText}>{recommendation.videoDuration}</Text>
+                    </TouchableOpacity>
+                  )}
+                  {recommendation.reviewType === 'text' && (
+                    <View style={styles.textReviewBadge}>
+                      <Ionicons name="document-text" size={14} color={tokens.colors.info} />
+                    </View>
+                  )}
+                  <Text style={styles.recommendationDate}>
+                    {new Date(recommendation.date).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}
+                  </Text>
+                </View>
+              </View>
+              {recommendation.reviewType === 'video' && playingVideo === recommendation.id ? (
+                <View style={styles.videoPlayerContainer}>
+                  <Video
+                    source={{ uri: recommendation.videoUrl }}
+                    rate={1.0}
+                    volume={1.0}
+                    isMuted={false}
+                    resizeMode={ResizeMode.CONTAIN}
+                    shouldPlay={false}
+                    useNativeControls
+                    style={styles.videoPlayer}
+                  />
+                  <View style={styles.videoControlsContainer}>
+                    <TouchableOpacity 
+                      onPress={() => setPlayingVideo(null)}
+                      style={styles.closeVideoButton}
+                    >
+                      <Ionicons name="close" size={16} color={tokens.colors.onPrimary} />
+                      <Text style={styles.closeVideoText}>Close Video</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : (
+                <>
+                  <Text style={styles.recommendationComment}>{displayComment}</Text>
+                  {shouldTruncate && (
+                    <TouchableOpacity 
+                      onPress={() => toggleReviewExpansion(recommendation.id)}
+                      style={styles.readMoreButton}
+                    >
+                      <Text style={styles.readMoreText}>
+                        {isExpanded ? 'Read Less' : 'Read More'}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </>
+              )}
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+};
+
 interface TeacherModalProps {
   teacher: any;
   visible: boolean;
@@ -1000,13 +1174,13 @@ const TeacherModal: React.FC<TeacherModalProps> = ({ teacher, visible, onClose }
                   source={{ uri: teacher.profileImage }}
                   style={styles.profileImageLarge}
                   onError={() => {
-                    // Fallback to text avatar if image fails
+                    // Fallback to placeholder image if image fails
                   }}
                 />
               ) : (
-                <Text style={styles.avatarLargeText}>
-                  {teacher.name.split(" ").map((n: string) => n[0]).join("")}
-                </Text>
+                <View style={styles.placeholderContainer}>
+                  <Ionicons name="person" size={40} color={tokens.colors.onPrimary} />
+                </View>
               )}
             </View>
             <Text style={styles.teacherName}>{teacher.name}</Text>
@@ -1022,53 +1196,32 @@ const TeacherModal: React.FC<TeacherModalProps> = ({ teacher, visible, onClose }
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Statistics</Text>
-            <View style={styles.statsGridResponsive}>
-              <View style={[styles.statCard, { backgroundColor: tokens.colors.primary + '15' }]}>
-                <View style={[styles.statIconContainer, { backgroundColor: tokens.colors.primary }]}>
-                  <Ionicons name="book" size={20} color={tokens.colors.onPrimary} />
-                </View>
-                <Text style={styles.statNumber}>{teacher.coursesCount}</Text>
-                <Text style={styles.statLabel}>Courses</Text>
-              </View>
-              <View style={[styles.statCard, { backgroundColor: tokens.colors.warning + '15' }]}>
-                <View style={[styles.statIconContainer, { backgroundColor: tokens.colors.warning }]}>
-                  <Ionicons name="calendar" size={20} color={tokens.colors.onPrimary} />
-                </View>
-                <Text style={styles.statNumber}>{teacher.experience}</Text>
-                <Text style={styles.statLabel}>Experience</Text>
-              </View>
-              <View style={[styles.statCard, { backgroundColor: tokens.colors.info + '15' }]}>
-                <View style={[styles.statIconContainer, { backgroundColor: tokens.colors.info }]}>
-                  <Ionicons name="school" size={20} color={tokens.colors.onPrimary} />
-                </View>
-                <Text style={styles.statNumber}>{teacher.studentsCount}</Text>
-                <Text style={styles.statLabel}>Total Students</Text>
-              </View>
-              <View style={[styles.statCard, { backgroundColor: tokens.colors.success + '15' }]}>
-                <View style={[styles.statIconContainer, { backgroundColor: tokens.colors.success }]}>
-                  <Ionicons name="people" size={20} color={tokens.colors.onPrimary} />
-                </View>
-                <Text style={styles.statNumber}>{teacher.activeStudents}</Text>
-                <Text style={styles.statLabel}>Active Students</Text>
-              </View>
-            </View>
-            <View style={styles.activeStudentsProgress}>
-              <View style={styles.progressHeader}>
-                <Text style={styles.progressLabel}>Student Active Rate</Text>
-                <Text style={styles.progressValue}>
-                  {Math.round((teacher.activeStudents / teacher.studentsCount) * 100)}%
+            <View style={styles.ultraCompactStatsContainer}>
+              <View style={[styles.ultraCompactStatPill, { backgroundColor: tokens.colors.success + '08' }]}>
+                <Text style={styles.followersOfText}>
+                  <Text style={[styles.totalNumber, { color: tokens.colors.primary }]}>
+                    5000
+                  </Text>
+                  <Text style={styles.arrowText}> → </Text>
+                  <Text style={[styles.followersNumber, { color: tokens.colors.success }]}>
+                    {teacher.activeStudents.toLocaleString()}
+                  </Text>
                 </Text>
+                <Text style={styles.ultraCompactStatLabel}>FOLLOWERS</Text>
               </View>
-              <View style={styles.progressBar}>
-                <View
-                  style={[
-                    styles.progressFill,
-                    {
-                      width: `${(teacher.activeStudents / teacher.studentsCount) * 100}%`,
-                      backgroundColor: tokens.colors.success,
-                    },
-                  ]}
-                />
+              
+              <View style={[styles.ultraCompactStatPill, { backgroundColor: tokens.colors.warning + '08' }]}>
+                <Text style={[styles.ultraCompactStatNumber, { color: tokens.colors.warning }]}>
+                  {teacher.coursesCount}
+                </Text>
+                <Text style={styles.ultraCompactStatLabel}>COURSES</Text>
+              </View>
+              
+              <View style={[styles.ultraCompactStatPill, { backgroundColor: tokens.colors.info + '08' }]}>
+                <Text style={[styles.ultraCompactStatNumber, { color: tokens.colors.info }]}>
+                  {teacher.experience.replace(' years', 'Y')}
+                </Text>
+                <Text style={styles.ultraCompactStatLabel}>EXP</Text>
               </View>
             </View>
           </View>
@@ -1277,54 +1430,32 @@ const TeacherModal: React.FC<TeacherModalProps> = ({ teacher, visible, onClose }
           </View>
 
           {teacher.studentRecommendations && teacher.studentRecommendations.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Student Recommendations</Text>
-              <View style={styles.recommendationsContainer}>
-                {teacher.studentRecommendations.map((recommendation: any) => (
-                  <View key={recommendation.id} style={styles.recommendationCard}>
-                    <View style={styles.recommendationHeader}>
-                      <Image
-                        source={{ uri: recommendation.studentImage }}
-                        style={styles.studentImage}
-                      />
-                      <View style={styles.studentInfo}>
-                        <Text style={styles.studentName}>{recommendation.studentName}</Text>
-                        <View style={styles.recommendationRating}>
-                          {[...Array(5)].map((_, index) => (
-                            <Ionicons
-                              key={index}
-                              name="star"
-                              size={12}
-                              color={index < recommendation.rating ? tokens.colors.warning : tokens.colors.border}
-                            />
-                          ))}
-                        </View>
-                      </View>
-                      <Text style={styles.recommendationDate}>
-                        {new Date(recommendation.date).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric'
-                        })}
-                      </Text>
-                    </View>
-                    <Text style={styles.recommendationComment}>{recommendation.comment}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
+            <StudentRecommendationsSection 
+              recommendations={teacher.studentRecommendations}
+              tokens={tokens}
+              styles={styles}
+            />
           )}
         </ScrollView>
 
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.followButtonLarge}>
-            <Text style={styles.followButtonText}>
-              {teacher.isFollowed ? "Following" : "Follow"}
+          <TouchableOpacity 
+            style={[styles.followButtonLarge, teacher.isFollowed && styles.followingButton]}
+          >
+            <Text style={[styles.followButtonText, teacher.isFollowed && styles.followingButtonText]}>
+              {teacher.isFollowed ? "Unfollow" : "Follow"}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.messageButton}>
-            <Ionicons name="chatbubble" size={20} color={tokens.colors.primary} />
-            <Text style={styles.messageButtonText}>Message</Text>
+          <TouchableOpacity 
+            style={[styles.messageButton, !teacher.isFollowed && styles.messageButtonDisabled]}
+            disabled={!teacher.isFollowed}
+          >
+            <Ionicons 
+              name="chatbubble" 
+              size={20} 
+              color={teacher.isFollowed ? tokens.colors.primary : tokens.colors.onSurfaceVariant} 
+            />
+            <Text style={[styles.messageButtonText, !teacher.isFollowed && styles.messageButtonTextDisabled]}>Chat</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -1573,6 +1704,14 @@ const createTeacherCardStyles = (tokens: any) =>
       fontWeight: "bold",
       color: tokens.colors.onPrimary,
     },
+    placeholderContainerSmall: {
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      backgroundColor: tokens.colors.primary,
+      justifyContent: "center",
+      alignItems: "center",
+    },
     headerInfo: {
       flex: 1,
     },
@@ -1741,6 +1880,12 @@ const createTeacherCourseCardStyles = (tokens: any) =>
     progressSection: {
       marginTop: tokens.spacing.sm,
     },
+    progressText: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+      textAlign: "center",
+      fontWeight: "500",
+    },
     progressBar: {
       height: 4,
       backgroundColor: tokens.colors.surfaceVariant,
@@ -1750,12 +1895,6 @@ const createTeacherCourseCardStyles = (tokens: any) =>
     progressFill: {
       height: "100%",
       borderRadius: tokens.borderRadius.sm,
-    },
-    progressText: {
-      fontSize: tokens.typography.caption,
-      color: tokens.colors.onSurfaceVariant,
-      textAlign: "center",
-      fontWeight: "500",
     },
   });
 
@@ -1886,6 +2025,14 @@ const createModalStyles = (tokens: any) =>
       fontWeight: "bold",
       color: tokens.colors.onPrimary,
     },
+    placeholderContainer: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: tokens.colors.primary,
+      justifyContent: "center",
+      alignItems: "center",
+    },
     teacherName: {
       fontSize: tokens.typography.title,
       fontWeight: tokens.typography.bold,
@@ -1957,38 +2104,6 @@ const createModalStyles = (tokens: any) =>
     horizontalScrollContent: {
       paddingHorizontal: tokens.spacing.md,
       paddingRight: tokens.spacing.lg,
-    },
-    activeStudentsProgress: {
-      marginTop: tokens.spacing.md,
-      padding: tokens.spacing.md,
-      backgroundColor: tokens.colors.surfaceVariant,
-      borderRadius: tokens.borderRadius.md,
-    },
-    progressHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: tokens.spacing.sm,
-    },
-    progressLabel: {
-      fontSize: tokens.typography.body,
-      color: tokens.colors.onSurface,
-      fontWeight: '600',
-    },
-    progressValue: {
-      fontSize: tokens.typography.body,
-      color: tokens.colors.success,
-      fontWeight: tokens.typography.bold,
-    },
-    progressBar: {
-      height: 8,
-      backgroundColor: tokens.colors.surface,
-      borderRadius: tokens.borderRadius.sm,
-      overflow: 'hidden',
-    },
-    progressFill: {
-      height: '100%',
-      borderRadius: tokens.borderRadius.sm,
     },
     // Vertical List Styles
     verticalList: {
@@ -2117,26 +2232,67 @@ const createModalStyles = (tokens: any) =>
       flexDirection: "row",
       justifyContent: "space-between",
     },
-    statsGridResponsive: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      justifyContent: "space-between",
-      marginBottom: tokens.spacing.md,
+    ultraCompactStatsContainer: {
+      flexDirection: 'row',
+      gap: tokens.spacing.xs,
+      marginBottom: tokens.spacing.sm,
+      paddingHorizontal: tokens.spacing.xs,
+    },
+    ultraCompactStatPill: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 8,
+      paddingHorizontal: 6,
+      borderRadius: 24,
+      minHeight: 48,
+      maxHeight: 48,
+      shadowColor: tokens.colors.primary,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    ultraCompactStatNumber: {
+      fontSize: tokens.typography.title,
+      fontWeight: '800',
+      textAlign: 'center',
+      letterSpacing: -0.8,
+      lineHeight: tokens.typography.title + 2,
+      marginBottom: 1,
+    },
+    ultraCompactStatLabel: {
+      fontSize: 10,
+      color: tokens.colors.onSurface,
+      fontWeight: '700',
+      textAlign: 'center',
+      textTransform: 'uppercase',
+      letterSpacing: 0.8,
+      lineHeight: 11,
+      opacity: 0.9,
+    },
+    followersOfText: {
+      textAlign: 'center',
+    },
+    followersNumber: {
+      fontSize: tokens.typography.title,
+      fontWeight: '800',
+      letterSpacing: -0.8,
+    },
+    arrowText: {
+      fontSize: tokens.typography.title,
+      color: tokens.colors.onSurfaceVariant,
+      fontWeight: '400',
+    },
+    totalNumber: {
+      fontSize: tokens.typography.title,
+      fontWeight: '700',
+      letterSpacing: -0.5,
     },
     statsGridThreeColumn: {
       flexDirection: "row",
       justifyContent: "space-between",
       marginBottom: tokens.spacing.md,
-    },
-    statCard: {
-      alignItems: "center",
-      width: '48%', // 2 cards per row with some margin
-      padding: tokens.spacing.lg,
-      borderRadius: tokens.borderRadius.lg,
-      marginBottom: tokens.spacing.sm,
-      borderWidth: 1,
-      borderColor: tokens.colors.border + '30',
-      ...tokens.shadows.sm,
     },
     statCardLarge: {
       alignItems: "center",
@@ -2149,18 +2305,18 @@ const createModalStyles = (tokens: any) =>
       ...tokens.shadows.sm,
     },
     statIconContainer: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 28,
+      height: 28,
+      borderRadius: 14,
       justifyContent: "center",
       alignItems: "center",
-      marginBottom: tokens.spacing.sm,
+      marginBottom: tokens.spacing.xs,
     },
     statNumber: {
-      fontSize: tokens.typography.title,
+      fontSize: tokens.typography.subtitle,
       fontWeight: tokens.typography.bold,
       color: tokens.colors.onSurface,
-      marginVertical: tokens.spacing.xs,
+      marginVertical: 2,
     },
     statLabel: {
       fontSize: tokens.typography.caption,
@@ -2199,6 +2355,14 @@ const createModalStyles = (tokens: any) =>
       color: tokens.colors.onPrimary,
       fontWeight: "600",
     },
+    followingButton: {
+      backgroundColor: tokens.colors.surfaceVariant,
+      borderWidth: 1,
+      borderColor: tokens.colors.outline,
+    },
+    followingButtonText: {
+      color: tokens.colors.onSurfaceVariant,
+    },
     messageButton: {
       flexDirection: "row",
       alignItems: "center",
@@ -2215,6 +2379,13 @@ const createModalStyles = (tokens: any) =>
       color: tokens.colors.primary,
       fontWeight: "600",
       marginLeft: tokens.spacing.xs,
+    },
+    messageButtonDisabled: {
+      borderColor: tokens.colors.surfaceVariant,
+      backgroundColor: tokens.colors.surfaceVariant,
+    },
+    messageButtonTextDisabled: {
+      color: tokens.colors.onSurfaceVariant,
     },
     // Teaching History Styles
     historyContainer: {
@@ -2299,8 +2470,96 @@ const createModalStyles = (tokens: any) =>
     },
     recommendationHeader: {
       flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: tokens.spacing.md,
+    },
+    recommendationHeaderLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    recommendationHeaderRight: {
+      alignItems: 'flex-end',
+    },
+    videoReviewButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: tokens.spacing.xs,
+      borderRadius: tokens.borderRadius.sm,
+      backgroundColor: tokens.colors.primaryContainer,
+      marginBottom: tokens.spacing.xs,
+    },
+    videoReviewButtonActive: {
+      backgroundColor: tokens.colors.primary + '30',
+    },
+    videoDurationText: {
+      fontSize: tokens.typography.caption - 2,
+      color: tokens.colors.primary,
+      fontWeight: '600',
+      marginLeft: 4,
+    },
+    textReviewBadge: {
+      padding: tokens.spacing.xs,
+      borderRadius: tokens.borderRadius.sm,
+      backgroundColor: tokens.colors.info + '20',
+      marginBottom: tokens.spacing.xs,
+    },
+    videoPlayerContainer: {
+      backgroundColor: tokens.colors.surfaceVariant,
+      borderRadius: tokens.borderRadius.md,
+      padding: tokens.spacing.md,
+      marginVertical: tokens.spacing.sm,
+    },
+    videoPlayer: {
+      width: '100%',
+      height: 200,
+      borderRadius: tokens.borderRadius.md,
+      backgroundColor: '#000',
+      marginBottom: tokens.spacing.md,
+    },
+    videoPlayerPlaceholder: {
       alignItems: 'center',
       marginBottom: tokens.spacing.md,
+    },
+    videoPlayerText: {
+      fontSize: tokens.typography.body,
+      fontWeight: tokens.typography.semibold,
+      color: tokens.colors.onSurface,
+      marginTop: tokens.spacing.sm,
+    },
+    videoPlayerSubtext: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+      marginTop: tokens.spacing.xs,
+    },
+    videoControlsContainer: {
+      alignItems: 'center',
+      paddingTop: tokens.spacing.sm,
+    },
+    closeVideoButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: tokens.spacing.md,
+      paddingVertical: tokens.spacing.sm,
+      backgroundColor: tokens.colors.primary,
+      borderRadius: tokens.borderRadius.md,
+      gap: tokens.spacing.xs,
+    },
+    closeVideoText: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onPrimary,
+      fontWeight: '600',
+    },
+    readMoreButton: {
+      paddingVertical: tokens.spacing.xs,
+      alignSelf: 'flex-start',
+      marginTop: tokens.spacing.xs,
+    },
+    readMoreText: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.primary,
+      fontWeight: '600',
     },
     studentImage: {
       width: 40,
