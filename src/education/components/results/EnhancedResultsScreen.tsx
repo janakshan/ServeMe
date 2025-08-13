@@ -10,6 +10,20 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+
+// Conditional blur import with fallback - more robust approach
+let BlurView: any = null;
+let hasBlurSupport = false;
+
+try {
+  const expoBlur = require('expo-blur');
+  BlurView = expoBlur.BlurView;
+  hasBlurSupport = true;
+  console.log('✅ BlurView loaded successfully');
+} catch (error) {
+  console.log('⚠️ BlurView not available, using enhanced fallback');
+  hasBlurSupport = false;
+}
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -25,6 +39,39 @@ import * as Haptics from 'expo-haptics';
 import { useEducationTheme, useScopedThemedStyles } from '@/contexts/ScopedThemeProviders';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
+// Enhanced fallback component when BlurView is not available
+const EnhancedFallbackView: React.FC<{ 
+  children: React.ReactNode; 
+  style?: any; 
+  intensity?: number; 
+  tint?: string;
+  isCard?: boolean;
+}> = ({ 
+  children, 
+  style,
+  intensity = 0,
+  tint = 'light',
+  isCard = false
+}) => {
+  const backgroundColor = tint === 'light' 
+    ? `rgba(255, 255, 255, ${Math.min(intensity / 100 * 0.95, 0.95)})` 
+    : `rgba(0, 0, 0, ${Math.min(intensity / 100 * 0.4, 0.4)})`;
+  
+  const cardStyle = isCard ? {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 15 },
+    shadowOpacity: 0.25,
+    shadowRadius: 25,
+    elevation: 20,
+  } : {};
+
+  return (
+    <View style={[style, { backgroundColor }, cardStyle]}>
+      {children}
+    </View>
+  );
+};
 
 // Types for the enhanced results
 interface QuestionResult {
@@ -133,27 +180,27 @@ const MultiStageCelebration = ({
         }, 100);
       }
 
-      // Stage 2: Faster achievement reveal (reduced from 800ms to 400ms)
+      // Stage 2: Show celebration title (increased timing for readability)
       setTimeout(() => {
         stage2Scale.value = withSpring(1, { 
-          tension: 120, // Increased tension for faster animation
-          friction: 7 
+          tension: 80, // Slower animation for better visibility
+          friction: 8 
         });
         
         if (celebrationLevel !== 'supportive') {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         }
-      }, 400);
+      }, 600);
 
-      // Stage 3: Faster content reveal (reduced from 1500ms to 800ms)
+      // Stage 3: Score reveal with longer display time
       setTimeout(() => {
         stage3Rotation.value = withSpring(360, { 
-          tension: 100, // Increased tension
-          friction: 8 
+          tension: 60, // Slower rotation
+          friction: 10 
         });
-        // Complete celebration faster
-        setTimeout(() => runOnJS(onComplete)(), 200);
-      }, 800);
+        // Give users more time to read the message
+        setTimeout(() => runOnJS(onComplete)(), 1500);
+      }, 1800);
     };
 
     // Use requestAnimationFrame for smoother initial render
@@ -184,7 +231,15 @@ const MultiStageCelebration = ({
     switch (celebrationLevel) {
       case 'epic': return 'Outstanding!';
       case 'great': return 'Great Job!';
-      default: return 'Keep Learning!';
+      default: return 'You\'re Growing!'; // More encouraging than "Keep Learning!"
+    }
+  };
+
+  const getCelebrationSubtext = () => {
+    switch (celebrationLevel) {
+      case 'epic': return 'Perfect mastery achieved!';
+      case 'great': return 'Excellent progress made!';
+      default: return 'Every step builds strength!';
     }
   };
 
@@ -219,14 +274,20 @@ const MultiStageCelebration = ({
         <Text style={styles.celebrationEmoji}>{getCelebrationEmoji()}</Text>
       </Animated.View>
 
-      {/* Stage 2: Achievement text */}
+      {/* Stage 2: Achievement text with better messaging */}
       <Animated.View style={[styles.stage2Container, stage2AnimatedStyle]}>
         <Text style={styles.celebrationTitle}>{getCelebrationText()}</Text>
         <Text style={styles.celebrationSubtitle}>
-          {percentage >= 90 ? 'Perfect mastery!' : 
-           percentage >= 70 ? 'Excellent progress!' : 
-           'Every step counts!'}
+          {getCelebrationSubtext()}
         </Text>
+        {/* Progress indicator for lower scores */}
+        {celebrationLevel === 'supportive' && (
+          <View style={styles.progressEncouragement}>
+            <Text style={styles.progressText}>
+              💪 Building stronger foundations
+            </Text>
+          </View>
+        )}
       </Animated.View>
 
       {/* Stage 3: Score reveal */}
@@ -261,15 +322,23 @@ export const EnhancedResultsScreen: React.FC<EnhancedResultsScreenProps> = ({
   const scrollY = useSharedValue(0);
 
   useEffect(() => {
-    // Optimized initial entrance animation
+    // Enhanced entrance animation for immersive experience
     const initializeScreen = () => {
       setIsInitialized(true);
-      containerOpacity.value = withTiming(1, { duration: 200 }); // Faster
-      contentScale.value = withSpring(1, { tension: 150, friction: 10 }); // Snappier
+      
+      // Dramatic entrance with scale and opacity
+      containerOpacity.value = withTiming(1, { duration: 800 });
+      contentScale.value = withSequence(
+        withTiming(0.7, { duration: 0 }),
+        withSpring(1.05, { tension: 100, friction: 8, duration: 600 }),
+        withSpring(1, { tension: 120, friction: 10, duration: 300 })
+      );
     };
 
-    // Use requestAnimationFrame for smoother initialization
-    requestAnimationFrame(initializeScreen);
+    // Slight delay for dramatic effect
+    setTimeout(() => {
+      requestAnimationFrame(initializeScreen);
+    }, 100);
   }, []);
 
   const handleCelebrationComplete = () => {
@@ -316,33 +385,107 @@ export const EnhancedResultsScreen: React.FC<EnhancedResultsScreenProps> = ({
     };
   }, [resultData.percentage]);
 
-  // Show celebration view with loading optimization
+  // Show celebration view with immersive full-screen design
   if (currentView === 'celebration') {
     return (
       <View style={styles.overlayContainer}>
-        <LinearGradient
-          colors={[
-            `${performanceData.color}20`,
-            `${performanceData.color}10`,
-            `${performanceData.color}05`,
-          ]}
-          style={styles.backgroundGradient}
+        {/* Full-Screen Immersive Background */}
+        <TouchableOpacity 
+          activeOpacity={1}
+          onPress={handleCelebrationComplete}
+          style={styles.fullScreenContainer}
         >
-          {isInitialized ? (
-            <MultiStageCelebration
-              percentage={resultData.percentage}
-              onComplete={handleCelebrationComplete}
-              styles={styles}
-            />
-          ) : (
-            // Minimal loading state while initializing
-            <View style={styles.celebrationContainer}>
-              <Text style={styles.celebrationEmoji}>
-                {resultData.percentage >= 90 ? '🏆' : resultData.percentage >= 70 ? '⭐' : '📚'}
-              </Text>
+          {/* Dynamic Performance Background */}
+          <LinearGradient
+            colors={
+              performanceData.level === 'epic' 
+                ? ['#1a1a2e', '#16213e', '#0f3460', '#e94560']
+                : performanceData.level === 'great'
+                ? ['#667eea', '#764ba2', '#f093fb']
+                : ['#4c1d95', '#5b21b6', '#7c3aed', '#a855f7']
+            }
+            locations={[0, 0.3, 0.7, 1]}
+            style={styles.immersiveBackground}
+          >
+            {/* Central Celebration Content */}
+            <Animated.View style={[styles.centralCelebration, containerAnimatedStyle]}>
+              
+              {/* Performance Badge */}
+              <View style={styles.performanceBadgeContainer}>
+                <LinearGradient
+                  colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
+                  style={styles.performanceBadge}
+                >
+                  <Text style={styles.performanceEmoji}>
+                    {performanceData.level === 'epic' ? '🏆' : performanceData.level === 'great' ? '⭐' : '🌱'}
+                  </Text>
+                </LinearGradient>
+              </View>
+
+              {/* Main Celebration Text */}
+              <View style={styles.mainTextContainer}>
+                <Text style={styles.immersiveCelebrationTitle}>
+                  {performanceData.level === 'epic' ? 'Outstanding!' : 
+                   performanceData.level === 'great' ? 'Great Job!' : 
+                   'You\'re Growing!'}
+                </Text>
+                <Text style={styles.immersiveCelebrationSubtitle}>
+                  {performanceData.level === 'epic' ? 'Perfect mastery achieved!' :
+                   performanceData.level === 'great' ? 'Excellent progress made!' :
+                   'Every step builds strength!'}
+                </Text>
+              </View>
+
+              {/* Score Display */}
+              <View style={styles.immersiveScoreContainer}>
+                <LinearGradient
+                  colors={['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.05)']}
+                  style={styles.scoreCard}
+                >
+                  <Text style={styles.immersiveScoreText}>{Math.round(resultData.percentage)}%</Text>
+                  <Text style={styles.scoreDescription}>Final Score</Text>
+                </LinearGradient>
+              </View>
+
+              {/* Encouraging Message for Lower Scores */}
+              {performanceData.level === 'supportive' && (
+                <View style={styles.encouragementContainer}>
+                  <LinearGradient
+                    colors={['rgba(168, 85, 247, 0.2)', 'rgba(124, 58, 237, 0.1)']}
+                    style={styles.encouragementBadge}
+                  >
+                    <Text style={styles.encouragementText}>💪 Building stronger foundations</Text>
+                  </LinearGradient>
+                </View>
+              )}
+
+              {/* Continue Hint - Better positioned */}
+              <View style={styles.immersiveContinueHint}>
+                <Text style={styles.immersiveContinueText}>✨ Tap anywhere to continue ✨</Text>
+              </View>
+
+            </Animated.View>
+
+            {/* Animated Background Elements */}
+            <View style={styles.backgroundEffects}>
+              {/* Floating particles */}
+              {Array.from({ length: 8 }, (_, i) => (
+                <View 
+                  key={i}
+                  style={[
+                    styles.floatingParticle,
+                    {
+                      left: `${(i * 12 + 10)}%`,
+                      top: `${(i * 8 + 15)}%`,
+                      animationDelay: `${i * 0.2}s`,
+                    }
+                  ]}
+                />
+              ))}
             </View>
-          )}
-        </LinearGradient>
+
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -562,14 +705,255 @@ const createStyles = (tokens: any) => StyleSheet.create({
     bottom: 0,
     zIndex: 1000,
   },
-  backgroundGradient: {
+
+  // Immersive Full-Screen Design
+  fullScreenContainer: {
     flex: 1,
   },
-  celebrationContainer: {
+  immersiveBackground: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
+  },
+  centralCelebration: {
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    zIndex: 10,
+  },
+
+  // Performance Badge
+  performanceBadgeContainer: {
+    marginBottom: 30,
+  },
+  performanceBadge: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: 'rgba(255, 255, 255, 0.5)',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  performanceEmoji: {
+    fontSize: 50,
+  },
+
+  // Main Text Content
+  mainTextContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  immersiveCelebrationTitle: {
+    fontSize: 42,
+    fontWeight: '900',
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: 12,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 4 },
+    textShadowRadius: 8,
+    letterSpacing: 1,
+  },
+  immersiveCelebrationSubtitle: {
+    fontSize: 20,
+    color: 'rgba(255, 255, 255, 0.9)',
+    textAlign: 'center',
+    fontWeight: '600',
+    lineHeight: 28,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+
+  // Score Display
+  immersiveScoreContainer: {
+    marginBottom: 30,
+  },
+  scoreCard: {
+    paddingHorizontal: 40,
+    paddingVertical: 25,
+    borderRadius: 25,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowColor: 'rgba(255, 255, 255, 0.2)',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  immersiveScoreText: {
+    fontSize: 68,
+    fontWeight: '900',
+    color: 'white',
+    textShadowColor: 'rgba(0, 0, 0, 0.4)',
+    textShadowOffset: { width: 0, height: 4 },
+    textShadowRadius: 8,
+    marginBottom: 8,
+  },
+  scoreDescription: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+  },
+
+  // Encouragement for Lower Scores
+  encouragementContainer: {
+    marginBottom: 20,
+  },
+  encouragementBadge: {
+    paddingHorizontal: 25,
+    paddingVertical: 15,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: 'rgba(168, 85, 247, 0.3)',
+  },
+  encouragementText: {
+    fontSize: 18,
+    color: 'white',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+
+  // Continue Hint
+  immersiveContinueHint: {
+    marginTop: 40,
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  immersiveContinueText: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: '600',
+    textAlign: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    overflow: 'hidden',
+  },
+
+  // Background Effects
+  backgroundEffects: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    pointerEvents: 'none',
+  },
+  floatingParticle: {
+    position: 'absolute',
+    width: 6,
+    height: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    borderRadius: 3,
+    opacity: 0.6,
+  },
+  
+  // Advanced Blur System with Enhanced Fallback
+  blurContainer: {
+    flex: 1,
+    backgroundColor: hasBlurSupport 
+      ? 'rgba(0, 0, 0, 0.1)' // Light overlay when blur is available
+      : 'rgba(0, 0, 0, 0.3)', // Stronger backdrop when using fallback
+  },
+  touchableOverlay: {
+    flex: 1,
+  },
+  gradientOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  celebrationGlassContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  celebrationCard: {
+    borderRadius: 32,
+    overflow: 'hidden',
+    shadowColor: hasBlurSupport ? '#000' : '#6A1B9A',
+    shadowOffset: { width: 0, height: hasBlurSupport ? 20 : 15 },
+    shadowOpacity: hasBlurSupport ? 0.15 : 0.3,
+    shadowRadius: hasBlurSupport ? 40 : 25,
+    elevation: hasBlurSupport ? 25 : 20,
+    borderWidth: hasBlurSupport ? 1 : 2,
+    borderColor: hasBlurSupport 
+      ? 'rgba(255, 255, 255, 0.3)' 
+      : 'rgba(106, 27, 154, 0.2)',
+  },
+  cardGradient: {
+    paddingHorizontal: 40,
+    paddingVertical: 60,
+    minWidth: screenWidth * 0.85,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  continueHint: {
+    marginTop: 30,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  continueText: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  
+  // Ambient Effects
+  ambientEffects: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    pointerEvents: 'none',
+    zIndex: -1,
+  },
+  ambientGlow: {
+    position: 'absolute',
+    borderRadius: 200,
+  },
+  ambientGlow1: {
+    width: 300,
+    height: 300,
+    top: '20%',
+    left: '10%',
+    opacity: 0.3,
+  },
+  ambientGlow2: {
+    width: 250,
+    height: 250,
+    bottom: '30%',
+    right: '15%',
+    opacity: 0.2,
+  },
+  
+  backgroundGradient: {
+    flex: 1,
+  },
+  celebrationContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+    paddingVertical: 20,
   },
   confettiContainer: {
     position: 'absolute',
@@ -609,15 +993,33 @@ const createStyles = (tokens: any) => StyleSheet.create({
   celebrationTitle: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#1F2937',
+    color: '#6A1B9A',
     textAlign: 'center',
     marginBottom: 8,
+    textShadowColor: 'rgba(106, 27, 154, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   celebrationSubtitle: {
     fontSize: 18,
     color: '#6B7280',
     textAlign: 'center',
     fontWeight: '500',
+  },
+  progressEncouragement: {
+    marginTop: 16,
+    backgroundColor: 'rgba(106, 27, 154, 0.1)',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(106, 27, 154, 0.2)',
+  },
+  progressText: {
+    fontSize: 16,
+    color: '#6A1B9A',
+    textAlign: 'center',
+    fontWeight: '600',
   },
   scoreReveal: {
     fontSize: 72,
