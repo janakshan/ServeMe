@@ -29,6 +29,7 @@ const MOCK_TEACHERS = [
     subjects: ["Combined Mathematics", "Pure Mathematics", "Applied Mathematics"],
     experience: "15 years",
     location: "Jaffna, Sri Lanka",
+    nativeLanguages: ["English"],
     isFollowed: true,
     currentInstitution: "University of Jaffna",
     institutionType: "University",
@@ -260,6 +261,7 @@ const MOCK_TEACHERS = [
     subjects: ["Biology", "Botany", "Zoology", "Human Biology"],
     experience: "12 years",
     location: "Jaffna, Sri Lanka",
+    nativeLanguages: ["English"],
     isFollowed: true,
     currentInstitution: "University of Jaffna",
     institutionType: "University",
@@ -416,6 +418,7 @@ const MOCK_TEACHERS = [
     subjects: ["O/L Mathematics", "Algebra", "Geometry", "Statistics"],
     experience: "18 years",
     location: "Jaffna, Sri Lanka",
+    nativeLanguages: ["English"],
     isFollowed: false,
     currentInstitution: "St. John's College Jaffna",
     institutionType: "College",
@@ -477,6 +480,7 @@ const MOCK_TEACHERS = [
     subjects: ["O/L Science", "Chemistry", "Physics", "Biology"],
     experience: "14 years",
     location: "Jaffna, Sri Lanka",
+    nativeLanguages: ["English"],
     isFollowed: true,
     currentInstitution: "Vembadi Girls' High School",
     institutionType: "School",
@@ -520,6 +524,7 @@ const MOCK_TEACHERS = [
     subjects: ["Tamil Literature", "Tamil Language", "Poetry", "Classical Literature"],
     experience: "20 years",
     location: "Jaffna, Sri Lanka",
+    nativeLanguages: ["Tamil"],
     isFollowed: false,
     currentInstitution: "Jaffna Hindu College",
     institutionType: "College",
@@ -563,6 +568,7 @@ const MOCK_TEACHERS = [
     subjects: ["Sri Lankan History", "World History", "Ancient Civilizations", "Modern History"],
     experience: "22 years",
     location: "Jaffna, Sri Lanka",
+    nativeLanguages: ["English"],
     isFollowed: true,
     currentInstitution: "University of Jaffna",
     institutionType: "University",
@@ -612,6 +618,7 @@ const MOCK_TEACHERS = [
     subjects: ["A/L Physics", "Mechanics", "Electricity", "Modern Physics"],
     experience: "13 years",
     location: "Jaffna, Sri Lanka",
+    nativeLanguages: ["English"],
     isFollowed: false,
     currentInstitution: "University of Jaffna",
     institutionType: "University",
@@ -655,6 +662,7 @@ const MOCK_TEACHERS = [
     subjects: ["English Grammar", "English Literature", "Composition", "Speaking Skills"],
     experience: "16 years",
     location: "Jaffna, Sri Lanka",
+    nativeLanguages: ["English", "Tamil"],
     isFollowed: true,
     currentInstitution: "Holy Family Convent Jaffna",
     institutionType: "School",
@@ -688,6 +696,8 @@ const MOCK_TEACHERS = [
 ];
 
 const SUBJECT_FILTERS = ["All", "Mathematics", "Science", "Languages", "Arts & Humanities", "Social Studies"];
+
+const LANGUAGE_FILTERS = ["All Languages", "English", "Tamil", "Sinhala"];
 
 interface TeacherCourseCardProps {
   course: any;
@@ -1466,6 +1476,7 @@ const TeacherModal: React.FC<TeacherModalProps> = ({ teacher, visible, onClose }
 export default function TeachersScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("All");
+  const [selectedLanguage, setSelectedLanguage] = useState("All Languages");
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
@@ -1473,13 +1484,21 @@ export default function TeachersScreen() {
   const styles = useScopedThemedStyles(createStyles, themeContext);
   const { tokens, getGradient } = themeContext;
 
+  const getFilteredTitle = () => {
+    const subjectPart = selectedFilter === "All" ? "All" : selectedFilter;
+    const languagePart = selectedLanguage === "All Languages" ? "" : ` (${selectedLanguage})`;
+    return `${subjectPart} Teachers${languagePart}`;
+  };
+
   const filteredTeachers = MOCK_TEACHERS.filter(teacher => {
     const matchesSearch = teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          teacher.specialization.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = selectedFilter === "All" || teacher.subjects.some(subject => 
       subject.toLowerCase().includes(selectedFilter.toLowerCase())
     );
-    return matchesSearch && matchesFilter;
+    const matchesLanguage = selectedLanguage === "All Languages" || 
+      teacher.nativeLanguages?.some(lang => lang === selectedLanguage);
+    return matchesSearch && matchesFilter && matchesLanguage;
   });
 
   const handleTeacherPress = (teacher: any) => {
@@ -1534,8 +1553,19 @@ export default function TeachersScreen() {
                 selectedValue: selectedFilter,
                 onSelect: setSelectedFilter,
               }}
+              secondaryFilters={{
+                options: LANGUAGE_FILTERS.map((lang) => ({
+                  id: lang,
+                  label: lang,
+                  value: lang,
+                })),
+                selectedValue: selectedLanguage,
+                onSelect: setSelectedLanguage,
+                label: "Language",
+                variant: "pills",
+              }}
               section={{
-                title: selectedFilter === "All" ? "All Teachers" : `${selectedFilter} Teachers`,
+                title: getFilteredTitle(),
                 count: filteredTeachers.length,
                 countLabel: "teachers",
               }}
@@ -1545,7 +1575,7 @@ export default function TeachersScreen() {
           {!isFilterVisible && (
             <View style={styles.simpleHeader}>
               <Text style={styles.simpleHeaderTitle}>
-                {selectedFilter === "All" ? "All Teachers" : `${selectedFilter} Teachers`}
+                {getFilteredTitle()}
               </Text>
               <Text style={styles.simpleHeaderCount}>
                 {filteredTeachers.length} teachers

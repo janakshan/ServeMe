@@ -93,7 +93,7 @@ export const EducationHeader: React.FC<EducationHeaderProps> = ({
       case "courses":
         return ["search", "filters", "section"];
       case "teachers":
-        return ["search", "filters", "section"];
+        return ["search", "filters", "secondaryFilters", "section"];
       case "live-classes":
         return ["search", "filters", "section"];
       case "exams":
