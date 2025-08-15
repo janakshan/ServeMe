@@ -146,29 +146,6 @@ export interface TimeAnalysisData {
   }>;
 }
 
-export interface StudyPlanRecommendation {
-  id: string;
-  title: string;
-  description: string;
-  priority: 'critical' | 'high' | 'medium' | 'low';
-  estimatedDuration: number; // minutes
-  type: 'review' | 'practice' | 'learn' | 'assess';
-  
-  // Related content
-  topics: string[];
-  difficulty: 'easy' | 'medium' | 'hard';
-  resources: Array<{
-    title: string;
-    type: 'video' | 'article' | 'practice' | 'quiz';
-    url: string;
-    duration?: number;
-  }>;
-  
-  // Scheduling
-  scheduledFor?: string; // ISO date
-  isCompleted: boolean;
-  completedAt?: string; // ISO date
-}
 
 export interface BookmarkCollection {
   id: string;
@@ -217,7 +194,6 @@ export interface ExamDetailedAnalysisData {
   questions: DetailedQuestionAnalysis[];
   subjectAnalysis: SubjectPerformanceAnalysis[];
   timeAnalysis: TimeAnalysisData;
-  studyPlan: StudyPlanRecommendation[];
   
   // Comparison data
   classAverage?: number;
@@ -245,7 +221,7 @@ export interface ExamDetailedAnalysisData {
 
 // UI State interfaces
 export interface AnalysisScreenState {
-  currentTab: 'overview' | 'questions' | 'insights' | 'teacher' | 'study-plan';
+  currentTab: 'overview' | 'questions' | 'insights' | 'teacher';
   expandedQuestions: Set<string>;
   selectedQuestions: Set<string>;
   isMultiSelectMode: boolean;

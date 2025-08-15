@@ -136,21 +136,6 @@ The **Exam Detailed Analysis Screen** is a comprehensive post-exam review system
 
 ---
 
-## 📚 Study Plan Generation
-
-### 🎯 Personalized Recommendations
-- **Adaptive Study Plans**: Generated based on performance analysis
-- **Priority-Based Learning**: High/medium/low priority topic ranking
-- **Time Estimates**: Realistic study time recommendations
-- **Resource Suggestions**: Specific materials and practice problems
-
-### 📅 Learning Path Optimization
-- **Weakness-Focused Review**: Targeted practice for incorrect answers
-- **Strength Reinforcement**: Advanced problems in mastered areas
-- **Balanced Curriculum**: Well-rounded study schedule
-- **Progress Tracking**: Completion status and milestone tracking
-
----
 
 ## 🛠 Technical Implementation
 
@@ -180,7 +165,7 @@ The **Exam Detailed Analysis Screen** is a comprehensive post-exam review system
 1. Complete an exam in the Education service
 2. View exam results on the results screen
 3. Tap "Detailed Analysis" card to access full analysis
-4. Explore all four tabs: Questions, Insights, Teachers, Study Plan
+4. Explore all four tabs: Overview, Questions, Insights, Teachers
 
 ### Key Interactions
 - **Expand Questions**: Tap any question card to see full breakdown

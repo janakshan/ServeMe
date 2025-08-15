@@ -34,7 +34,6 @@ import type {
 import { QuestionAnalysisList } from '@/components/exam-analysis/QuestionAnalysisList';
 import { PerformanceInsights } from '@/components/exam-analysis/PerformanceInsights';
 import { TeacherExplanations } from '@/components/exam-analysis/TeacherExplanations';
-import { StudyPlanView } from '@/components/exam-analysis/StudyPlanView';
 import { FloatingBookmarkToolbar } from '@/components/exam-analysis/FloatingBookmarkToolbar';
 import { AnalysisHeader } from '@/components/exam-analysis/AnalysisHeader';
 import { PerformanceSummary } from '@/components/exam-analysis/PerformanceSummary';
@@ -47,7 +46,6 @@ const TABS = [
   { id: 'questions', label: 'Questions', icon: 'list' },
   { id: 'insights', label: 'Insights', icon: 'analytics' },
   { id: 'teacher', label: 'Teachers', icon: 'school' },
-  { id: 'study-plan', label: 'Study Plan', icon: 'calendar' },
 ] as const;
 
 type TabId = typeof TABS[number]['id'];
@@ -300,13 +298,6 @@ export default function ExamDetailedAnalysisScreen() {
             questions={analysisData.questions.filter(q => q.teacherExplanation)}
           />
         );
-      case 'study-plan':
-        return (
-          <StudyPlanView
-            studyPlan={analysisData.studyPlan}
-            weakAreas={analysisData.subjectAnalysis.filter(s => s.masteryLevel === 'needs-practice')}
-          />
-        );
       default:
         return null;
     }
@@ -544,20 +535,6 @@ async function generateMockAnalysisData(examId: string): Promise<ExamDetailedAna
         wasCorrect: q.isCorrect,
       })),
     },
-    studyPlan: [
-      {
-        id: 'sp1',
-        title: 'Review Algebra Fundamentals',
-        description: 'Focus on areas where you struggled',
-        priority: 'high',
-        estimatedDuration: 45,
-        type: 'review',
-        topics: ['Linear equations', 'Quadratic equations'],
-        difficulty: 'medium',
-        resources: [],
-        isCompleted: false,
-      },
-    ],
     achievements: ['Quick Starter', 'Algebra Apprentice'],
     insights: [
       {
