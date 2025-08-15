@@ -37,6 +37,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { useEducationTheme, useScopedThemedStyles } from '@/contexts/ScopedThemeProviders';
+import { router } from 'expo-router';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -676,7 +677,10 @@ export const EnhancedResultsScreen: React.FC<EnhancedResultsScreenProps> = ({
             {/* Performance Insights Teaser */}
             <TouchableOpacity 
               style={styles.insightsTeaser}
-              onPress={() => setCurrentView('details')}
+              onPress={() => {
+                // Navigate to detailed analysis screen
+                router.push(`/(services)/education/exam/${resultData.examId}/analysis`);
+              }}
             >
               <View style={styles.insightsTeaserContent}>
                 <Ionicons name="analytics" size={24} color={tokens.colors.primary} />
