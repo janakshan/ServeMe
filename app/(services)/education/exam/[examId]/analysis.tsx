@@ -339,7 +339,7 @@ export default function ExamDetailedAnalysisScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={styles.container}>
         {/* Header */}
         <AnalysisHeader
           title={analysisData.examTitle}

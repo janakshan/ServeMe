@@ -10,6 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEducationTheme, useScopedThemedStyles } from '@/contexts/ScopedThemeProviders';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 
 interface AnalysisHeaderProps {
@@ -32,6 +33,7 @@ export const AnalysisHeader: React.FC<AnalysisHeaderProps> = ({
   const themeContext = useEducationTheme();
   const { tokens, getGradient } = themeContext;
   const styles = useScopedThemedStyles(createStyles, themeContext);
+  const insets = useSafeAreaInsets();
   
   const backgroundGradient = getGradient('header');
 
@@ -53,14 +55,19 @@ export const AnalysisHeader: React.FC<AnalysisHeaderProps> = ({
   if (isMultiSelectMode) {
     return (
       <>
-        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+        <StatusBar 
+          barStyle="light-content" 
+          backgroundColor="transparent" 
+          translucent 
+          hidden={false}
+        />
         <LinearGradient
           colors={backgroundGradient.colors as any}
           start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
           end={{ x: 1, y: 1 }}
           style={styles.container}
         >
-          <View style={styles.multiSelectHeader}>
+          <View style={[styles.multiSelectHeader, { paddingTop: insets.top + tokens.spacing.md }]}>
             <TouchableOpacity onPress={handleClear} style={styles.actionButton}>
               <Ionicons name="close" size={24} color={tokens.colors.onPrimary} />
             </TouchableOpacity>
@@ -85,14 +92,19 @@ export const AnalysisHeader: React.FC<AnalysisHeaderProps> = ({
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <StatusBar 
+        barStyle="light-content" 
+        backgroundColor="transparent" 
+        translucent 
+        hidden={false}
+      />
       <LinearGradient
         colors={backgroundGradient.colors as any}
         start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
         end={{ x: 1, y: 1 }}
         style={styles.container}
       >
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + tokens.spacing.md }]}>
           <TouchableOpacity onPress={handleBack} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={tokens.colors.onPrimary} />
           </TouchableOpacity>
