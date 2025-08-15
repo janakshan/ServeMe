@@ -245,7 +245,7 @@ export interface ExamDetailedAnalysisData {
 
 // UI State interfaces
 export interface AnalysisScreenState {
-  currentTab: 'questions' | 'insights' | 'teacher' | 'study-plan';
+  currentTab: 'overview' | 'questions' | 'insights' | 'teacher' | 'study-plan';
   expandedQuestions: Set<string>;
   selectedQuestions: Set<string>;
   isMultiSelectMode: boolean;

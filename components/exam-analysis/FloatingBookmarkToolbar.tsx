@@ -33,9 +33,11 @@ export const FloatingBookmarkToolbar: React.FC<FloatingBookmarkToolbarProps> = (
   onCancel,
 }) => {
   const themeContext = useEducationTheme();
-  const { tokens } = themeContext;
+  const { tokens, getGradient } = themeContext;
   const styles = useScopedThemedStyles(createStyles, themeContext);
   const insets = useSafeAreaInsets();
+  
+  const backgroundGradient = getGradient('card');
 
   const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
@@ -74,7 +76,9 @@ export const FloatingBookmarkToolbar: React.FC<FloatingBookmarkToolbarProps> = (
       ]}
     >
       <LinearGradient
-        colors={[tokens.colors.surface, tokens.colors.surfaceElevated]}
+        colors={backgroundGradient.colors as any}
+        start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
+        end={{ x: 1, y: 1 }}
         style={styles.toolbar}
       >
         <View style={styles.content}>

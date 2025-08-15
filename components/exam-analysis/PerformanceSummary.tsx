@@ -179,18 +179,21 @@ export const PerformanceSummary: React.FC<PerformanceSummaryProps> = ({
           </View>
         </View>
 
-        {/* Compact Quick Stats - Further Reduced */}
+        {/* Enhanced Quick Stats for Tab Version */}
         <View style={styles.compactStats}>
           <View style={styles.compactStatItem}>
-            <Ionicons name="time" size={14} color={timeEff.color} />
+            <Ionicons name="time" size={16} color={timeEff.color} />
+            <Text style={styles.compactStatLabel}>Time Used</Text>
             <Text style={styles.compactStatValue}>{formatTime(analysisData.timeSpent)}</Text>
           </View>
           <View style={styles.compactStatItem}>
-            <Ionicons name="diamond" size={14} color={tokens.colors.warning} />
+            <Ionicons name="diamond" size={16} color={tokens.colors.warning} />
+            <Text style={styles.compactStatLabel}>Grade</Text>
             <Text style={styles.compactStatValue}>{analysisData.grade}</Text>
           </View>
           <View style={styles.compactStatItem}>
-            <Ionicons name="bar-chart" size={14} color={tokens.colors.info} />
+            <Ionicons name="bar-chart" size={16} color={tokens.colors.info} />
+            <Text style={styles.compactStatLabel}>Difficulty</Text>
             <Text style={styles.compactStatValue}>{analysisData.difficulty}</Text>
           </View>
         </View>
@@ -205,15 +208,15 @@ const createStyles = (tokens: any) => StyleSheet.create({
     borderRadius: tokens.borderRadius.lg,
     overflow: 'hidden',
     ...tokens.shadows.md,
-    maxHeight: 280, // Limit height to ensure tabs are visible
+    // Remove fixed height - let content determine height
   },
   
   gradient: {
-    padding: tokens.spacing.md, // Reduced from lg to md
+    padding: tokens.spacing.lg, // Restored to lg for tab version
   },
   
   header: {
-    marginBottom: tokens.spacing.sm, // Reduced from lg to sm
+    marginBottom: tokens.spacing.md, // Restored to md for tab version
   },
   
   headerTitle: {
@@ -230,16 +233,16 @@ const createStyles = (tokens: any) => StyleSheet.create({
   
   scoreSection: {
     alignItems: 'center',
-    marginBottom: tokens.spacing.md, // Reduced from xl to md
+    marginBottom: tokens.spacing.lg, // Restored to lg for tab version
   },
   
   scoreDisplay: {
     alignItems: 'center',
-    marginBottom: tokens.spacing.sm, // Reduced from lg to sm
+    marginBottom: tokens.spacing.md, // Restored to md for tab version
   },
   
   scoreText: {
-    fontSize: 48,
+    fontSize: 48, // Restored to original 48 for tab version
     fontWeight: '900',
     marginBottom: tokens.spacing.xs,
   },
@@ -253,8 +256,8 @@ const createStyles = (tokens: any) => StyleSheet.create({
   performanceBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: tokens.spacing.md,
-    paddingVertical: tokens.spacing.sm,
+    paddingHorizontal: tokens.spacing.sm, // Reduced from md to sm
+    paddingVertical: tokens.spacing.xs, // Reduced from sm to xs
     borderRadius: tokens.borderRadius.full,
     gap: tokens.spacing.xs,
   },
@@ -300,16 +303,16 @@ const createStyles = (tokens: any) => StyleSheet.create({
   compactStats: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: tokens.spacing.sm, // Reduced padding
+    paddingVertical: tokens.spacing.md, // Restored to md for tab version
     backgroundColor: tokens.colors.surfaceVariant + '30',
     borderRadius: tokens.borderRadius.md,
-    marginTop: tokens.spacing.sm, // Reduced margin
+    marginTop: tokens.spacing.md, // Restored to md for tab version
   },
   
   compactStatItem: {
-    flexDirection: 'row', // Changed to horizontal layout
+    flexDirection: 'column', // Changed back to vertical for tab version
     alignItems: 'center',
-    gap: tokens.spacing.xs,
+    gap: tokens.spacing.xs, // Restored proper spacing
   },
   
   compactStatLabel: {
@@ -318,7 +321,7 @@ const createStyles = (tokens: any) => StyleSheet.create({
   },
   
   compactStatValue: {
-    fontSize: tokens.typography.body,
+    fontSize: tokens.typography.body, // Restored to body for tab version
     fontWeight: tokens.typography.semiBold,
     color: tokens.colors.onSurface,
   },

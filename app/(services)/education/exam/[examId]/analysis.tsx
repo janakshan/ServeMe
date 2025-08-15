@@ -43,6 +43,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 // Tab configuration
 const TABS = [
+  { id: 'overview', label: 'Overview', icon: 'stats-chart' },
   { id: 'questions', label: 'Questions', icon: 'list' },
   { id: 'insights', label: 'Insights', icon: 'analytics' },
   { id: 'teacher', label: 'Teachers', icon: 'school' },
@@ -60,7 +61,7 @@ export default function ExamDetailedAnalysisScreen() {
 
   // Screen state
   const [screenState, setScreenState] = useState<AnalysisScreenState>({
-    currentTab: 'questions',
+    currentTab: 'overview', // Start with overview tab
     expandedQuestions: new Set(),
     selectedQuestions: new Set(),
     isMultiSelectMode: false,
@@ -263,6 +264,15 @@ export default function ExamDetailedAnalysisScreen() {
     if (!analysisData) return null;
     
     switch (screenState.currentTab) {
+      case 'overview':
+        return (
+          <View style={styles.overviewTab}>
+            <PerformanceSummary
+              analysisData={analysisData}
+              style={styles.overviewSummary}
+            />
+          </View>
+        );
       case 'questions':
         return (
           <QuestionAnalysisList
@@ -341,14 +351,6 @@ export default function ExamDetailedAnalysisScreen() {
           selectedCount={screenState.selectedQuestions.size}
           onClearSelection={handleClearSelection}
         />
-
-        {/* Performance Summary */}
-        <Animated.View style={summaryAnimatedStyle}>
-          <PerformanceSummary
-            analysisData={analysisData}
-            style={styles.summary}
-          />
-        </Animated.View>
 
         {/* Tab Navigation */}
         <View style={styles.tabContainer}>
@@ -644,10 +646,11 @@ const createStyles = (tokens: any) => StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: tokens.colors.surface,
     borderTopWidth: 1,
-    borderTopColor: tokens.colors.border,
+    borderTopColor: tokens.colors.outline + '30',
     position: 'relative',
     flexShrink: 0, // Ensure tabs always show
-    minHeight: 60, // Ensure minimum height for visibility
+    minHeight: 70, // Increased height for better touch targets
+    ...tokens.shadows.sm, // Add subtle shadow
   },
   
   tabIndicatorContainer: {
@@ -659,20 +662,25 @@ const createStyles = (tokens: any) => StyleSheet.create({
   },
   
   tabIndicator: {
-    height: 2,
+    height: 3, // Slightly thicker for better visibility
     backgroundColor: tokens.colors.primary,
+    borderRadius: 2, // Rounded indicator
   },
   
   tab: {
     flex: 1,
     flexDirection: 'column',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: tokens.spacing.md,
     paddingHorizontal: tokens.spacing.sm,
+    borderRadius: tokens.borderRadius.sm,
+    marginHorizontal: 2, // Small spacing between tabs
+    marginVertical: tokens.spacing.xs,
   },
   
   activeTab: {
-    // Additional styling for active tab if needed
+    backgroundColor: tokens.colors.primary + '10', // Subtle background for active tab
   },
   
   tabLabel: {
@@ -680,6 +688,7 @@ const createStyles = (tokens: any) => StyleSheet.create({
     color: tokens.colors.onSurfaceVariant,
     marginTop: tokens.spacing.xs,
     textAlign: 'center',
+    fontWeight: '500', // Slightly bolder for better readability
   },
   
   activeTabLabel: {
@@ -690,9 +699,22 @@ const createStyles = (tokens: any) => StyleSheet.create({
   content: {
     flex: 1,
     minHeight: 200, // Ensure content area has minimum height
+    backgroundColor: tokens.colors.background, // Ensure consistent background
   },
   
   bottomSpacing: {
     height: 100, // Space for floating toolbar
+  },
+  
+  overviewTab: {
+    flex: 1,
+    backgroundColor: tokens.colors.background,
+    padding: tokens.spacing.lg, // Increased padding for better spacing
+  },
+  
+  overviewSummary: {
+    marginBottom: tokens.spacing.xl,
+    borderRadius: tokens.borderRadius.lg,
+    overflow: 'hidden',
   },
 });
