@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   Dimensions,
   BackHandler,
   Image,
@@ -42,6 +41,7 @@ import {
   soundService,
   executeCelebrationFeedback
 } from '@/src/education/components/results';
+import { ExitExamModal } from '@/components/modals/ExitExamModal';
 import type { 
   ExamResultData,
   Achievement,
@@ -290,6 +290,7 @@ export default function ModernExamTakeScreen() {
   const [showTeacherDashboard, setShowTeacherDashboard] = useState(false);
   const [showParentNotification, setShowParentNotification] = useState(false);
   const [currentResultsView, setCurrentResultsView] = useState<'summary' | 'breakdown' | 'next-steps'>('summary');
+  const [showExitModal, setShowExitModal] = useState(false);
   
   // Gamification state
   const [score, setScore] = useState(0);
@@ -670,21 +671,33 @@ export default function ModernExamTakeScreen() {
   
   // Handle back press with confirmation
   const handleBackPress = () => {
-    Alert.alert(
-      "Exit Exam?",
-      "Your progress will be lost. Are you sure?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Exit", 
-          style: "destructive", 
-          onPress: () => {
-            // Navigate back to exams tab
-            router.push("/(services)/education/(tabs)/exams");
-          }
-        }
-      ]
-    );
+    setShowExitModal(true);
+  };
+
+  // Create exam progress data for the modal
+  const getExamProgress = () => {
+    const mins = Math.floor(timeLeft / 60);
+    const secs = timeLeft % 60;
+    const timeString = `${mins}:${secs.toString().padStart(2, '0')}`;
+    
+    return {
+      currentQuestion: currentQuestion + 1,
+      totalQuestions: MOCK_QUESTIONS.length,
+      answered: selectedAnswers.filter(answer => answer !== undefined).length,
+      timeRemaining: timeString,
+      examTitle: "Mathematics Quiz - Algebra & Geometry"
+    };
+  };
+
+  // Exit modal handlers
+  const handleContinueExam = () => {
+    setShowExitModal(false);
+  };
+
+  const handleExit = () => {
+    // Exit and return to exams list
+    setShowExitModal(false);
+    router.push("/(services)/education/(tabs)/exams");
   };
   
   // Format time with colors
@@ -1153,6 +1166,15 @@ export default function ModernExamTakeScreen() {
           console.log('Sending to parents:', settings, selectedParents);
           // Implement parent notification logic
         }}
+      />
+
+      {/* Exit Exam Modal */}
+      <ExitExamModal
+        visible={showExitModal}
+        examProgress={getExamProgress()}
+        onContinueExam={handleContinueExam}
+        onExit={handleExit}
+        onClose={() => setShowExitModal(false)}
       />
       </View>
     </>

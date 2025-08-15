@@ -247,7 +247,7 @@ export default function ExamsScreen() {
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const themeContext = useEducationTheme();
   const styles = useScopedThemedStyles(createStyles, themeContext);
-  const { getGradient } = themeContext;
+  const { getGradient, tokens } = themeContext;
 
   const filteredExams = MOCK_EXAMS.filter(exam => {
     const matchesDifficulty = selectedDifficulty === "All" || 
@@ -262,6 +262,10 @@ export default function ExamsScreen() {
 
   const handleFilterToggle = () => {
     setIsFilterVisible(!isFilterVisible);
+  };
+
+  const handleGenerateExam = () => {
+    router.push('/(services)/education/generate-exam');
   };
 
   // Create a subtle gradient background that transitions from header
@@ -318,12 +322,22 @@ export default function ExamsScreen() {
           
           {!isFilterVisible && (
             <View style={styles.simpleHeader}>
-              <Text style={styles.simpleHeaderTitle}>
-                Available Exams
-              </Text>
-              <Text style={styles.simpleHeaderCount}>
-                {filteredExams.length} exams
-              </Text>
+              <View style={styles.simpleHeaderLeft}>
+                <Text style={styles.simpleHeaderTitle}>
+                  Available Exams
+                </Text>
+                <Text style={styles.simpleHeaderCount}>
+                  {filteredExams.length} exams
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.generateButton}
+                onPress={handleGenerateExam}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="add" size={20} color={tokens.colors.onPrimary} />
+                <Text style={styles.generateButtonText}>Generate</Text>
+              </TouchableOpacity>
             </View>
           )}
 
@@ -344,6 +358,15 @@ export default function ExamsScreen() {
             {/* Bottom spacing for tab bar */}
             <View style={styles.bottomSpacing} />
           </ScrollView>
+
+          {/* Floating Action Button */}
+          <TouchableOpacity
+            style={styles.floatingActionButton}
+            onPress={handleGenerateExam}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="create" size={24} color={tokens.colors.onPrimary} />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -418,11 +441,17 @@ const createStyles = (tokens: any) => {
       height: 100, // Space for tab bar
     },
     simpleHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
       paddingHorizontal: tokens.spacing.lg,
       paddingTop: tokens.spacing.lg,
       paddingBottom: tokens.spacing.xs,
       borderBottomWidth: 1,
       borderBottomColor: tokens.colors.border + '20',
+    },
+    simpleHeaderLeft: {
+      flex: 1,
     },
     simpleHeaderTitle: {
       fontSize: tokens.typography.title,
@@ -434,6 +463,34 @@ const createStyles = (tokens: any) => {
       fontSize: tokens.typography.body,
       color: tokens.colors.onSurfaceVariant,
       fontWeight: '500',
+    },
+    generateButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: tokens.colors.primary,
+      paddingHorizontal: tokens.spacing.md,
+      paddingVertical: tokens.spacing.sm,
+      borderRadius: tokens.borderRadius.md,
+      gap: tokens.spacing.xs,
+      ...tokens.shadows.sm,
+    },
+    generateButtonText: {
+      fontSize: tokens.typography.body,
+      fontWeight: '600',
+      color: tokens.colors.onPrimary,
+    },
+    floatingActionButton: {
+      position: 'absolute',
+      bottom: tokens.spacing.xl,
+      right: tokens.spacing.lg,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: tokens.colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...tokens.shadows.lg,
+      elevation: 8, // Android shadow
     },
   });
 };
