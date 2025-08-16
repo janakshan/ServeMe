@@ -31,9 +31,8 @@ import type {
 } from '@/types/examAnalysis';
 
 // Import components we'll create
-import { QuestionAnalysisList } from '@/components/exam-analysis/QuestionAnalysisList';
+import { SwipeableQuestionCards } from '@/components/exam-analysis/SwipeableQuestionCards';
 import { PerformanceInsights } from '@/components/exam-analysis/PerformanceInsights';
-import { TeacherExplanations } from '@/components/exam-analysis/TeacherExplanations';
 import { FloatingBookmarkToolbar } from '@/components/exam-analysis/FloatingBookmarkToolbar';
 import { AnalysisHeader } from '@/components/exam-analysis/AnalysisHeader';
 import { PerformanceSummary } from '@/components/exam-analysis/PerformanceSummary';
@@ -45,7 +44,6 @@ const TABS = [
   { id: 'overview', label: 'Overview', icon: 'stats-chart' },
   { id: 'questions', label: 'Questions', icon: 'list' },
   { id: 'insights', label: 'Insights', icon: 'analytics' },
-  { id: 'teacher', label: 'Teachers', icon: 'school' },
 ] as const;
 
 type TabId = typeof TABS[number]['id'];
@@ -133,17 +131,8 @@ export default function ExamDetailedAnalysisScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
-  const handleQuestionToggle = (questionId: string) => {
-    setScreenState(prev => {
-      const newExpanded = new Set(prev.expandedQuestions);
-      if (newExpanded.has(questionId)) {
-        newExpanded.delete(questionId);
-      } else {
-        newExpanded.add(questionId);
-      }
-      return { ...prev, expandedQuestions: newExpanded };
-    });
-  };
+  // Note: handleQuestionToggle is no longer needed for swipeable interface
+  // All questions are displayed in full-screen format
 
   const handleMultiSelect = (questionId: string) => {
     setScreenState(prev => {
@@ -190,6 +179,12 @@ export default function ExamDetailedAnalysisScreen() {
         },
       ]
     );
+  };
+
+  const handleSingleBookmark = (questionId: string) => {
+    // TODO: Implement single question bookmark logic
+    console.log('Toggling bookmark for question:', questionId);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
   const handleBack = () => {
@@ -273,29 +268,22 @@ export default function ExamDetailedAnalysisScreen() {
         );
       case 'questions':
         return (
-          <QuestionAnalysisList
+          <SwipeableQuestionCards
             questions={filteredQuestions}
-            expandedQuestions={screenState.expandedQuestions}
             selectedQuestions={screenState.selectedQuestions}
             isMultiSelectMode={screenState.isMultiSelectMode}
-            onQuestionToggle={handleQuestionToggle}
             onMultiSelect={handleMultiSelect}
             onLongPress={(questionId) => {
               setScreenState(prev => ({ ...prev, isMultiSelectMode: true }));
               handleMultiSelect(questionId);
             }}
+            onBookmark={handleSingleBookmark}
           />
         );
       case 'insights':
         return (
           <PerformanceInsights
             analysisData={analysisData}
-          />
-        );
-      case 'teacher':
-        return (
-          <TeacherExplanations
-            questions={analysisData.questions.filter(q => q.teacherExplanation)}
           />
         );
       default:
@@ -383,22 +371,30 @@ export default function ExamDetailedAnalysisScreen() {
         </View>
 
         {/* Tab Content */}
-        <ScrollView
-          style={styles.content}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={handleRefresh}
-              tintColor={tokens.colors.primary}
-            />
-          }
-        >
-          {renderTabContent()}
-          
-          {/* Bottom spacing for floating toolbar */}
-          <View style={styles.bottomSpacing} />
-        </ScrollView>
+        {screenState.currentTab === 'questions' ? (
+          // Questions tab uses swipeable interface - no ScrollView wrapper needed
+          <View style={styles.content}>
+            {renderTabContent()}
+          </View>
+        ) : (
+          // Other tabs use traditional ScrollView
+          <ScrollView
+            style={styles.content}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+                tintColor={tokens.colors.primary}
+              />
+            }
+          >
+            {renderTabContent()}
+            
+            {/* Bottom spacing for floating toolbar */}
+            <View style={styles.bottomSpacing} />
+          </ScrollView>
+        )}
 
         {/* Floating Bookmark Toolbar */}
         {screenState.isMultiSelectMode && (
@@ -418,45 +414,59 @@ async function generateMockAnalysisData(examId: string): Promise<ExamDetailedAna
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 1000));
   
-  const mockQuestions: DetailedQuestionAnalysis[] = Array.from({ length: 10 }, (_, i) => ({
-    id: `q${i + 1}`,
-    question: `What is the value of x in the equation ${i + 2}x + ${i + 5} = ${(i + 2) * 5 + (i + 5)}?`,
-    options: [
-      { text: `${i + 1}` },
-      { text: `${i + 2}` },
-      { text: `5` },
-      { text: `${i + 3}` },
-    ],
-    selectedAnswer: Math.random() > 0.7 ? 2 : Math.floor(Math.random() * 4),
-    correctAnswer: 2,
-    isCorrect: Math.random() > 0.3,
+  const mockQuestions: DetailedQuestionAnalysis[] = Array.from({ length: 10 }, (_, i) => {
+    const correctAnswer = 2; // Always option C (5)
+    const selectedAnswer = Math.random() > 0.7 ? correctAnswer : Math.floor(Math.random() * 4);
+    const isCorrect = selectedAnswer === correctAnswer;
+    
+    return {
+      id: `q${i + 1}`,
+      question: `What is the value of x in the equation ${i + 2}x + ${i + 5} = ${(i + 2) * 5 + (i + 5)}?`,
+      options: [
+        { text: `${i + 1}` },
+        { text: `${i + 2}` },
+        { text: `5` },
+        { text: `${i + 3}` },
+      ],
+      selectedAnswer,
+      correctAnswer,
+      isCorrect,
     timeSpent: 60 + Math.random() * 120,
     averageTime: 90,
     timeEfficiency: Math.random() > 0.5 ? 'normal' : 'fast',
     difficultyLevel: ['easy', 'medium', 'hard'][Math.floor(Math.random() * 3)] as any,
     points: 10,
-    pointsEarned: Math.random() > 0.3 ? 10 : 0,
+    pointsEarned: isCorrect ? 10 : 0,
     topic: ['Algebra', 'Geometry', 'Calculus'][Math.floor(Math.random() * 3)],
     subject: 'Mathematics',
     masteryLevel: ['proficient', 'developing', 'needs-practice'][Math.floor(Math.random() * 3)] as any,
     systemExplanation: {
       text: `To solve this equation, we need to isolate x by subtracting ${i + 5} from both sides and then dividing by ${i + 2}.`,
-      steps: [
+      richContent: `<p><strong>Detailed Solution Process:</strong></p>
+      <p>This is a linear equation in one variable. The goal is to isolate the variable 'x' on one side of the equation.</p>
+      
+      <p><em>Step 1:</em> Start with the original equation: ${i + 2}x + ${i + 5} = ${(i + 2) * 5 + (i + 5)}</p>
+      
+      <p><em>Step 2:</em> Subtract ${i + 5} from both sides:</p>
+      <p style="margin-left: 20px;">${i + 2}x + ${i + 5} - ${i + 5} = ${(i + 2) * 5 + (i + 5)} - ${i + 5}</p>
+      <p style="margin-left: 20px;">${i + 2}x = ${(i + 2) * 5}</p>
+      
+      <p><em>Step 3:</em> Divide both sides by ${i + 2}:</p>
+      <p style="margin-left: 20px;">x = ${(i + 2) * 5} ÷ ${i + 2}</p>
+      <p style="margin-left: 20px;">x = 5</p>
+      
+      <p><strong>Verification:</strong> Substitute x = 5 back into the original equation to verify the solution.</p>`,
+      images: [
         {
-          step: 1,
-          description: `Subtract ${i + 5} from both sides`,
-          formula: `${i + 2}x = ${(i + 2) * 5}`,
-        },
-        {
-          step: 2,
-          description: `Divide both sides by ${i + 2}`,
-          formula: `x = 5`,
-        },
+          url: 'https://via.placeholder.com/400x200/6A1B9A/FFFFFF?text=Linear+Equation+Graph',
+          caption: 'Visual representation of the linear equation',
+          alt: 'Graph showing the linear equation solution'
+        }
       ],
-      keyPoints: ['Linear equations', 'Isolation of variables', 'Order of operations'],
-      relatedConcepts: ['Basic algebra', 'Equation solving'],
+      keyPoints: ['Linear equations', 'Isolation of variables', 'Order of operations', 'Algebraic manipulation'],
+      relatedConcepts: ['Basic algebra', 'Equation solving', 'Mathematical verification'],
     },
-    teacherExplanation: Math.random() > 0.5 ? {
+    teacherExplanation: {
       text: 'This is a fundamental linear equation problem. Remember to always perform the same operation on both sides.',
       videoUrl: 'https://example.com/video',
       videoDuration: 180,
@@ -465,24 +475,34 @@ async function generateMockAnalysisData(examId: string): Promise<ExamDetailedAna
         name: 'Dr. Sarah Johnson',
         specialization: ['Mathematics', 'Algebra'],
       },
-    } : undefined,
+    },
     isBookmarked: Math.random() > 0.7,
     bookmarkTags: [],
     reviewStatus: 'not-reviewed',
-  }));
+  };
+  });
 
+  const correctCount = mockQuestions.filter(q => q.isCorrect).length;
+  const totalScore = correctCount * 10;
+  const percentage = (correctCount / mockQuestions.length) * 100;
+  const grade = percentage >= 90 ? 'A+' : 
+                percentage >= 80 ? 'A' : 
+                percentage >= 70 ? 'B+' : 
+                percentage >= 60 ? 'B' : 
+                percentage >= 50 ? 'C' : 'D';
+  
   return {
     examId,
     examTitle: 'Mathematics Quiz - Algebra & Geometry',
     subject: 'Mathematics',
     topics: ['Algebra', 'Geometry'],
     difficulty: 'intermediate',
-    totalQuestions: 10,
-    correctAnswers: 7,
-    totalScore: 70,
+    totalQuestions: mockQuestions.length,
+    correctAnswers: correctCount,
+    totalScore,
     maxScore: 100,
-    percentage: 70,
-    grade: 'B',
+    percentage: Math.round(percentage),
+    grade,
     timeSpent: 1800, // 30 minutes
     timeLimit: 2700, // 45 minutes
     questions: mockQuestions,
@@ -490,13 +510,13 @@ async function generateMockAnalysisData(examId: string): Promise<ExamDetailedAna
       {
         subject: 'Mathematics',
         topic: 'Algebra',
-        questionsCount: 6,
-        correctCount: 4,
-        accuracy: 67,
+        questionsCount: mockQuestions.length,
+        correctCount,
+        accuracy: Math.round(percentage),
         averageTime: 85,
-        totalPoints: 60,
-        pointsEarned: 40,
-        masteryLevel: 'developing',
+        totalPoints: mockQuestions.length * 10,
+        pointsEarned: totalScore,
+        masteryLevel: percentage >= 80 ? 'mastered' : percentage >= 60 ? 'proficient' : 'developing',
         strengths: ['Linear equations', 'Basic operations'],
         weaknesses: ['Complex equations', 'Word problems'],
         recommendations: [
@@ -686,11 +706,13 @@ const createStyles = (tokens: any) => StyleSheet.create({
   overviewTab: {
     flex: 1,
     backgroundColor: tokens.colors.background,
-    padding: tokens.spacing.lg, // Increased padding for better spacing
+    paddingVertical: tokens.spacing.md, // Only vertical padding
+    paddingHorizontal: 0, // Remove horizontal padding
   },
   
   overviewSummary: {
     marginBottom: tokens.spacing.xl,
+    marginHorizontal: tokens.spacing.md, // Add minimal horizontal margin
     borderRadius: tokens.borderRadius.lg,
     overflow: 'hidden',
   },

@@ -136,34 +136,60 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
 
   return (
     <Animated.View style={[styles.cardContainer, cardStyle]}>
-      <LinearGradient
-        colors={isSelected 
-          ? [tokens.colors.primary + '20', tokens.colors.primary + '10'] 
-          : [tokens.colors.surface, tokens.colors.surface]
-        }
-        style={styles.card}
-      >
+      <View style={[
+        styles.card,
+        isSelected && styles.selectedCard,
+        question.isCorrect ? styles.correctCard : styles.incorrectCard
+      ]}>
         <Pressable
           onPress={handlePress}
           onLongPress={handleLongPress}
           style={styles.cardPressable}
         >
-          {/* Header */}
+          {/* Enhanced Header */}
           <View style={styles.cardHeader}>
-            <View style={styles.questionNumber}>
-              <Text style={styles.questionNumberText}>{index + 1}</Text>
-            </View>
-            
-            <View style={styles.headerContent}>
-              <View style={styles.statusRow}>
+            {/* Left Section - Question Number & Status */}
+            <View style={styles.leftSection}>
+              <View style={[
+                styles.questionNumberContainer,
+                { backgroundColor: question.isCorrect ? tokens.colors.success + '15' : tokens.colors.error + '15' }
+              ]}>
+                <Text style={[
+                  styles.questionNumberText,
+                  { color: question.isCorrect ? tokens.colors.success : tokens.colors.error }
+                ]}>
+                  Q{index + 1}
+                </Text>
+              </View>
+              
+              <View style={styles.statusIndicator}>
                 {getStatusIcon()}
-                <View style={styles.pointsBadge}>
-                  <Text style={styles.pointsText}>
-                    {question.pointsEarned}/{question.points} pts
+                <Text style={[
+                  styles.statusText,
+                  { color: question.isCorrect ? tokens.colors.success : tokens.colors.error }
+                ]}>
+                  {question.isCorrect ? 'Correct' : 'Incorrect'}
+                </Text>
+              </View>
+            </View>
+
+            {/* Right Section - Badges & Actions */}
+            <View style={styles.rightSection}>
+              <View style={styles.badgeContainer}>
+                {/* Points Badge */}
+                <View style={[styles.pointsBadge, {
+                  backgroundColor: question.isCorrect ? tokens.colors.success + '15' : tokens.colors.error + '15'
+                }]}>
+                  <Text style={[styles.pointsText, {
+                    color: question.isCorrect ? tokens.colors.success : tokens.colors.error
+                  }]}>
+                    {question.pointsEarned}/{question.points}
                   </Text>
                 </View>
+
+                {/* Difficulty Badge */}
                 <View style={[styles.difficultyBadge, { 
-                  backgroundColor: getDifficultyColor(question.difficultyLevel) + '20' 
+                  backgroundColor: getDifficultyColor(question.difficultyLevel) + '15' 
                 }]}>
                   <Text style={[styles.difficultyText, { 
                     color: getDifficultyColor(question.difficultyLevel) 
@@ -172,40 +198,46 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   </Text>
                 </View>
               </View>
-              
-              <Text style={styles.topicText}>{question.topic} • {question.subject}</Text>
-            </View>
 
-            <View style={styles.headerActions}>
-              {isMultiSelectMode ? (
-                <View style={[styles.selectionCircle, isSelected && styles.selectedCircle]}>
-                  {isSelected && (
-                    <Ionicons name="checkmark" size={16} color={tokens.colors.onPrimary} />
-                  )}
-                </View>
-              ) : (
-                <>
-                  <TouchableOpacity
-                    onPress={handleBookmarkToggle}
-                    style={styles.bookmarkButton}
-                  >
-                    <Ionicons
-                      name={question.isBookmarked ? "bookmark" : "bookmark-outline"}
-                      size={20}
-                      color={question.isBookmarked ? tokens.colors.primary : tokens.colors.onSurfaceVariant}
-                    />
-                  </TouchableOpacity>
-                  
-                  <Animated.View style={chevronStyle}>
-                    <Ionicons
-                      name="chevron-down"
-                      size={20}
-                      color={tokens.colors.onSurfaceVariant}
-                    />
-                  </Animated.View>
-                </>
-              )}
+              {/* Action Buttons */}
+              <View style={styles.actionButtons}>
+                {isMultiSelectMode ? (
+                  <View style={[styles.selectionCircle, isSelected && styles.selectedCircle]}>
+                    {isSelected && (
+                      <Ionicons name="checkmark" size={14} color={tokens.colors.onPrimary} />
+                    )}
+                  </View>
+                ) : (
+                  <>
+                    <TouchableOpacity
+                      onPress={handleBookmarkToggle}
+                      style={styles.bookmarkButton}
+                    >
+                      <Ionicons
+                        name={question.isBookmarked ? "bookmark" : "bookmark-outline"}
+                        size={18}
+                        color={question.isBookmarked ? tokens.colors.primary : tokens.colors.onSurfaceVariant}
+                      />
+                    </TouchableOpacity>
+                    
+                    <Animated.View style={[styles.expandButton, chevronStyle]}>
+                      <Ionicons
+                        name="chevron-down"
+                        size={18}
+                        color={tokens.colors.onSurfaceVariant}
+                      />
+                    </Animated.View>
+                  </>
+                )}
+              </View>
             </View>
+          </View>
+
+          {/* Topic & Subject */}
+          <View style={styles.metaInfo}>
+            <Text style={styles.topicText}>{question.topic}</Text>
+            <Text style={styles.separatorDot}>•</Text>
+            <Text style={styles.subjectText}>{question.subject}</Text>
           </View>
 
           {/* Question Text */}
@@ -334,7 +366,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
           </View>
         </Animated.View>
         )}
-      </LinearGradient>
+      </View>
     </Animated.View>
   );
 };
@@ -423,9 +455,28 @@ const createQuestionCardStyles = (tokens: any) => StyleSheet.create({
   },
   
   card: {
+    backgroundColor: tokens.colors.surfaceVariant + '80',
     borderRadius: tokens.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: tokens.colors.outline + '50',
     overflow: 'hidden',
     ...tokens.shadows.md,
+  },
+  
+  correctCard: {
+    borderColor: tokens.colors.success + '60',
+    backgroundColor: tokens.colors.success + '12',
+  },
+  
+  incorrectCard: {
+    borderColor: tokens.colors.error + '60',
+    backgroundColor: tokens.colors.error + '12',
+  },
+  
+  selectedCard: {
+    borderColor: tokens.colors.primary,
+    backgroundColor: tokens.colors.primary + '15',
+    ...tokens.shadows.lg,
   },
   
   cardPressable: {
@@ -434,68 +485,85 @@ const createQuestionCardStyles = (tokens: any) => StyleSheet.create({
   
   cardHeader: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: tokens.spacing.md,
   },
   
-  questionNumber: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: tokens.colors.primary,
-    justifyContent: 'center',
+  leftSection: {
+    flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+  },
+  
+  questionNumberContainer: {
+    paddingHorizontal: tokens.spacing.sm,
+    paddingVertical: tokens.spacing.xs,
+    borderRadius: tokens.borderRadius.full,
     marginRight: tokens.spacing.md,
+    minWidth: 40,
+    alignItems: 'center',
   },
   
   questionNumberText: {
     fontSize: tokens.typography.caption,
     fontWeight: tokens.typography.bold,
-    color: tokens.colors.onPrimary,
+    textAlign: 'center',
   },
   
-  headerContent: {
-    flex: 1,
-  },
-  
-  statusRow: {
+  statusIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: tokens.spacing.xs,
+    gap: tokens.spacing.xs,
+  },
+  
+  statusText: {
+    fontSize: tokens.typography.body,
+    fontWeight: tokens.typography.semiBold,
+  },
+  
+  rightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing.md,
+  },
+  
+  badgeContainer: {
+    flexDirection: 'row',
+    gap: tokens.spacing.sm,
   },
   
   pointsBadge: {
-    backgroundColor: tokens.colors.warning + '20',
     paddingHorizontal: tokens.spacing.sm,
     paddingVertical: tokens.spacing.xs,
-    borderRadius: tokens.borderRadius.sm,
-    marginLeft: tokens.spacing.sm,
+    borderRadius: tokens.borderRadius.full,
+    minWidth: 45,
+    alignItems: 'center',
   },
   
   pointsText: {
     fontSize: tokens.typography.caption,
-    fontWeight: tokens.typography.semiBold,
-    color: tokens.colors.warning,
+    fontWeight: tokens.typography.bold,
+    textAlign: 'center',
   },
   
   difficultyBadge: {
     paddingHorizontal: tokens.spacing.sm,
     paddingVertical: tokens.spacing.xs,
-    borderRadius: tokens.borderRadius.sm,
-    marginLeft: tokens.spacing.sm,
+    borderRadius: tokens.borderRadius.full,
+    minWidth: 50,
+    alignItems: 'center',
   },
   
   difficultyText: {
-    fontSize: tokens.typography.caption,
-    fontWeight: tokens.typography.bold,
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    textAlign: 'center',
   },
   
-  topicText: {
-    fontSize: tokens.typography.caption,
-    color: tokens.colors.onSurfaceVariant,
-  },
-  
-  headerActions: {
+  actionButtons: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: tokens.spacing.sm,
@@ -518,6 +586,35 @@ const createQuestionCardStyles = (tokens: any) => StyleSheet.create({
   
   bookmarkButton: {
     padding: tokens.spacing.xs,
+    borderRadius: tokens.borderRadius.sm,
+  },
+  
+  expandButton: {
+    padding: tokens.spacing.xs,
+  },
+  
+  metaInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: tokens.spacing.md,
+    gap: tokens.spacing.xs,
+  },
+  
+  topicText: {
+    fontSize: tokens.typography.caption,
+    color: tokens.colors.onSurfaceVariant,
+    fontWeight: tokens.typography.semiBold,
+  },
+  
+  separatorDot: {
+    fontSize: tokens.typography.caption,
+    color: tokens.colors.onSurfaceVariant,
+    marginHorizontal: tokens.spacing.xs,
+  },
+  
+  subjectText: {
+    fontSize: tokens.typography.caption,
+    color: tokens.colors.onSurfaceVariant,
   },
   
   questionText: {
@@ -525,6 +622,7 @@ const createQuestionCardStyles = (tokens: any) => StyleSheet.create({
     color: tokens.colors.onSurface,
     lineHeight: 24,
     marginBottom: tokens.spacing.md,
+    fontWeight: '500',
   },
   
   questionImage: {
@@ -536,18 +634,29 @@ const createQuestionCardStyles = (tokens: any) => StyleSheet.create({
   
   quickStats: {
     flexDirection: 'row',
-    gap: tokens.spacing.lg,
+    justifyContent: 'space-between',
+    paddingTop: tokens.spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: tokens.colors.outline + '40',
+    gap: tokens.spacing.md,
+    backgroundColor: tokens.colors.surfaceVariant + '30',
+    marginHorizontal: -tokens.spacing.lg,
+    paddingHorizontal: tokens.spacing.lg,
+    paddingBottom: tokens.spacing.md,
+    marginBottom: -tokens.spacing.lg,
   },
   
   statItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: tokens.spacing.xs,
+    flex: 1,
   },
   
   statText: {
     fontSize: tokens.typography.caption,
     color: tokens.colors.onSurfaceVariant,
+    fontWeight: '500',
   },
   
   expandedContent: {

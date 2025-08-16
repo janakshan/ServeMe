@@ -34,11 +34,11 @@ export interface DetailedQuestionAnalysis {
   // Content
   systemExplanation: {
     text: string;
-    steps?: Array<{
-      step: number;
-      description: string;
-      formula?: string;
-      image?: string;
+    richContent?: string; // HTML or rich text content
+    images?: Array<{
+      url: string;
+      caption?: string;
+      alt?: string;
     }>;
     keyPoints: string[];
     relatedConcepts: string[];
@@ -221,7 +221,7 @@ export interface ExamDetailedAnalysisData {
 
 // UI State interfaces
 export interface AnalysisScreenState {
-  currentTab: 'overview' | 'questions' | 'insights' | 'teacher';
+  currentTab: 'overview' | 'questions' | 'insights';
   expandedQuestions: Set<string>;
   selectedQuestions: Set<string>;
   isMultiSelectMode: boolean;

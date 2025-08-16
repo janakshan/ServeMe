@@ -239,6 +239,12 @@ export const TeacherExplanationCard: React.FC<TeacherExplanationCardProps> = ({
 
   return (
     <View style={[styles.container, style]}>
+      {/* Teacher Card Title */}
+      <View style={styles.cardTitle}>
+        <Ionicons name="person-circle" size={24} color={tokens.colors.success} />
+        <Text style={styles.cardTitleText}>Teacher's Explanation</Text>
+      </View>
+      
       {/* Header with Teacher Info */}
       <TouchableOpacity onPress={handleTeacherPress} style={styles.header}>
         <View style={styles.teacherInfo}>
@@ -382,12 +388,14 @@ export const TeacherExplanationCard: React.FC<TeacherExplanationCardProps> = ({
 
 const createCardStyles = (tokens: any) => StyleSheet.create({
   container: {
-    backgroundColor: tokens.colors.surface,
+    backgroundColor: '#FFFFFF',
     borderRadius: tokens.borderRadius.lg,
     padding: tokens.spacing.lg,
-    borderWidth: 1,
-    borderColor: tokens.colors.success + '30',
-    ...tokens.shadows.sm,
+    borderWidth: 2,
+    borderColor: tokens.colors.success,
+    ...tokens.shadows.xl,
+    marginBottom: tokens.spacing.lg,
+    marginTop: tokens.spacing.md,
   },
   
   header: {
@@ -395,6 +403,30 @@ const createCardStyles = (tokens: any) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: tokens.spacing.lg,
+    paddingBottom: tokens.spacing.md,
+    borderBottomWidth: 2,
+    borderBottomColor: tokens.colors.success + '50',
+    backgroundColor: tokens.colors.success + '10',
+    marginHorizontal: -tokens.spacing.lg,
+    paddingHorizontal: tokens.spacing.lg,
+    marginTop: 0,
+    paddingTop: tokens.spacing.lg,
+  },
+  
+  cardTitle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: tokens.spacing.md,
+    paddingBottom: tokens.spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: tokens.colors.success + '30',
+    gap: tokens.spacing.sm,
+  },
+  
+  cardTitleText: {
+    fontSize: tokens.typography.title,
+    fontWeight: tokens.typography.bold,
+    color: tokens.colors.success,
   },
   
   teacherInfo: {
@@ -404,14 +436,17 @@ const createCardStyles = (tokens: any) => StyleSheet.create({
   },
   
   teacherAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: tokens.colors.primary + '20',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: tokens.colors.success + '20',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: tokens.spacing.md,
     overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: tokens.colors.success + '40',
+    ...tokens.shadows.sm,
   },
   
   avatarImage: {
@@ -424,15 +459,16 @@ const createCardStyles = (tokens: any) => StyleSheet.create({
   },
   
   teacherName: {
-    fontSize: tokens.typography.subtitle,
-    fontWeight: tokens.typography.semiBold,
+    fontSize: tokens.typography.title,
+    fontWeight: tokens.typography.bold,
     color: tokens.colors.onSurface,
-    marginBottom: 2,
+    marginBottom: 4,
   },
   
   teacherSpecialization: {
-    fontSize: tokens.typography.caption,
-    color: tokens.colors.onSurfaceVariant,
+    fontSize: tokens.typography.body,
+    color: tokens.colors.success,
+    fontWeight: tokens.typography.semiBold,
   },
   
   headerIcon: {
@@ -472,10 +508,14 @@ const createCardStyles = (tokens: any) => StyleSheet.create({
   explanationText: {
     fontSize: tokens.typography.body,
     color: tokens.colors.onSurface,
-    lineHeight: 22,
-    backgroundColor: tokens.colors.success + '10',
-    padding: tokens.spacing.md,
-    borderRadius: tokens.borderRadius.md,
+    lineHeight: 24,
+    backgroundColor: '#FEFEFE',
+    padding: tokens.spacing.lg,
+    borderRadius: tokens.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: tokens.colors.success + '20',
+    ...tokens.shadows.sm,
+    fontWeight: '500',
   },
   
   imagesSection: {
@@ -542,15 +582,18 @@ const createCardStyles = (tokens: any) => StyleSheet.create({
 
 const createVideoStyles = (tokens: any) => StyleSheet.create({
   videoContainer: {
-    borderRadius: tokens.borderRadius.md,
+    borderRadius: tokens.borderRadius.lg,
     overflow: 'hidden',
-    backgroundColor: tokens.colors.surfaceVariant,
+    backgroundColor: '#FFFFFF',
+    ...tokens.shadows.md,
+    borderWidth: 1,
+    borderColor: tokens.colors.outline + '20',
   },
   
   videoPlayer: {
-    height: 200,
+    height: 220,
     position: 'relative',
-    backgroundColor: '#000',
+    backgroundColor: '#1a1a1a',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -578,17 +621,19 @@ const createVideoStyles = (tokens: any) => StyleSheet.create({
   },
   
   playButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: tokens.colors.success,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
   },
   
   fullScreenButton: {
