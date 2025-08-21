@@ -24,8 +24,8 @@ import Animated, {
 import * as Haptics from 'expo-haptics';
 
 import type { DetailedQuestionAnalysis } from '@/types/examAnalysis';
-import { SystemExplanationPanel } from './SystemExplanationPanel';
-import { TeacherExplanationCard } from './TeacherExplanationCard';
+import { ExplanationTabs } from './ExplanationTabs';
+import { formatDuration, formatTimeEfficiency } from '@/utils/timeFormat';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -116,11 +116,6 @@ const FullScreenQuestionCard: React.FC<FullScreenQuestionCardProps> = ({
     }
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
-  };
 
   const handleLongPress = () => {
     onLongPress();
@@ -285,19 +280,20 @@ const FullScreenQuestionCard: React.FC<FullScreenQuestionCardProps> = ({
         {/* Quick Stats */}
         <View style={styles.quickStats}>
           <View style={styles.statItem}>
-            <Ionicons name="time" size={18} color="#6B7280" />
-            <Text style={styles.statText}>{formatTime(question.timeSpent)}</Text>
+            <Ionicons name="time" size={16} color={tokens.colors.primary} />
+            <Text style={styles.statText}>{formatDuration(question.timeSpent)}</Text>
           </View>
           
           <View style={styles.statItem}>
             <Ionicons 
-              name={question.timeEfficiency === 'fast' ? 'flash' : 
-                   question.timeEfficiency === 'slow' ? 'hourglass' : 'speedometer'} 
-              size={18} 
-              color="#6B7280" 
+              name={formatTimeEfficiency(question.timeSpent, question.averageTime).icon as any} 
+              size={16} 
+              color={formatTimeEfficiency(question.timeSpent, question.averageTime).color} 
             />
-            <Text style={styles.statText}>
-              {question.timeEfficiency} pace
+            <Text style={[styles.statText, { 
+              color: formatTimeEfficiency(question.timeSpent, question.averageTime).color 
+            }]}>
+              {formatTimeEfficiency(question.timeSpent, question.averageTime).description}
             </Text>
           </View>
           
@@ -306,8 +302,10 @@ const FullScreenQuestionCard: React.FC<FullScreenQuestionCardProps> = ({
               name={question.masteryLevel === 'mastered' ? 'trophy' : 
                    question.masteryLevel === 'proficient' ? 'ribbon' : 
                    question.masteryLevel === 'developing' ? 'school' : 'help-circle'} 
-              size={18} 
-              color="#6B7280" 
+              size={16} 
+              color={question.masteryLevel === 'mastered' ? tokens.colors.warning : 
+                    question.masteryLevel === 'proficient' ? tokens.colors.success :
+                    question.masteryLevel === 'developing' ? tokens.colors.primary : tokens.colors.onSurfaceVariant} 
             />
             <Text style={styles.statText}>
               {question.masteryLevel.replace('-', ' ')}
@@ -317,19 +315,11 @@ const FullScreenQuestionCard: React.FC<FullScreenQuestionCardProps> = ({
 
       </View>
       
-      {/* System Explanation Card - Separate white card */}
-      <SystemExplanationPanel
-        explanation={question.systemExplanation}
+      {/* Explanation Tabs - Combined System and Teacher explanations */}
+      <ExplanationTabs
+        question={question}
         style={styles.explanationCard}
       />
-
-      {/* Teacher Explanation Card - Separate white card */}
-      {question.teacherExplanation && (
-        <TeacherExplanationCard
-          explanation={question.teacherExplanation}
-          style={styles.explanationCard}
-        />
-      )}
     </ScrollView>
   );
 };
@@ -493,23 +483,32 @@ const createCardStyles = (tokens: any) => StyleSheet.create({
   },
   
   card: {
-    margin: tokens.spacing.md,
-    borderRadius: tokens.borderRadius.lg,
+    margin: tokens.spacing.lg,
+    borderRadius: tokens.borderRadius.xl,
     overflow: 'hidden',
-    ...tokens.shadows.lg,
+    backgroundColor: tokens.colors.surface,
+    ...tokens.shadows.xl,
+    borderWidth: 1,
+    borderColor: tokens.colors.outline + '20',
   },
   
   correctCard: {
-    backgroundColor: '#DCFCE7', // Very light green for correct answers
+    backgroundColor: tokens.colors.surface,
+    borderLeftWidth: 6,
+    borderLeftColor: tokens.colors.success,
+    borderColor: tokens.colors.success + '30',
   },
   
   incorrectCard: {
-    backgroundColor: '#FEE2E2', // Very light red for incorrect answers
+    backgroundColor: tokens.colors.surface,
+    borderLeftWidth: 6,
+    borderLeftColor: tokens.colors.error,
+    borderColor: tokens.colors.error + '30',
   },
   
   selectedCard: {
     borderWidth: 3,
-    borderColor: '#FFFFFF',
+    borderColor: tokens.colors.primary,
     ...tokens.shadows.xl,
   },
   
@@ -517,9 +516,10 @@ const createCardStyles = (tokens: any) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: tokens.spacing.lg,
+    padding: tokens.spacing.xl,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+    borderBottomColor: tokens.colors.outline + '20',
+    backgroundColor: tokens.colors.surface,
   },
   
   leftSection: {
@@ -529,22 +529,22 @@ const createCardStyles = (tokens: any) => StyleSheet.create({
   },
   
   questionNumberContainer: {
-    paddingHorizontal: tokens.spacing.sm,
-    paddingVertical: tokens.spacing.xs,
+    paddingHorizontal: tokens.spacing.md,
+    paddingVertical: tokens.spacing.sm,
     borderRadius: tokens.borderRadius.full,
-    marginRight: tokens.spacing.md,
-    minWidth: 50,
+    marginRight: tokens.spacing.lg,
+    minWidth: 52,
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.1)',
+    backgroundColor: tokens.colors.primary + '15',
+    borderWidth: 2,
+    borderColor: tokens.colors.primary + '30',
   },
   
   questionNumberText: {
     fontSize: tokens.typography.body,
     fontWeight: tokens.typography.bold,
     textAlign: 'center',
-    color: '#374151',
+    color: tokens.colors.primary,
   },
   
   statusIndicator: {
@@ -555,8 +555,8 @@ const createCardStyles = (tokens: any) => StyleSheet.create({
   
   statusText: {
     fontSize: tokens.typography.subtitle,
-    fontWeight: tokens.typography.bold,
-    color: '#374151',
+    fontWeight: tokens.typography.semiBold,
+    color: tokens.colors.onSurface,
   },
   
   rightSection: {
@@ -571,41 +571,41 @@ const createCardStyles = (tokens: any) => StyleSheet.create({
   },
   
   pointsBadge: {
-    paddingHorizontal: tokens.spacing.sm,
-    paddingVertical: tokens.spacing.xs,
+    paddingHorizontal: tokens.spacing.md,
+    paddingVertical: tokens.spacing.sm,
     borderRadius: tokens.borderRadius.full,
-    minWidth: 50,
+    minWidth: 54,
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: tokens.colors.warning + '15',
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.1)',
+    borderColor: tokens.colors.warning + '40',
   },
   
   pointsText: {
     fontSize: tokens.typography.caption,
     fontWeight: tokens.typography.bold,
     textAlign: 'center',
-    color: '#374151',
+    color: tokens.colors.warning,
   },
   
   difficultyBadge: {
-    paddingHorizontal: tokens.spacing.sm,
-    paddingVertical: tokens.spacing.xs,
+    paddingHorizontal: tokens.spacing.md,
+    paddingVertical: tokens.spacing.sm,
     borderRadius: tokens.borderRadius.full,
-    minWidth: 60,
+    minWidth: 64,
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: tokens.colors.surfaceVariant + '50',
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.1)',
+    borderColor: tokens.colors.outline + '40',
   },
   
   difficultyText: {
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: tokens.typography.caption,
+    fontWeight: tokens.typography.bold,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     textAlign: 'center',
-    color: '#374151',
+    color: tokens.colors.onSurfaceVariant,
   },
   
   actionButtons: {
@@ -652,22 +652,23 @@ const createCardStyles = (tokens: any) => StyleSheet.create({
   
   separatorDot: {
     fontSize: tokens.typography.body,
-    color: '#9CA3AF',
+    color: tokens.colors.onSurfaceVariant,
     marginHorizontal: tokens.spacing.xs,
   },
   
   subjectText: {
     fontSize: tokens.typography.body,
-    color: '#6B7280',
+    color: tokens.colors.onSurfaceVariant,
   },
   
   questionText: {
     fontSize: tokens.typography.title,
-    color: '#1F2937',
-    lineHeight: 28,
-    paddingHorizontal: tokens.spacing.lg,
-    paddingBottom: tokens.spacing.lg,
-    fontWeight: '700',
+    color: tokens.colors.onSurface,
+    lineHeight: 30,
+    paddingHorizontal: tokens.spacing.xl,
+    paddingVertical: tokens.spacing.xl,
+    fontWeight: tokens.typography.semiBold,
+    letterSpacing: 0.2,
   },
   
   questionImage: {
@@ -780,27 +781,36 @@ const createCardStyles = (tokens: any) => StyleSheet.create({
   quickStats: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingTop: tokens.spacing.md,
-    paddingHorizontal: tokens.spacing.lg,
+    padding: tokens.spacing.lg,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.1)',
+    borderTopColor: tokens.colors.outline + '20',
     gap: tokens.spacing.md,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    marginBottom: tokens.spacing.lg,
-    paddingBottom: tokens.spacing.md,
+    backgroundColor: tokens.colors.surfaceVariant + '30',
+    marginHorizontal: tokens.spacing.xl,
+    marginBottom: tokens.spacing.xl,
+    borderRadius: tokens.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: tokens.colors.outline + '20',
   },
   
   statItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: tokens.spacing.xs,
+    gap: tokens.spacing.sm,
     flex: 1,
+    backgroundColor: tokens.colors.surface,
+    paddingHorizontal: tokens.spacing.md,
+    paddingVertical: tokens.spacing.sm,
+    borderRadius: tokens.borderRadius.md,
+    borderWidth: 1,
+    borderColor: tokens.colors.outline + '20',
   },
   
   statText: {
     fontSize: tokens.typography.caption,
-    color: '#6B7280',
-    fontWeight: '500',
+    color: tokens.colors.onSurface,
+    fontWeight: tokens.typography.semiBold,
+    flexShrink: 1,
   },
   
   explanationCard: {
