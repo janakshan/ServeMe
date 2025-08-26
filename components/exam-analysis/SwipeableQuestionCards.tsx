@@ -8,19 +8,9 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
-  ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useEducationTheme, useScopedThemedStyles } from '@/contexts/ScopedThemeProviders';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSpring,
-  interpolate,
-  runOnJS,
-} from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
 import type { DetailedQuestionAnalysis } from '@/types/examAnalysis';
@@ -41,28 +31,20 @@ interface SwipeableQuestionCardsProps {
 interface QuestionProgressProps {
   currentIndex: number;
   totalQuestions: number;
-  questions: DetailedQuestionAnalysis[];
-  onQuestionSelect: (index: number) => void;
 }
 
 const QuestionProgress: React.FC<QuestionProgressProps> = ({
   currentIndex,
   totalQuestions,
-  questions,
-  onQuestionSelect,
 }) => {
   const themeContext = useEducationTheme();
-  const { tokens } = themeContext;
   const styles = useScopedThemedStyles(createProgressStyles, themeContext);
 
   return (
     <View style={styles.progressContainer}>
-      {/* Question Counter */}
       <Text style={styles.counterText}>
         Question {currentIndex + 1} of {totalQuestions}
       </Text>
-      
-      {/* Progress Bar */}
       <View style={styles.progressBar}>
         <View 
           style={[
@@ -98,24 +80,13 @@ const FullScreenQuestionCard: React.FC<FullScreenQuestionCardProps> = ({
   const { tokens } = themeContext;
   const styles = useScopedThemedStyles(createCardStyles, themeContext);
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy': return tokens.colors.success;
-      case 'medium': return tokens.colors.warning;
-      case 'hard': return '#FF6B35';
-      case 'expert': return tokens.colors.error;
-      default: return tokens.colors.onSurfaceVariant;
-    }
-  };
-
   const getStatusIcon = () => {
     if (question.isCorrect) {
-      return <Ionicons name="checkmark-circle" size={28} color="#059669" />;
+      return <Ionicons name="checkmark-circle" size={28} color={tokens.colors.success} />;
     } else {
-      return <Ionicons name="close-circle" size={28} color="#DC2626" />;
+      return <Ionicons name="close-circle" size={28} color={tokens.colors.error} />;
     }
   };
-
 
   const handleLongPress = () => {
     onLongPress();
@@ -131,15 +102,12 @@ const FullScreenQuestionCard: React.FC<FullScreenQuestionCardProps> = ({
     <ScrollView
       style={styles.cardContainer}
       showsVerticalScrollIndicator={false}
-      onLongPress={handleLongPress}
-      delayLongPress={500}
     >
       <View style={[
         styles.card,
         isSelected && styles.selectedCard,
         question.isCorrect ? styles.correctCard : styles.incorrectCard
       ]}>
-        {/* Header Section */}
         <View style={styles.cardHeader}>
           <View style={styles.leftSection}>
             <View style={styles.questionNumberContainer}>
@@ -161,14 +129,12 @@ const FullScreenQuestionCard: React.FC<FullScreenQuestionCardProps> = ({
 
           <View style={styles.rightSection}>
             <View style={styles.badgeContainer}>
-              {/* Points Badge */}
-              <View style={styles.pointsBadge}>
+                <View style={styles.pointsBadge}>
                 <Text style={styles.pointsText}>
                   {question.pointsEarned}/{question.points}
                 </Text>
               </View>
 
-              {/* Difficulty Badge */}
               <View style={styles.difficultyBadge}>
                 <Text style={styles.difficultyText}>
                   {question.difficultyLevel.toUpperCase()}
@@ -176,7 +142,6 @@ const FullScreenQuestionCard: React.FC<FullScreenQuestionCardProps> = ({
               </View>
             </View>
 
-            {/* Action Buttons */}
             <View style={styles.actionButtons}>
               {isMultiSelectMode ? (
                 <TouchableOpacity
@@ -203,19 +168,16 @@ const FullScreenQuestionCard: React.FC<FullScreenQuestionCardProps> = ({
           </View>
         </View>
 
-        {/* Topic & Subject */}
         <View style={styles.metaInfo}>
           <Text style={styles.topicText}>{question.topic}</Text>
           <Text style={styles.separatorDot}>•</Text>
           <Text style={styles.subjectText}>{question.subject}</Text>
         </View>
 
-        {/* Question Text */}
         <Text style={styles.questionText}>
           {question.question}
         </Text>
 
-        {/* Question Image */}
         {question.questionImage && (
           <Image
             source={{ uri: question.questionImage }}
@@ -224,7 +186,6 @@ const FullScreenQuestionCard: React.FC<FullScreenQuestionCardProps> = ({
           />
         )}
 
-        {/* Answer Options */}
         <View style={styles.optionsSection}>
           <Text style={styles.sectionTitle}>Answer Options</Text>
           {question.options.map((option, optionIndex) => {
@@ -266,10 +227,10 @@ const FullScreenQuestionCard: React.FC<FullScreenQuestionCardProps> = ({
                 
                 <View style={styles.resultIndicator}>
                   {isCorrectAnswer && (
-                    <Ionicons name="checkmark" size={20} color="#059669" />
+                    <Ionicons name="checkmark" size={20} color={tokens.colors.success} />
                   )}
                   {isSelectedAnswer && !isCorrectAnswer && (
-                    <Ionicons name="close" size={20} color="#DC2626" />
+                    <Ionicons name="close" size={20} color={tokens.colors.error} />
                   )}
                 </View>
               </View>
@@ -277,7 +238,6 @@ const FullScreenQuestionCard: React.FC<FullScreenQuestionCardProps> = ({
           })}
         </View>
 
-        {/* Quick Stats */}
         <View style={styles.quickStats}>
           <View style={styles.statItem}>
             <Ionicons name="time" size={16} color={tokens.colors.primary} />
@@ -315,7 +275,6 @@ const FullScreenQuestionCard: React.FC<FullScreenQuestionCardProps> = ({
 
       </View>
       
-      {/* Explanation Tabs - Combined System and Teacher explanations */}
       <ExplanationTabs
         question={question}
         style={styles.explanationCard}
@@ -347,11 +306,6 @@ export const SwipeableQuestionCards: React.FC<SwipeableQuestionCardsProps> = ({
     }
   }, [currentIndex, questions.length]);
 
-  const handleQuestionSelect = useCallback((index: number) => {
-    setCurrentIndex(index);
-    flatListRef.current?.scrollToIndex({ index, animated: true });
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-  }, []);
 
   const renderQuestion = useCallback(({ item, index }: { item: DetailedQuestionAnalysis; index: number }) => (
     <FullScreenQuestionCard
@@ -383,8 +337,6 @@ export const SwipeableQuestionCards: React.FC<SwipeableQuestionCardsProps> = ({
       <QuestionProgress
         currentIndex={currentIndex}
         totalQuestions={questions.length}
-        questions={questions}
-        onQuestionSelect={handleQuestionSelect}
       />
 
       {/* Swipeable Cards */}
@@ -398,7 +350,7 @@ export const SwipeableQuestionCards: React.FC<SwipeableQuestionCardsProps> = ({
         onMomentumScrollEnd={handleScroll}
         keyExtractor={(item) => item.id}
         initialScrollIndex={0}
-        getItemLayout={(data, index) => ({
+        getItemLayout={(_, index) => ({
           length: screenWidth,
           offset: screenWidth * index,
           index,
@@ -425,15 +377,15 @@ const createContainerStyles = (tokens: any) => StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: tokens.spacing.xl,
+    paddingHorizontal: tokens.spacing.lg,
   },
   
   emptyTitle: {
     fontSize: tokens.typography.title,
     fontWeight: tokens.typography.bold,
     color: tokens.colors.onSurface,
-    marginTop: tokens.spacing.md,
-    marginBottom: tokens.spacing.sm,
+    marginTop: tokens.spacing.sm,
+    marginBottom: tokens.spacing.xs,
   },
   
   emptyDescription: {
@@ -446,8 +398,8 @@ const createContainerStyles = (tokens: any) => StyleSheet.create({
 
 const createProgressStyles = (tokens: any) => StyleSheet.create({
   progressContainer: {
-    paddingHorizontal: tokens.spacing.lg,
-    paddingVertical: tokens.spacing.md,
+    paddingHorizontal: tokens.spacing.md,
+    paddingVertical: tokens.spacing.sm,
     backgroundColor: tokens.colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: tokens.colors.outline + '30',
@@ -458,14 +410,14 @@ const createProgressStyles = (tokens: any) => StyleSheet.create({
     fontWeight: tokens.typography.bold,
     color: tokens.colors.onSurface,
     textAlign: 'center',
-    marginBottom: tokens.spacing.sm,
+    marginBottom: tokens.spacing.xs,
   },
   
   progressBar: {
     height: 4,
     backgroundColor: tokens.colors.outline + '30',
     borderRadius: 2,
-    marginBottom: tokens.spacing.md,
+    marginBottom: tokens.spacing.sm,
     overflow: 'hidden',
   },
   
@@ -483,11 +435,11 @@ const createCardStyles = (tokens: any) => StyleSheet.create({
   },
   
   card: {
-    margin: tokens.spacing.lg,
-    borderRadius: tokens.borderRadius.xl,
+    margin: tokens.spacing.sm,
+    borderRadius: tokens.borderRadius.md,
     overflow: 'hidden',
     backgroundColor: tokens.colors.surface,
-    ...tokens.shadows.xl,
+    ...tokens.shadows.md,
     borderWidth: 1,
     borderColor: tokens.colors.outline + '20',
   },
@@ -514,29 +466,31 @@ const createCardStyles = (tokens: any) => StyleSheet.create({
   
   cardHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
-    padding: tokens.spacing.xl,
+    padding: tokens.spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: tokens.colors.outline + '20',
     backgroundColor: tokens.colors.surface,
+    minHeight: 68,
   },
   
   leftSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
     flex: 1,
+    gap: tokens.spacing.xs,
   },
   
   questionNumberContainer: {
-    paddingHorizontal: tokens.spacing.md,
-    paddingVertical: tokens.spacing.sm,
+    paddingHorizontal: tokens.spacing.sm,
+    paddingVertical: tokens.spacing.xs,
     borderRadius: tokens.borderRadius.full,
-    marginRight: tokens.spacing.lg,
-    minWidth: 52,
+    marginRight: tokens.spacing.sm,
+    minWidth: 44,
     alignItems: 'center',
     backgroundColor: tokens.colors.primary + '15',
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: tokens.colors.primary + '30',
   },
   
@@ -550,7 +504,7 @@ const createCardStyles = (tokens: any) => StyleSheet.create({
   statusIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: tokens.spacing.sm,
+    gap: tokens.spacing.xs,
   },
   
   statusText: {
@@ -560,21 +514,23 @@ const createCardStyles = (tokens: any) => StyleSheet.create({
   },
   
   rightSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: tokens.spacing.md,
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: tokens.spacing.xs,
+    marginLeft: tokens.spacing.sm,
   },
   
   badgeContainer: {
-    flexDirection: 'row',
-    gap: tokens.spacing.sm,
+    flexDirection: 'column',
+    gap: tokens.spacing.xs,
+    alignItems: 'flex-end',
   },
   
   pointsBadge: {
-    paddingHorizontal: tokens.spacing.md,
-    paddingVertical: tokens.spacing.sm,
+    paddingHorizontal: tokens.spacing.sm,
+    paddingVertical: tokens.spacing.xs,
     borderRadius: tokens.borderRadius.full,
-    minWidth: 54,
+    minWidth: 48,
     alignItems: 'center',
     backgroundColor: tokens.colors.warning + '15',
     borderWidth: 1,
@@ -589,10 +545,10 @@ const createCardStyles = (tokens: any) => StyleSheet.create({
   },
   
   difficultyBadge: {
-    paddingHorizontal: tokens.spacing.md,
-    paddingVertical: tokens.spacing.sm,
+    paddingHorizontal: tokens.spacing.sm,
+    paddingVertical: tokens.spacing.xs,
     borderRadius: tokens.borderRadius.full,
-    minWidth: 64,
+    minWidth: 56,
     alignItems: 'center',
     backgroundColor: tokens.colors.surfaceVariant + '50',
     borderWidth: 1,
@@ -611,49 +567,51 @@ const createCardStyles = (tokens: any) => StyleSheet.create({
   actionButtons: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: tokens.spacing.sm,
+    gap: tokens.spacing.xs,
   },
   
   selectionCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: tokens.colors.outline + '50',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: tokens.colors.surface + '10',
   },
   
   selectedCircle: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#FFFFFF',
+    backgroundColor: tokens.colors.primary,
+    borderColor: tokens.colors.primary,
   },
   
   bookmarkButton: {
-    padding: tokens.spacing.sm,
+    padding: tokens.spacing.xs,
     borderRadius: tokens.borderRadius.sm,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: tokens.colors.surface + '10',
   },
   
   metaInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: tokens.spacing.lg,
-    paddingBottom: tokens.spacing.md,
+    paddingVertical: tokens.spacing.sm,
     gap: tokens.spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: tokens.colors.outline + '15',
   },
   
   topicText: {
     fontSize: tokens.typography.body,
-    color: '#6B7280',
+    color: tokens.colors.onSurfaceVariant,
     fontWeight: tokens.typography.semiBold,
   },
   
   separatorDot: {
     fontSize: tokens.typography.body,
     color: tokens.colors.onSurfaceVariant,
-    marginHorizontal: tokens.spacing.xs,
+    marginHorizontal: 4,
   },
   
   subjectText: {
@@ -664,55 +622,65 @@ const createCardStyles = (tokens: any) => StyleSheet.create({
   questionText: {
     fontSize: tokens.typography.title,
     color: tokens.colors.onSurface,
-    lineHeight: 30,
-    paddingHorizontal: tokens.spacing.xl,
-    paddingVertical: tokens.spacing.xl,
+    lineHeight: 26,
+    paddingHorizontal: tokens.spacing.lg,
+    paddingTop: tokens.spacing.md,
+    paddingBottom: tokens.spacing.sm,
     fontWeight: tokens.typography.semiBold,
-    letterSpacing: 0.2,
+    letterSpacing: 0.1,
   },
   
   questionImage: {
     width: '100%',
-    height: 220,
-    marginBottom: tokens.spacing.lg,
+    height: 180,
+    marginHorizontal: tokens.spacing.lg,
+    marginBottom: tokens.spacing.md,
+    borderRadius: tokens.borderRadius.md,
+    alignSelf: 'center',
   },
   
   optionsSection: {
     paddingHorizontal: tokens.spacing.lg,
-    marginBottom: tokens.spacing.lg,
+    marginBottom: tokens.spacing.md,
+    marginTop: tokens.spacing.sm,
   },
   
   sectionTitle: {
-    fontSize: tokens.typography.subtitle,
+    fontSize: tokens.typography.title,
     fontWeight: tokens.typography.bold,
-    color: '#1F2937',
+    color: tokens.colors.onSurface,
     marginBottom: tokens.spacing.md,
+    letterSpacing: 0.2,
   },
   
   option: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: tokens.spacing.md,
-    borderRadius: tokens.borderRadius.lg,
-    borderWidth: 2,
-    borderColor: 'rgba(0, 0, 0, 0.1)',
+    borderRadius: tokens.borderRadius.md,
+    borderWidth: 1,
+    borderColor: tokens.colors.outline + '30',
     marginBottom: tokens.spacing.sm,
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    backgroundColor: tokens.colors.surface,
+    ...tokens.shadows.sm,
   },
   
   selectedOption: {
-    borderColor: '#374151',
-    backgroundColor: 'rgba(55, 65, 81, 0.1)',
+    borderColor: tokens.colors.primary,
+    backgroundColor: tokens.colors.primary + '10',
+    borderWidth: 2,
   },
   
   correctOption: {
-    borderColor: '#059669',
-    backgroundColor: 'rgba(5, 150, 105, 0.1)',
+    borderColor: tokens.colors.success,
+    backgroundColor: tokens.colors.success + '10',
+    borderWidth: 2,
   },
   
   incorrectOption: {
-    borderColor: '#DC2626',
-    backgroundColor: 'rgba(220, 38, 38, 0.1)',
+    borderColor: tokens.colors.error,
+    backgroundColor: tokens.colors.error + '10',
+    borderWidth: 2,
   },
   
   optionContent: {
@@ -725,106 +693,104 @@ const createCardStyles = (tokens: any) => StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: tokens.colors.surfaceVariant,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: tokens.spacing.md,
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.2)',
+    borderColor: tokens.colors.outline + '40',
+    ...tokens.shadows.sm,
   },
   
   selectedBullet: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: tokens.colors.primary,
+    borderColor: tokens.colors.primary,
   },
   
   correctBullet: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: tokens.colors.success,
+    borderColor: tokens.colors.success,
   },
   
   incorrectBullet: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: tokens.colors.error,
+    borderColor: tokens.colors.error,
   },
   
   optionLetter: {
     fontSize: tokens.typography.body,
     fontWeight: tokens.typography.bold,
-    color: '#374151',
+    color: tokens.colors.onSurfaceVariant,
   },
   
   selectedOptionLetter: {
-    color: '#000000',
+    color: tokens.colors.onPrimary,
   },
   
   correctOptionLetter: {
-    color: '#000000',
+    color: tokens.colors.onPrimary,
   },
   
   optionText: {
     fontSize: tokens.typography.body,
-    color: '#374151',
+    color: tokens.colors.onSurface,
     flex: 1,
-    lineHeight: 22,
-    fontWeight: '500',
+    lineHeight: 28,
+    fontWeight: tokens.typography.medium,
+    letterSpacing: 0.1,
   },
   
   selectedOptionText: {
-    fontWeight: tokens.typography.bold,
-    color: '#1F2937',
+    fontWeight: tokens.typography.semiBold,
+    color: tokens.colors.onSurface,
   },
   
   resultIndicator: {
-    marginLeft: tokens.spacing.sm,
-    width: 24,
+    marginLeft: tokens.spacing.xs,
+    width: 20,
     alignItems: 'center',
   },
   
   quickStats: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: tokens.spacing.lg,
+    padding: tokens.spacing.md,
     borderTopWidth: 1,
-    borderTopColor: tokens.colors.outline + '20',
-    gap: tokens.spacing.md,
-    backgroundColor: tokens.colors.surfaceVariant + '30',
-    marginHorizontal: tokens.spacing.xl,
-    marginBottom: tokens.spacing.xl,
-    borderRadius: tokens.borderRadius.lg,
+    borderTopColor: tokens.colors.outline + '15',
+    gap: tokens.spacing.sm,
+    backgroundColor: tokens.colors.surfaceVariant + '20',
+    marginHorizontal: tokens.spacing.lg,
+    marginBottom: tokens.spacing.lg,
+    marginTop: tokens.spacing.md,
+    borderRadius: tokens.borderRadius.md,
     borderWidth: 1,
-    borderColor: tokens.colors.outline + '20',
+    borderColor: tokens.colors.outline + '15',
   },
   
   statItem: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
-    gap: tokens.spacing.sm,
+    gap: tokens.spacing.xs,
     flex: 1,
     backgroundColor: tokens.colors.surface,
-    paddingHorizontal: tokens.spacing.md,
+    paddingHorizontal: tokens.spacing.xs,
     paddingVertical: tokens.spacing.sm,
     borderRadius: tokens.borderRadius.md,
     borderWidth: 1,
     borderColor: tokens.colors.outline + '20',
+    ...tokens.shadows.sm,
   },
   
   statText: {
     fontSize: tokens.typography.caption,
     color: tokens.colors.onSurface,
     fontWeight: tokens.typography.semiBold,
-    flexShrink: 1,
+    textAlign: 'center',
+    lineHeight: 14,
   },
   
   explanationCard: {
-    marginHorizontal: tokens.spacing.lg,
-    marginBottom: tokens.spacing.lg,
-  },
-  
-  explanationPanel: {
-    marginHorizontal: tokens.spacing.lg,
-    marginBottom: tokens.spacing.lg,
-  },
-  
-  teacherPanel: {
-    marginHorizontal: tokens.spacing.lg,
-    marginBottom: tokens.spacing.lg,
+    marginHorizontal: tokens.spacing.md,
+    marginBottom: tokens.spacing.md,
   },
 });

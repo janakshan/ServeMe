@@ -458,9 +458,9 @@ async function generateMockAnalysisData(examId: string): Promise<ExamDetailedAna
       <p><strong>Verification:</strong> Substitute x = 5 back into the original equation to verify the solution.</p>`,
       images: [
         {
-          url: 'https://via.placeholder.com/400x200/6A1B9A/FFFFFF?text=Linear+Equation+Graph',
-          caption: 'Visual representation of the linear equation',
-          alt: 'Graph showing the linear equation solution'
+          url: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=200&fit=crop&auto=format&q=80',
+          caption: 'Mathematical equation solving steps and algebraic manipulation',
+          alt: 'Mathematics and algebra problem solving illustration'
         }
       ],
       keyPoints: ['Linear equations', 'Isolation of variables', 'Order of operations', 'Algebraic manipulation'],
