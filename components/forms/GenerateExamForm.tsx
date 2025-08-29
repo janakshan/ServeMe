@@ -11,15 +11,15 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useEducationTheme } from '@/contexts/ScopedThemeProviders';
 import { Select } from '../ui/Select';
-import { MultiSelect } from '../ui/MultiSelect';
+import { HierarchicalSelector } from '../ui/HierarchicalSelector';
 import { Button } from '../ui/Button';
 import {
   getSubjectOptions,
-  getUnitsBySubject,
-  getTopicsByUnit,
   getDifficultyOptions,
   generateMockExam,
   GenerateExamParams,
+  Unit,
+  EXAM_SUBJECTS,
 } from '@/utils/examData';
 
 interface GenerateExamFormProps {
@@ -38,14 +38,12 @@ export const GenerateExamForm: React.FC<GenerateExamFormProps> = ({
   
   // Form state
   const [selectedSubject, setSelectedSubject] = useState('');
-  const [selectedUnits, setSelectedUnits] = useState<string[]>([]);
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [hierarchicalSelections, setHierarchicalSelections] = useState<Array<{unitId: string; topicIds: string[]}>>([]);
   const [selectedDifficulty, setSelectedDifficulty] = useState('');
   const [includePreviousHistory, setIncludePreviousHistory] = useState(false);
   
   // Dynamic options
-  const [unitOptions, setUnitOptions] = useState<Array<{label: string; value: string}>>([]);
-  const [topicOptions, setTopicOptions] = useState<Array<{label: string; value: string}>>([]);
+  const [availableUnits, setAvailableUnits] = useState<Unit[]>([]);
   
   // Form validation errors
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -57,38 +55,16 @@ export const GenerateExamForm: React.FC<GenerateExamFormProps> = ({
   // Update units when subject changes
   useEffect(() => {
     if (selectedSubject) {
-      const units = getUnitsBySubject(selectedSubject);
-      setUnitOptions(units);
-      setSelectedUnits([]);
-      setSelectedTopics([]);
-      setTopicOptions([]);
+      // Get full unit data for hierarchical selector
+      const subject = EXAM_SUBJECTS.find(s => s.id === selectedSubject);
+      setAvailableUnits(subject?.units || []);
+      setHierarchicalSelections([]);
     } else {
-      setUnitOptions([]);
-      setSelectedUnits([]);
-      setSelectedTopics([]);
-      setTopicOptions([]);
+      setAvailableUnits([]);
+      setHierarchicalSelections([]);
     }
   }, [selectedSubject]);
 
-  // Update topics when units change
-  useEffect(() => {
-    if (selectedSubject && selectedUnits.length > 0) {
-      const allTopics: Array<{label: string; value: string}> = [];
-      selectedUnits.forEach(unitId => {
-        const topics = getTopicsByUnit(selectedSubject, unitId);
-        allTopics.push(...topics);
-      });
-      // Remove duplicates
-      const uniqueTopics = allTopics.filter((topic, index, self) => 
-        index === self.findIndex(t => t.value === topic.value)
-      );
-      setTopicOptions(uniqueTopics);
-      setSelectedTopics([]);
-    } else {
-      setTopicOptions([]);
-      setSelectedTopics([]);
-    }
-  }, [selectedSubject, selectedUnits]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -96,11 +72,10 @@ export const GenerateExamForm: React.FC<GenerateExamFormProps> = ({
     if (!selectedSubject) {
       newErrors.subject = 'Please select a subject';
     }
-    if (selectedUnits.length === 0) {
-      newErrors.units = 'Please select at least one unit';
-    }
-    if (selectedTopics.length === 0) {
-      newErrors.topics = 'Please select at least one topic';
+    
+    const totalTopics = hierarchicalSelections.reduce((count, item) => count + item.topicIds.length, 0);
+    if (hierarchicalSelections.length === 0 || totalTopics === 0) {
+      newErrors.hierarchical = 'Please select at least one topic from any unit';
     }
     if (!selectedDifficulty) {
       newErrors.difficulty = 'Please select a difficulty level';
@@ -120,10 +95,14 @@ export const GenerateExamForm: React.FC<GenerateExamFormProps> = ({
       return;
     }
 
+    // Extract units and topics from hierarchical selection
+    const units = hierarchicalSelections.map(item => item.unitId);
+    const topics = hierarchicalSelections.flatMap(item => item.topicIds);
+    
     const examParams: GenerateExamParams = {
       subject: selectedSubject,
-      unit: selectedUnits.join(','), // Multiple units as comma-separated
-      topic: selectedTopics.join(','), // Multiple topics as comma-separated
+      unit: units.join(','), // Multiple units as comma-separated
+      topic: topics.join(','), // Multiple topics as comma-separated
       difficulty: selectedDifficulty,
       includePreviousHistory,
     };
@@ -142,8 +121,7 @@ export const GenerateExamForm: React.FC<GenerateExamFormProps> = ({
 
   const handleReset = () => {
     setSelectedSubject('');
-    setSelectedUnits([]);
-    setSelectedTopics([]);
+    setHierarchicalSelections([]);
     setSelectedDifficulty('');
     setIncludePreviousHistory(false);
     setErrors({});
@@ -156,14 +134,12 @@ export const GenerateExamForm: React.FC<GenerateExamFormProps> = ({
     scrollContent: {
       flexGrow: 1,
       paddingBottom: tokens.spacing.lg,
-      paddingTop: tokens.spacing.lg,
     },
     formSection: {
-      marginBottom: tokens.spacing.lg,
       backgroundColor: tokens.colors.surface,
-      marginHorizontal: tokens.spacing.md,
-      borderRadius: tokens.borderRadius.lg,
       padding: tokens.spacing.lg,
+      borderTopLeftRadius: tokens.borderRadius.xl,
+      borderTopRightRadius: tokens.borderRadius.xl,
       ...tokens.shadows.sm,
     },
     sectionTitle: {
@@ -200,9 +176,13 @@ export const GenerateExamForm: React.FC<GenerateExamFormProps> = ({
       lineHeight: 18,
     },
     actionSection: {
+      backgroundColor: tokens.colors.surface,
       paddingHorizontal: tokens.spacing.lg,
-      paddingTop: tokens.spacing.xs,
-      paddingBottom: tokens.spacing.lg,
+      paddingVertical: tokens.spacing.lg,
+      marginTop: tokens.spacing.xs,
+      borderBottomLeftRadius: tokens.borderRadius.xl,
+      borderBottomRightRadius: tokens.borderRadius.xl,
+      ...tokens.shadows.sm,
     },
     buttonsRow: {
       flexDirection: 'row',
@@ -249,24 +229,17 @@ export const GenerateExamForm: React.FC<GenerateExamFormProps> = ({
           error={errors.subject}
         />
 
-        <MultiSelect
-          label="Units *"
-          options={unitOptions}
-          selectedValues={selectedUnits}
-          onSelectionChange={setSelectedUnits}
-          placeholder={selectedSubject ? "Choose units (multiple selection)" : "Select a subject first"}
-          disabled={!selectedSubject}
-          error={errors.units}
-        />
 
-        <MultiSelect
-          label="Topics *"
-          options={topicOptions}
-          selectedValues={selectedTopics}
-          onSelectionChange={setSelectedTopics}
-          placeholder={selectedUnits.length > 0 ? "Choose topics (multiple selection)" : "Select units first"}
-          disabled={selectedUnits.length === 0}
-          error={errors.topics}
+        <HierarchicalSelector
+          label="Units & Topics *"
+          units={availableUnits}
+          selectedItems={hierarchicalSelections}
+          onSelectionChange={setHierarchicalSelections}
+          placeholder={selectedSubject ? "Select units and their topics" : "Select a subject first"}
+          disabled={!selectedSubject}
+          error={errors.hierarchical}
+          showSearch={true}
+          showSelectAllToggle={true}
         />
 
         <Select
