@@ -1,44 +1,55 @@
-// app/_layout.tsx - UPDATED VERSION with correct imports
+// app/_layout.tsx - Fast navigation transitions enabled
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider } from '../providers/AuthProvider';
-import { ThemeProvider } from '../providers/ThemeProvider';
 import { ServicesProvider } from '../providers/ServicesProvider';
+import { fastScreenOptions, instantScreenOptions, modalScreenOptions, serviceScreenOptions, authScreenOptions } from '../utils/navigationAnimations';
+import { initializeSoundService } from '../src/education/services/soundService';
+// import { NavigationThemeManager } from '../components/navigation/NavigationThemeManager';
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   useEffect(() => {
-    // Hide splash screen after a delay
-    const timer = setTimeout(() => {
-      SplashScreen.hideAsync();
-    }, 2000);
+    const initializeApp = async () => {
+      try {
+        // Initialize sound service early for better performance
+        await initializeSoundService();
+        
+        // Hide splash screen after initialization
+        setTimeout(() => {
+          SplashScreen.hideAsync();
+        }, 2000);
+      } catch (error) {
+        console.warn('⚠️ App initialization error:', error);
+        // Hide splash screen even if sound service fails
+        setTimeout(() => {
+          SplashScreen.hideAsync();
+        }, 2000);
+      }
+    };
 
-    return () => clearTimeout(timer);
+    initializeApp();
   }, []);
 
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <ServicesProvider>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(app)" options={{ headerShown: false }} />
-            <Stack.Screen name="(services)" options={{ headerShown: false }} />
-            <Stack.Screen 
-              name="(modals)" 
-              options={{ 
-                presentation: 'modal',
-                headerShown: false 
-              }} 
-            />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-        </ServicesProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <ServicesProvider>
+        {/* Theme providers now scoped to individual route groups for complete isolation */}
+        <Stack screenOptions={fastScreenOptions}>
+          <Stack.Screen name="index" options={instantScreenOptions} />
+          <Stack.Screen name="(auth)" options={authScreenOptions} />
+          <Stack.Screen name="(app)" options={instantScreenOptions} />
+          <Stack.Screen name="(services)" options={{ ...serviceScreenOptions, headerShown: false }} />
+          <Stack.Screen 
+            name="(modals)" 
+            options={modalScreenOptions}
+          />
+          <Stack.Screen name="+not-found" options={fastScreenOptions} />
+        </Stack>
+      </ServicesProvider>
+    </AuthProvider>
   );
 }

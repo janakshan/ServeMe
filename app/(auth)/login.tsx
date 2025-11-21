@@ -1,7 +1,10 @@
+import { useAuthTheme, useAuthThemedStyles } from "@/contexts/AuthThemeProvider";
 import { useAuth } from "@/hooks/useAuth";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { useRouteGroupNavigation } from "@/utils/navigationStackReset";
 import { useEffect, useState } from "react";
 import {
   Pressable,
@@ -21,6 +24,13 @@ const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const { login } = useAuth();
+  const { getGradient } = useAuthTheme();
+  const styles = useAuthThemedStyles(createStyles);
+  const { navigateToMainApp } = useRouteGroupNavigation();
+
+  const headerGradient = getGradient("header");
+  const buttonGradient = getGradient("button");
+  const backgroundGradient = getGradient("background");
 
   useEffect(() => {
     loadStoredCredentials();
@@ -58,8 +68,8 @@ const LoginScreen = () => {
         await SecureStore.deleteItemAsync("remember_me");
       }
 
-      router.replace("/(app)/(tabs)");
-    } catch (e) {
+      navigateToMainApp();
+    } catch (e: any) {
       setError(e.message || "Login failed");
     } finally {
       setLoading(false);
@@ -67,273 +77,394 @@ const LoginScreen = () => {
   };
 
   return (
-    <View style={styles.bgWrap}>
-      <View style={styles.blueBg} />
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.headerWrap}>
-          <Text style={styles.logoipsum}>ServeMe</Text>
-          <Text style={styles.title}>Sign in to your Account</Text>
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Log In</Text>
-          {error ? <Text style={styles.error}>{error}</Text> : null}
-          <Text style={styles.label}>Email</Text>
+    <LinearGradient
+      colors={backgroundGradient.colors}
+      start={{
+        x: backgroundGradient.direction.x,
+        y: backgroundGradient.direction.y,
+      }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}
+    >
+      <LinearGradient
+        colors={headerGradient.colors}
+        start={{ x: headerGradient.direction.x, y: headerGradient.direction.y }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerSection}
+      >
+        <SafeAreaView style={styles.headerSafeArea}>
+          <View style={styles.headerContent}>
+            <Text style={styles.title}>Welcome Back</Text>
+            <Text style={styles.description}>
+              Welcome back! Please enter your credentials to access your
+              account.
+            </Text>
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
+      <View style={styles.contentSection}>
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+        <Text style={styles.label}>Email</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your email"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          placeholderTextColor={styles.input.placeholderTextColor}
+        />
+        <Text style={styles.label}>Password</Text>
+        <View style={styles.passwordContainer}>
           <TextInput
-            style={styles.input}
-            placeholder="Enter your email"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            placeholderTextColor="#546E7A"
+            style={styles.passwordInput}
+            placeholder="Enter your password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            placeholderTextColor={styles.passwordInput.placeholderTextColor}
           />
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="Enter your password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              placeholderTextColor="#546E7A"
+          <Pressable
+            style={styles.eyeBtn}
+            onPress={() => setShowPassword((v) => !v)}
+            testID="password-visibility-toggle"
+          >
+            <Ionicons
+              name={showPassword ? "eye-off-outline" : "eye-outline"}
+              size={22}
+              color={styles.eyeIcon.color}
             />
-            <Pressable
-              style={styles.eyeBtn}
-              onPress={() => setShowPassword((v) => !v)}
-              testID="password-visibility-toggle"
-            >
-              <Ionicons
-                name={showPassword ? "eye-off-outline" : "eye-outline"}
-                size={22}
-                color="#42A5F5"
-              />
-            </Pressable>
-          </View>
-          <View style={styles.rowBetween}>
-            <TouchableOpacity
-              style={styles.rememberMe}
-              onPress={() => setRememberMe((v) => !v)}
-              testID="remember-me-button"
-            >
-              <View
-                style={[styles.checkbox, rememberMe && styles.checkboxChecked]}
-                testID="remember-me-checkbox"
-              >
-                {rememberMe && (
-                  <Ionicons name="checkmark" size={14} color="#fff" />
-                )}
-              </View>
-              <Text style={styles.rememberText}>Remember me</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => router.push("/(auth)/forgot-password")}
-            >
-              <Text style={styles.forgot}>Forgot Password ?</Text>
-            </TouchableOpacity>
-          </View>
+          </Pressable>
+        </View>
+        <View style={styles.rowBetween}>
           <TouchableOpacity
-            style={styles.loginBtn}
-            onPress={handleLogin}
-            disabled={loading}
-            accessibilityRole="button"
-            accessibilityLabel="Log In"
+            style={styles.rememberMe}
+            onPress={() => setRememberMe((v) => !v)}
+            testID="remember-me-button"
+          >
+            <View
+              style={[styles.checkbox, rememberMe && styles.checkboxChecked]}
+              testID="remember-me-checkbox"
+            >
+              {rememberMe && (
+                <Ionicons name="checkmark" size={14} color="#fff" />
+              )}
+            </View>
+            <Text style={styles.rememberText}>Remember me</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push("/(auth)/forgot-password")}
+          >
+            <Text style={styles.forgot}>Forgot Password ?</Text>
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity
+          onPress={handleLogin}
+          disabled={loading}
+          accessibilityRole="button"
+          accessibilityLabel="Log In"
+          style={styles.loginBtn}
+        >
+          <LinearGradient
+            colors={buttonGradient.colors}
+            start={{
+              x: buttonGradient.direction.x,
+              y: buttonGradient.direction.y,
+            }}
+            end={{ x: 1, y: 1 }}
+            style={styles.loginBtnGradient}
           >
             <Text style={styles.loginBtnText}>
               {loading ? "Logging in..." : "Log In"}
             </Text>
+          </LinearGradient>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
+          <Text style={styles.signupPrompt}>
+            Don't have an account?{" "}
+            <Text style={styles.signupLinkText}>Sign Up</Text>
+          </Text>
+        </TouchableOpacity>
+
+        <Text style={styles.orLoginWith}>Or login with</Text>
+
+        <View style={styles.socialButtonsContainer}>
+          <TouchableOpacity style={styles.socialButton}>
+            <View style={styles.socialButtonContent}>
+              <Ionicons name="logo-google" size={20} color="#4285F4" />
+              <Text style={styles.socialButtonText}>Google</Text>
+            </View>
           </TouchableOpacity>
-          <View style={styles.spacer} />
-          <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
-            <Text style={styles.signupLink}>
-              <Text style={{ color: "#666666" }}>Don't have an account?</Text>{" "}
-              <Text style={{ color: "#42A5F5", fontWeight: "bold" }}>
-                Sign up
-              </Text>
-            </Text>
+          <TouchableOpacity style={styles.socialButton}>
+            <View style={styles.socialButtonContent}>
+              <Ionicons name="logo-facebook" size={20} color="#1877F2" />
+              <Text style={styles.socialButtonText}>Facebook</Text>
+            </View>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
-    </View>
+
+        <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
+          <Text style={styles.signupLink}>
+            By signing In, you agree to the{" "}
+            <Text style={styles.linkText}>Terms of Service</Text> and{" "}
+            <Text style={styles.linkText}>Data Processing Agreement</Text>
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </LinearGradient>
   );
 };
 
-const styles = StyleSheet.create({
-  bgWrap: {
-    flex: 1,
-    backgroundColor: "#F8FCFF",
-  },
-  blueBg: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 260,
-    backgroundColor: "#0D47A1",
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-    zIndex: 0,
-  },
-  safeArea: {
-    flex: 1,
-    alignItems: "center",
-    backgroundColor: "transparent",
-    zIndex: 1,
-  },
-  headerWrap: {
-    width: "100%",
-    alignItems: "center",
-    marginTop: 18,
-    marginBottom: 12,
-  },
-  logoipsum: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 32,
-    marginBottom: 10,
-    marginTop: 10,
-  },
-  title: {
-    color: "#fff",
-    fontWeight: "normal",
-    fontSize: 18,
-    textAlign: "center",
-    marginBottom: 0,
-    lineHeight: 22,
-  },
-  card: {
-    flex: 1,
-    width: "100%",
-    alignSelf: "center",
-    backgroundColor: "#fff",
-    borderRadius: 32,
-    marginTop: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 28,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 24,
-    elevation: 12,
-  },
-  cardTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#1A237E",
-    marginBottom: 18,
-    textAlign: "center",
-  },
-  label: {
-    fontSize: 15,
-    color: "#1A237E",
-    marginBottom: 6,
-    marginTop: 8,
-    fontWeight: "600",
-  },
-  input: {
-    backgroundColor: "#E8F4FD",
-    borderWidth: 2,
-    borderColor: "#42A5F5",
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: "#111827",
-    marginBottom: 14,
-    width: "100%",
-  },
-  passwordContainer: {
-    position: "relative",
-    width: "100%",
-    marginBottom: 14,
-  },
-  passwordInput: {
-    backgroundColor: "#E8F4FD",
-    borderWidth: 2,
-    borderColor: "#42A5F5",
-    borderRadius: 12,
-    padding: 16,
-    paddingRight: 50,
-    fontSize: 16,
-    color: "#111827",
-    width: "100%",
-  },
-  eyeBtn: {
-    position: "absolute",
-    right: 12,
-    top: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    width: 40,
-  },
-  rowBetween: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 22,
-  },
-  rememberMe: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 5,
-    borderWidth: 2,
-    borderColor: "#42A5F5",
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 8,
-  },
-  checkboxChecked: {
-    backgroundColor: "#42A5F5",
-    borderColor: "#42A5F5",
-  },
-  rememberText: {
-    fontSize: 15,
-    color: "#1A237E",
-  },
-  forgot: {
-    color: "#42A5F5",
-    fontSize: 15,
-    fontWeight: "600",
-    textAlign: "right",
-  },
-  loginBtn: {
-    backgroundColor: "#1565C0",
-    paddingVertical: 18,
-    borderRadius: 14,
-    alignItems: "center",
-    marginBottom: 18,
-    marginTop: 2,
-    shadowColor: "#1565C0",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  loginBtnText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 18,
-  },
-  spacer: {
-    flex: 1,
-  },
-  signupLink: {
-    color: "#546E7A",
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 12,
-    fontWeight: "500",
-  },
-  error: {
-    color: "#EF4444",
-    marginBottom: 10,
-    textAlign: "center",
-    fontSize: 15,
-  },
-});
+const createStyles = (tokens: any, layout: any, variants: any) => {
+  // Create soft blue-tinted backgrounds for better eye comfort
+  const getSoftTintedColors = () => {
+    const primaryColor = tokens.colors.primary;
+
+    if (primaryColor === "#0D47A1") {
+      // Professional blue theme - soft blue tints
+      return {
+        softBackground: "#F8FAFE", // Very light blue tint
+        softSurface: "#F0F6FF", // Light blue tint for cards/surfaces
+      };
+    } else if (primaryColor === "#7B1FA2") {
+      // Purple theme - soft purple tints
+      return {
+        softBackground: "#FDFAFF", // Very light purple tint
+        softSurface: "#F9F2FF", // Light purple tint
+      };
+    } else if (primaryColor === "#2E7D32") {
+      // Green theme - soft green tints
+      return {
+        softBackground: "#F9FDF9", // Very light green tint
+        softSurface: "#F2F8F2", // Light green tint
+      };
+    } else if (primaryColor === "#E91E63") {
+      // Pink theme - soft pink tints
+      return {
+        softBackground: "#FFFAFC", // Very light pink tint
+        softSurface: "#FFF2F7", // Light pink tint
+      };
+    } else {
+      // Default soft blue tints
+      return {
+        softBackground: "#F8FAFE",
+        softSurface: "#F0F6FF",
+      };
+    }
+  };
+
+  const tintedColors = getSoftTintedColors();
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    headerSection: {
+      paddingBottom: tokens.spacing.xxl,
+      minHeight: 280,
+    },
+    headerSafeArea: {
+      backgroundColor: "transparent",
+      flex: 1,
+      justifyContent: "center",
+    },
+    headerContent: {
+      width: "100%",
+      alignItems: "center",
+      paddingHorizontal: tokens.spacing.lg,
+    },
+    title: {
+      color: tokens.colors.onPrimary,
+      fontWeight: tokens.typography.bold,
+      fontSize: tokens.typography.display,
+      marginBottom: tokens.spacing.sm,
+      lineHeight: tokens.typography.display * tokens.typography.tight,
+      textAlign: "center",
+    },
+    description: {
+      color: tokens.colors.onPrimary,
+      fontWeight: tokens.typography.light,
+      fontSize: tokens.typography.body,
+      marginBottom: 0,
+      lineHeight: tokens.typography.body * 1.3,
+      textAlign: "center",
+      opacity: 0.9,
+      paddingHorizontal: tokens.spacing.lg,
+    },
+    contentSection: {
+      flex: 1,
+      backgroundColor: tintedColors.softSurface,
+      paddingHorizontal: tokens.spacing.lg,
+      paddingTop: tokens.spacing.lg,
+      marginTop: -tokens.spacing.md, // Overlap with header for smoother transition
+      borderTopLeftRadius: tokens.borderRadius.xl,
+      borderTopRightRadius: tokens.borderRadius.xl,
+    },
+    cardTitle: {
+      fontSize: tokens.typography.title,
+      fontWeight: tokens.typography.bold,
+      color: tokens.colors.onSurface,
+      marginBottom: tokens.spacing.lg,
+      textAlign: "center",
+    },
+    label: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurface,
+      marginBottom: tokens.spacing.xs,
+      marginTop: tokens.spacing.sm,
+      fontWeight: tokens.typography.semibold,
+    },
+    input: {
+      backgroundColor: tokens.colors.inputBackground,
+      borderWidth: 2,
+      borderColor: tokens.colors.inputBorder,
+      borderRadius: tokens.borderRadius.input,
+      padding: tokens.spacing.inputPadding.vertical,
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onBackground,
+      marginBottom: tokens.spacing.md,
+      width: "100%",
+      placeholderTextColor: tokens.colors.placeholder,
+    },
+    passwordContainer: {
+      position: "relative",
+      width: "100%",
+      marginBottom: tokens.spacing.md,
+    },
+    passwordInput: {
+      backgroundColor: tokens.colors.inputBackground,
+      borderWidth: 2,
+      borderColor: tokens.colors.inputBorder,
+      borderRadius: tokens.borderRadius.input,
+      padding: tokens.spacing.inputPadding.vertical,
+      paddingRight: 50,
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onBackground,
+      width: "100%",
+      placeholderTextColor: tokens.colors.placeholder,
+    },
+    eyeBtn: {
+      position: "absolute",
+      right: tokens.spacing.md,
+      top: 0,
+      bottom: 0,
+      justifyContent: "center",
+      alignItems: "center",
+      width: 40,
+    },
+    eyeIcon: {
+      color: tokens.colors.primaryLight,
+    },
+    rowBetween: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: tokens.spacing.xl,
+    },
+    rememberMe: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    checkbox: {
+      width: 20,
+      height: 20,
+      borderRadius: tokens.spacing.xs,
+      borderWidth: 2,
+      borderColor: tokens.colors.primaryLight,
+      backgroundColor: tokens.colors.surface,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: tokens.spacing.sm,
+    },
+    checkboxChecked: {
+      backgroundColor: tokens.colors.primaryLight,
+      borderColor: tokens.colors.primaryLight,
+    },
+    rememberText: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurface,
+    },
+    forgot: {
+      color: tokens.colors.primaryLight,
+      fontSize: tokens.typography.caption,
+      fontWeight: tokens.typography.semibold,
+      textAlign: "right",
+    },
+    loginBtn: {
+      borderRadius: tokens.borderRadius.button,
+      marginBottom: tokens.spacing.lg,
+      marginTop: tokens.spacing.xxs,
+      ...tokens.shadows.sm,
+    },
+    loginBtnGradient: {
+      paddingVertical: tokens.spacing.buttonPadding.vertical,
+      borderRadius: tokens.borderRadius.button,
+      alignItems: "center",
+    },
+    loginBtnText: {
+      color: tokens.colors.onPrimary,
+      fontWeight: tokens.typography.bold,
+      fontSize: tokens.typography.subtitle,
+    },
+    signupPrompt: {
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onSurfaceVariant,
+      textAlign: "center",
+      marginVertical: tokens.spacing.md,
+    },
+    signupLinkText: {
+      color: tokens.colors.primaryLight,
+      fontWeight: tokens.typography.bold,
+    },
+    error: {
+      color: tokens.colors.error,
+      marginBottom: tokens.spacing.sm,
+      textAlign: "center",
+      fontSize: tokens.typography.caption,
+    },
+    orLoginWith: {
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onSurfaceVariant,
+      textAlign: "center",
+      marginVertical: tokens.spacing.lg,
+    },
+    socialButtonsContainer: {
+      flexDirection: "row",
+      gap: tokens.spacing.md,
+      marginTop: tokens.spacing.lg,
+      marginBottom: tokens.spacing.xl,
+    },
+    socialButton: {
+      flex: 1,
+      paddingVertical: tokens.spacing.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.outline,
+      borderRadius: tokens.borderRadius.button,
+      alignItems: "center",
+      backgroundColor: tokens.colors.surface,
+    },
+    socialButtonContent: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: tokens.spacing.sm,
+    },
+    socialButtonText: {
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onSurface,
+      fontWeight: tokens.typography.medium,
+    },
+    signupLink: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurfaceVariant,
+      textAlign: "center",
+      lineHeight: tokens.typography.caption * 1.4,
+    },
+    linkText: {
+      color: tokens.colors.primaryLight,
+      fontWeight: tokens.typography.medium,
+    },
+  });
+};
 
 export default LoginScreen;

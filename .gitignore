@@ -102,7 +102,16 @@ android/.gradle/
 android/captures/
 android/gradlew.bat
 android/local.properties
+android/.navigation/
+android/output.json
+android/.externalNativeBuild/
+android/obj/
+android/*.iml
+android/*.iws
+android/out/
 *.keystore
+*.jks
+google-services.json
 
 # Expo
 .expo-shared/

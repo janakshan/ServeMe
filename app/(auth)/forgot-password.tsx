@@ -1,3 +1,4 @@
+import { useAuthTheme, useAuthThemedStyles } from "@/contexts/AuthThemeProvider";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -7,8 +8,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  Alert,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { authApi } from "../../services/api/auth";
 
 const ForgotPasswordScreen = () => {
@@ -17,9 +18,17 @@ const ForgotPasswordScreen = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
+  const themeContext = useAuthTheme();
+  const { getGradient } = themeContext;
+  const styles = useAuthThemedStyles(createStyles, themeContext);
+  
+  const headerGradient = getGradient('header');
+  const buttonGradient = getGradient('button');
+  const backgroundGradient = getGradient('background');
+
   const handleResetPassword = async () => {
     setError("");
-    
+
     if (!email.trim()) {
       setError("Please enter your email address");
       return;
@@ -28,7 +37,11 @@ const ForgotPasswordScreen = () => {
     setLoading(true);
     try {
       await authApi.forgotPassword(email);
-      setSuccess(true);
+      // Navigate to OTP verification with email parameter
+      router.push({
+        pathname: "/(auth)/enter-otp",
+        params: { email, flow: "forgot-password" }
+      });
     } catch (e) {
       setError("Failed to send reset email. Please try again.");
     } finally {
@@ -38,222 +51,277 @@ const ForgotPasswordScreen = () => {
 
   if (success) {
     return (
-      <View style={styles.bgWrap}>
-        <View style={styles.blueBg} />
-        <SafeAreaView style={styles.safeArea}>
-          <View style={styles.headerWrap}>
-            <Text style={styles.logoipsum}>ServeMe</Text>
-            <Text style={styles.title}>Check Your Email</Text>
-          </View>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Email Sent!</Text>
-            <Text style={styles.description}>
-              We've sent password reset instructions to {email}
-            </Text>
-            <TouchableOpacity
-              style={styles.resetBtn}
-              onPress={() => router.push("/(auth)/login")}
+      <LinearGradient
+        colors={backgroundGradient.colors}
+        start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
+        end={{ x: 1, y: 1 }}
+        style={styles.container}
+      >
+        <LinearGradient
+          colors={headerGradient.colors}
+          start={{ x: headerGradient.direction.x, y: headerGradient.direction.y }}
+          end={{ x: 1, y: 1 }}
+          style={styles.headerSection}
+        >
+          <SafeAreaView style={styles.headerSafeArea}>
+            <View style={styles.headerContent}>
+              <Text style={styles.title}>Check Your Email</Text>
+              <Text style={styles.description}>
+                We've sent you password reset instructions.
+              </Text>
+            </View>
+          </SafeAreaView>
+        </LinearGradient>
+        <View style={styles.contentSection}>
+          <Text style={styles.cardTitle}>Email Sent!</Text>
+          <Text style={styles.contentDescription}>
+            We've sent password reset instructions to {email}
+          </Text>
+          <TouchableOpacity
+            style={styles.resetBtn}
+            onPress={() => router.push("/(auth)/login")}
+          >
+            <LinearGradient
+              colors={buttonGradient.colors}
+              start={{ x: buttonGradient.direction.x, y: buttonGradient.direction.y }}
+              end={{ x: 1, y: 1 }}
+              style={styles.resetBtnGradient}
             >
               <Text style={styles.resetBtnText}>Back to Login</Text>
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </View>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
     );
   }
 
   return (
-    <View style={styles.bgWrap}>
-      <View style={styles.blueBg} />
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.headerWrap}>
-          <Text style={styles.logoipsum}>ServeMe</Text>
-          <Text style={styles.title}>Reset your Password</Text>
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Forgot Password</Text>
-          <Text style={styles.description}>
-            Enter your email address and we'll send you instructions to reset your password.
-          </Text>
-          {error ? <Text style={styles.error}>{error}</Text> : null}
-          
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your email"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            placeholderTextColor="#546E7A"
-          />
-          
-          <View style={styles.buttonRow}>
-            <TouchableOpacity
-              style={styles.backBtn}
-              onPress={() => router.back()}
-              accessibilityRole="button"
-              accessibilityLabel="Go Back"
-            >
-              <Text style={styles.backBtnText}>Back</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={styles.resetBtn}
-              onPress={handleResetPassword}
-              disabled={loading}
-              accessibilityRole="button"
-              accessibilityLabel="Send Reset Email"
-            >
-              <Text style={styles.resetBtnText}>
-                {loading ? "Sending..." : "Send Reset Email"}
-              </Text>
-            </TouchableOpacity>
+    <LinearGradient
+      colors={backgroundGradient.colors}
+      start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}
+    >
+      <LinearGradient
+        colors={headerGradient.colors}
+        start={{ x: headerGradient.direction.x, y: headerGradient.direction.y }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerSection}
+      >
+        <SafeAreaView style={styles.headerSafeArea}>
+          <View style={styles.headerContent}>
+            <Text style={styles.title}>Reset Password</Text>
+            <Text style={styles.description}>
+              Don't worry, we'll help you recover your account securely.
+            </Text>
           </View>
-          
-          <View style={styles.spacer} />
-        </View>
-      </SafeAreaView>
-    </View>
+        </SafeAreaView>
+      </LinearGradient>
+      <View style={styles.contentSection}>
+        <Text style={styles.contentDescription}>
+          Enter your email address and we'll send you instructions to reset your
+          password.
+        </Text>
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+
+        <Text style={styles.label}>Email</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your email"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          placeholderTextColor={styles.input.placeholderTextColor}
+        />
+
+        <TouchableOpacity
+          style={styles.resetBtn}
+          onPress={handleResetPassword}
+          disabled={loading}
+          accessibilityRole="button"
+          accessibilityLabel="Send Reset Email"
+        >
+          <LinearGradient
+            colors={buttonGradient.colors}
+            start={{ x: buttonGradient.direction.x, y: buttonGradient.direction.y }}
+            end={{ x: 1, y: 1 }}
+            style={styles.resetBtnGradient}
+          >
+            <Text style={styles.resetBtnText}>
+              {loading ? "Sending..." : "Send Reset Email"}
+            </Text>
+          </LinearGradient>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="Go Back"
+        >
+          <Text style={styles.backBtnText}>Back</Text>
+        </TouchableOpacity>
+      </View>
+    </LinearGradient>
   );
 };
 
-const styles = StyleSheet.create({
-  bgWrap: {
-    flex: 1,
-    backgroundColor: "#F8FCFF",
-  },
-  blueBg: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 260,
-    backgroundColor: "#0D47A1",
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-    zIndex: 0,
-  },
-  safeArea: {
-    flex: 1,
-    alignItems: "center",
-    backgroundColor: "transparent",
-    zIndex: 1,
-  },
-  headerWrap: {
-    width: "100%",
-    alignItems: "center",
-    marginTop: 18,
-    marginBottom: 12,
-  },
-  logoipsum: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 32,
-    marginBottom: 10,
-    marginTop: 10,
-  },
-  title: {
-    color: "#fff",
-    fontWeight: "normal",
-    fontSize: 18,
-    textAlign: "center",
-    marginBottom: 0,
-    lineHeight: 22,
-  },
-  card: {
-    flex: 1,
-    width: "100%",
-    alignSelf: "center",
-    backgroundColor: "#fff",
-    borderRadius: 32,
-    marginTop: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 28,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 24,
-    elevation: 12,
-  },
-  cardTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#1A237E",
-    marginBottom: 18,
-    textAlign: "center",
-  },
-  description: {
-    fontSize: 16,
-    color: "#546E7A",
-    textAlign: "center",
-    marginBottom: 24,
-    lineHeight: 22,
-  },
-  label: {
-    fontSize: 15,
-    color: "#1A237E",
-    marginBottom: 6,
-    marginTop: 8,
-    fontWeight: "600",
-  },
-  input: {
-    backgroundColor: "#E8F4FD",
-    borderWidth: 2,
-    borderColor: "#42A5F5",
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: "#111827",
-    marginBottom: 14,
-    width: "100%",
-  },
-  buttonRow: {
-    flexDirection: "row",
-    gap: 12,
-    marginTop: 14,
-    marginBottom: 18,
-  },
-  resetBtn: {
-    backgroundColor: "#1565C0",
-    paddingVertical: 18,
-    borderRadius: 14,
-    alignItems: "center",
-    flex: 2,
-    shadowColor: "#1565C0",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  resetBtnText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 18,
-  },
-  backBtn: {
-    backgroundColor: "transparent",
-    borderWidth: 2,
-    borderColor: "#42A5F5",
-    paddingVertical: 18,
-    borderRadius: 14,
-    alignItems: "center",
-    flex: 1,
-  },
-  backBtnText: {
-    color: "#42A5F5",
-    fontWeight: "bold",
-    fontSize: 18,
-  },
-  spacer: {
-    flex: 1,
-  },
-  error: {
-    color: "#EF4444",
-    marginBottom: 10,
-    textAlign: "center",
-    fontSize: 15,
-  },
-});
+const createStyles = (tokens, layout, variants) => {
+  // Create soft blue-tinted backgrounds for better eye comfort
+  const getSoftTintedColors = () => {
+    const primaryColor = tokens.colors.primary;
+
+    if (primaryColor === "#0D47A1") {
+      // Professional blue theme - soft blue tints
+      return {
+        softBackground: "#F8FAFE", // Very light blue tint
+        softSurface: "#F0F6FF", // Light blue tint for cards/surfaces
+      };
+    } else if (primaryColor === "#7B1FA2") {
+      // Purple theme - soft purple tints
+      return {
+        softBackground: "#FDFAFF", // Very light purple tint
+        softSurface: "#F9F2FF", // Light purple tint
+      };
+    } else if (primaryColor === "#2E7D32") {
+      // Green theme - soft green tints
+      return {
+        softBackground: "#F9FDF9", // Very light green tint
+        softSurface: "#F2F8F2", // Light green tint
+      };
+    } else if (primaryColor === "#E91E63") {
+      // Pink theme - soft pink tints
+      return {
+        softBackground: "#FFFAFC", // Very light pink tint
+        softSurface: "#FFF2F7", // Light pink tint
+      };
+    } else {
+      // Default soft blue tints
+      return {
+        softBackground: "#F8FAFE",
+        softSurface: "#F0F6FF",
+      };
+    }
+  };
+
+  const tintedColors = getSoftTintedColors();
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    headerSection: {
+      paddingBottom: tokens.spacing.xxl,
+      minHeight: 280,
+    },
+    headerSafeArea: {
+      backgroundColor: "transparent",
+      flex: 1,
+      justifyContent: "center",
+    },
+    headerContent: {
+      width: "100%",
+      alignItems: "center",
+      paddingHorizontal: tokens.spacing.lg,
+    },
+    title: {
+      color: tokens.colors.onPrimary,
+      fontWeight: tokens.typography.bold,
+      fontSize: tokens.typography.display,
+      marginBottom: tokens.spacing.sm,
+      lineHeight: tokens.typography.display * tokens.typography.tight,
+      textAlign: "center",
+    },
+    description: {
+      color: tokens.colors.onPrimary,
+      fontWeight: tokens.typography.light,
+      fontSize: tokens.typography.body,
+      marginBottom: 0,
+      lineHeight: tokens.typography.body * 1.3,
+      textAlign: "center",
+      opacity: 0.9,
+      paddingHorizontal: tokens.spacing.lg,
+    },
+    contentSection: {
+      flex: 1,
+      backgroundColor: tintedColors.softSurface,
+      paddingHorizontal: tokens.spacing.lg,
+      paddingTop: tokens.spacing.xl,
+      marginTop: -tokens.spacing.md, // Overlap with header for smoother transition
+      borderTopLeftRadius: tokens.borderRadius.xl,
+      borderTopRightRadius: tokens.borderRadius.xl,
+    },
+    cardTitle: {
+      fontSize: tokens.typography.title,
+      fontWeight: tokens.typography.bold,
+      color: tokens.colors.onSurface,
+      marginBottom: tokens.spacing.lg,
+      textAlign: "center",
+    },
+    contentDescription: {
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onSurfaceVariant,
+      textAlign: "center",
+      marginBottom: tokens.spacing.xl,
+      lineHeight: tokens.typography.body * 1.4,
+    },
+    label: {
+      fontSize: tokens.typography.caption,
+      color: tokens.colors.onSurface,
+      marginBottom: tokens.spacing.xs,
+      marginTop: tokens.spacing.sm,
+      fontWeight: tokens.typography.semibold,
+    },
+    input: {
+      backgroundColor: tokens.colors.inputBackground,
+      borderWidth: 2,
+      borderColor: tokens.colors.inputBorder,
+      borderRadius: tokens.borderRadius.input,
+      padding: tokens.spacing.inputPadding.vertical,
+      fontSize: tokens.typography.body,
+      color: tokens.colors.onBackground,
+      marginBottom: tokens.spacing.md,
+      width: "100%",
+      placeholderTextColor: tokens.colors.placeholder,
+    },
+    resetBtn: {
+      borderRadius: tokens.borderRadius.button,
+      marginBottom: tokens.spacing.lg,
+      marginTop: tokens.spacing.xxs,
+      ...tokens.shadows.sm,
+    },
+    resetBtnGradient: {
+      paddingVertical: tokens.spacing.buttonPadding.vertical,
+      borderRadius: tokens.borderRadius.button,
+      alignItems: "center",
+    },
+    resetBtnText: {
+      color: tokens.colors.onPrimary,
+      fontWeight: tokens.typography.bold,
+      fontSize: tokens.typography.subtitle,
+    },
+    backBtn: {
+      backgroundColor: "transparent",
+      borderWidth: 2,
+      borderColor: tokens.colors.primaryLight,
+      paddingVertical: tokens.spacing.buttonPadding.vertical,
+      borderRadius: tokens.borderRadius.button,
+      alignItems: "center",
+      marginBottom: tokens.spacing.lg,
+    },
+    backBtnText: {
+      color: tokens.colors.primaryLight,
+      fontWeight: tokens.typography.bold,
+      fontSize: tokens.typography.subtitle,
+    },
+    error: {
+      color: tokens.colors.error,
+      marginBottom: tokens.spacing.sm,
+      textAlign: "center",
+      fontSize: tokens.typography.caption,
+    },
+  });
+};
 
 export default ForgotPasswordScreen;
