@@ -225,7 +225,67 @@ export interface GenerateExamParams {
   includePreviousHistory: boolean;
 }
 
-export const generateMockExam = (params: GenerateExamParams) => {
+// Competition exam specific data
+export interface Prize {
+  position: number;
+  title: string;
+  description: string;
+  value?: string;
+}
+
+export interface CompetitionData {
+  registrationDeadline: Date;
+  startDate: Date;
+  endDate: Date;
+  maxParticipants: number;
+  currentParticipants: number;
+  isRegistered: boolean;
+  registrationStatus: 'open' | 'closed' | 'full';
+  prizes: Prize[];
+  organizerName: string;
+  competitionId: string;
+  phase: 'registration' | 'live' | 'results' | 'ended';
+}
+
+// Extended exam interface for both types
+export interface ExamBase {
+  id: string;
+  title: string;
+  subject: string;
+  difficulty: string;
+  questionsCount: number;
+  timeLimit: number;
+  passingScore: number;
+  maxScore: number;
+  attempts: number;
+  maxAttempts: number;
+  bestScore: number;
+  description: string;
+  isCompleted: boolean;
+  examType: 'practice' | 'generated' | 'competition';
+  createdAt?: Date;
+}
+
+export interface GeneratedExam extends ExamBase {
+  examType: 'generated';
+  isGenerated: true;
+  units: string[];
+  topics: string[];
+  generationParams: GenerateExamParams;
+}
+
+export interface CompetitionExam extends ExamBase {
+  examType: 'competition';
+  competitionData: CompetitionData;
+}
+
+export interface PracticeExam extends ExamBase {
+  examType: 'practice';
+}
+
+export type Exam = GeneratedExam | CompetitionExam | PracticeExam;
+
+export const generateMockExam = (params: GenerateExamParams): GeneratedExam => {
   // Mock exam generation logic
   const examId = `generated-${Date.now()}`;
   const subject = EXAM_SUBJECTS.find(s => s.id === params.subject);
@@ -275,7 +335,149 @@ export const generateMockExam = (params: GenerateExamParams) => {
     bestScore: 0,
     description: `Custom generated exam covering ${units.join(', ')} units with focus on ${topics.join(', ')} topics at ${params.difficulty} difficulty level.`,
     isCompleted: false,
+    examType: 'generated',
     isGenerated: true,
     generationParams: params,
+    createdAt: new Date(),
   };
 };
+
+// Mock competition exams data
+export const MOCK_COMPETITION_EXAMS: CompetitionExam[] = [
+  {
+    id: 'comp-math-2024-q1',
+    title: 'National Mathematics Championship Q1 2024',
+    subject: 'Mathematics',
+    difficulty: 'expert',
+    questionsCount: 50,
+    timeLimit: 120,
+    passingScore: 80,
+    maxScore: 100,
+    attempts: 0,
+    maxAttempts: 1,
+    bestScore: 0,
+    description: 'Quarterly national mathematics competition covering advanced algebra, calculus, and problem-solving.',
+    isCompleted: false,
+    examType: 'competition',
+    createdAt: new Date('2024-01-15'),
+    competitionData: {
+      registrationDeadline: new Date('2024-03-01'),
+      startDate: new Date('2024-03-15'),
+      endDate: new Date('2024-03-15'),
+      maxParticipants: 1000,
+      currentParticipants: 847,
+      isRegistered: false,
+      registrationStatus: 'open',
+      organizerName: 'Ministry of Education',
+      competitionId: 'math-2024-q1',
+      phase: 'registration',
+      prizes: [
+        { position: 1, title: 'Gold Medal', description: 'Certificate + Scholarship', value: '$5,000' },
+        { position: 2, title: 'Silver Medal', description: 'Certificate + Prize', value: '$2,000' },
+        { position: 3, title: 'Bronze Medal', description: 'Certificate + Prize', value: '$1,000' },
+      ],
+    },
+  },
+  {
+    id: 'comp-science-inter',
+    title: 'Inter-School Science Quiz',
+    subject: 'Science',
+    difficulty: 'advanced',
+    questionsCount: 35,
+    timeLimit: 90,
+    passingScore: 75,
+    maxScore: 100,
+    attempts: 1,
+    maxAttempts: 1,
+    bestScore: 82,
+    description: 'Regional inter-school science competition covering physics, chemistry, and biology.',
+    isCompleted: true,
+    examType: 'competition',
+    createdAt: new Date('2024-02-01'),
+    competitionData: {
+      registrationDeadline: new Date('2024-02-20'),
+      startDate: new Date('2024-02-25'),
+      endDate: new Date('2024-02-25'),
+      maxParticipants: 500,
+      currentParticipants: 500,
+      isRegistered: true,
+      registrationStatus: 'closed',
+      organizerName: 'Regional Education Board',
+      competitionId: 'science-inter-2024',
+      phase: 'results',
+      prizes: [
+        { position: 1, title: '1st Place', description: 'Trophy + Certificate', value: 'Trophy' },
+        { position: 2, title: '2nd Place', description: 'Medal + Certificate', value: 'Medal' },
+        { position: 3, title: '3rd Place', description: 'Medal + Certificate', value: 'Medal' },
+      ],
+    },
+  },
+  {
+    id: 'comp-english-writing',
+    title: 'Creative Writing Championship',
+    subject: 'Languages',
+    difficulty: 'intermediate',
+    questionsCount: 15,
+    timeLimit: 180,
+    passingScore: 70,
+    maxScore: 100,
+    attempts: 0,
+    maxAttempts: 1,
+    bestScore: 0,
+    description: 'National creative writing competition testing grammar, composition, and literary analysis.',
+    isCompleted: false,
+    examType: 'competition',
+    createdAt: new Date('2024-01-20'),
+    competitionData: {
+      registrationDeadline: new Date('2024-04-10'),
+      startDate: new Date('2024-04-20'),
+      endDate: new Date('2024-04-20'),
+      maxParticipants: 300,
+      currentParticipants: 156,
+      isRegistered: true,
+      registrationStatus: 'open',
+      organizerName: 'National Literature Society',
+      competitionId: 'writing-2024',
+      phase: 'registration',
+      prizes: [
+        { position: 1, title: 'Winner', description: 'Published Story + Certificate', value: 'Publication' },
+        { position: 2, title: 'Runner-up', description: 'Certificate + Book Voucher', value: '$200' },
+        { position: 3, title: 'Third Place', description: 'Certificate + Book Voucher', value: '$100' },
+      ],
+    },
+  },
+  {
+    id: 'comp-history-live',
+    title: 'Sri Lankan History Challenge - LIVE',
+    subject: 'Social Studies',
+    difficulty: 'advanced',
+    questionsCount: 40,
+    timeLimit: 75,
+    passingScore: 80,
+    maxScore: 100,
+    attempts: 0,
+    maxAttempts: 1,
+    bestScore: 0,
+    description: 'Live competition on Sri Lankan history from ancient to modern times.',
+    isCompleted: false,
+    examType: 'competition',
+    createdAt: new Date('2024-02-10'),
+    competitionData: {
+      registrationDeadline: new Date('2024-03-05'),
+      startDate: new Date('2024-03-08'),
+      endDate: new Date('2024-03-08'),
+      maxParticipants: 200,
+      currentParticipants: 187,
+      isRegistered: true,
+      registrationStatus: 'open',
+      organizerName: 'Historical Society of Sri Lanka',
+      competitionId: 'history-live-2024',
+      phase: 'live',
+      prizes: [
+        { position: 1, title: 'Champion', description: 'Trophy + Museum Pass', value: 'Annual Pass' },
+        { position: 2, title: 'Second', description: 'Certificate + Book Set', value: '$150' },
+        { position: 3, title: 'Third', description: 'Certificate + Book', value: '$75' },
+      ],
+    },
+  },
+];

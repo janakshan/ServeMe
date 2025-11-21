@@ -274,6 +274,12 @@ export default function ModernExamTakeScreen() {
   const { tokens } = themeContext;
   const insets = useSafeAreaInsets();
   
+  // Route parameters
+  const { examId, competition, live, phase } = useLocalSearchParams();
+  const isCompetition = competition === 'true';
+  const isLive = live === 'true';
+  const competitionPhase = phase as string;
+  
   // Core exam state
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
@@ -764,9 +770,24 @@ export default function ModernExamTakeScreen() {
       
       {/* Course Details Style Header */}
       <MinimalHeader
-        title="Mathematics Quiz"
+        title={isCompetition && isLive ? "🏆 Live Competition" : "Mathematics Quiz"}
         onBackPress={handleBackPress}
       />
+      
+      {/* Competition Status Banner */}
+      {isCompetition && (
+        <View style={styles.competitionBanner}>
+          {isLive && (
+            <View style={styles.liveBadge}>
+              <View style={styles.pulsingDot} />
+              <Text style={styles.liveBadgeText}>LIVE NOW</Text>
+            </View>
+          )}
+          <Text style={styles.competitionText}>
+            {isLive ? 'Live Competition • Real-time scoring' : 'Competition Mode'}
+          </Text>
+        </View>
+      )}
 
       {/* Enhanced Timer Section - All in One Row */}
       <View style={styles.timerSection}>
@@ -2188,5 +2209,46 @@ const createStyles = (tokens: any) =>
       fontSize: tokens.typography.subtitle,
       color: tokens.colors.onPrimary,
       fontWeight: 'bold',
+    },
+    // Competition Banner Styles
+    competitionBanner: {
+      backgroundColor: tokens.colors.primaryLight + '15',
+      marginHorizontal: tokens.spacing.md,
+      marginVertical: tokens.spacing.xs,
+      borderRadius: tokens.borderRadius.lg,
+      padding: tokens.spacing.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.primaryLight + '30',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    liveBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: tokens.colors.primaryLight,
+      paddingHorizontal: tokens.spacing.sm,
+      paddingVertical: tokens.spacing.xs,
+      borderRadius: tokens.borderRadius.lg,
+      gap: tokens.spacing.xs,
+    },
+    pulsingDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: tokens.colors.onPrimary,
+      opacity: 0.9,
+    },
+    liveBadgeText: {
+      color: tokens.colors.onPrimary,
+      fontSize: tokens.typography.caption,
+      fontWeight: '700',
+    },
+    competitionText: {
+      fontSize: tokens.typography.body,
+      color: tokens.colors.primary,
+      fontWeight: tokens.typography.medium,
+      flex: 1,
+      marginLeft: tokens.spacing.md,
     },
   });
