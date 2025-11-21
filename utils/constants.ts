@@ -35,4 +35,9 @@ export const ServiceTypes = {
   EDUCATION: 'education',
   HEALTHCARE: 'healthcare',
   ENTERTAINMENT: 'entertainment',
+  MEN_SALOON: 'men_saloon',
+  VEHICLE_REPAIR: 'vehicle_repair',
+  CLEANING: 'cleaning',
+  PARCEL: 'parcel',
+  FOOD_DELIVERY: 'food_delivery',
 } as const;

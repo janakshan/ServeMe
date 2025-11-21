@@ -1,18 +1,18 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useThemedStyles } from '@/contexts/ServiceThemeContext';
-import * as Haptics from 'expo-haptics';
+import { useMainAppThemedStyles } from '@/contexts/MainAppThemeProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Platform, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
+import type { DesignTokens } from '@/utils/tokens';
+import type { ServiceThemeOverride } from '@/contexts/ServiceThemeContext';
+import { instantScreenOptions } from '@/utils/navigationAnimations';
 
 export default function TabLayout() {
-  const styles = useThemedStyles(createTabBarStyles);
+  const styles = useMainAppThemedStyles(createTabBarStyles);
   const insets = useSafeAreaInsets();
 
   const handleTabPress = () => {
-    if (Platform.OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    // Tab press handler - haptic feedback removed
   };
 
   return (
@@ -61,6 +61,7 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           headerShown: false,
+          animation: 'none', // Instant tab switching
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
               name={focused ? "home" : "home-outline"} 
@@ -74,6 +75,7 @@ export default function TabLayout() {
         name="promotions"
         options={{
           title: 'Promotions',
+          animation: 'none', // Instant tab switching
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
               name={focused ? "pricetag" : "pricetag-outline"} 
@@ -88,6 +90,7 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           headerShown: false,
+          animation: 'none', // Instant tab switching
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
               name={focused ? "person" : "person-outline"} 
@@ -101,7 +104,11 @@ export default function TabLayout() {
   );
 }
 
-const createTabBarStyles = (tokens, layout, variants) => ({
+const createTabBarStyles = (
+  tokens: DesignTokens, 
+  layout: ServiceThemeOverride['layout'], 
+  variants: ServiceThemeOverride['componentVariants']
+) => ({
   activeColor: {
     color: tokens.colors.primary,
   },

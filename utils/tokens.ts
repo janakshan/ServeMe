@@ -1,4 +1,23 @@
 // Design Token System - Semantic tokens for consistent theming
+
+// Gradient definitions
+export interface GradientTokens {
+  // Component gradients
+  header: string[];
+  card: string[];
+  button: string[];
+  background: string[];
+  surface: string[];
+  accent: string[];
+  
+  // Directional settings
+  directions: {
+    vertical: { x: number; y: number };
+    horizontal: { x: number; y: number };
+    diagonal: { x: number; y: number };
+  };
+}
+
 export interface ColorTokens {
   // Brand Colors
   primary: string;
@@ -11,6 +30,15 @@ export interface ColorTokens {
   background: string;
   surface: string;
   surfaceElevated: string;
+  surfaceVariant: string;
+
+  // Container Colors
+  primaryContainer: string;
+  onPrimaryContainer: string;
+  secondaryContainer: string;
+  onSecondaryContainer: string;
+  warningContainer: string;
+  onWarningContainer: string;
 
   // Text Colors
   onPrimary: string;
@@ -28,6 +56,8 @@ export interface ColorTokens {
   // Border & Divider
   border: string;
   divider: string;
+  outline: string;
+  outlineVariant: string;
 
   // Input Colors
   inputBackground: string;
@@ -38,6 +68,7 @@ export interface ColorTokens {
 export interface TypographyTokens {
   // Font Sizes
   display: number;
+  headline: number;
   headline1: number;
   headline2: number;
   title: number;
@@ -47,11 +78,11 @@ export interface TypographyTokens {
   small: number;
 
   // Font Weights
-  light: string;
-  regular: string;
-  medium: string;
-  semibold: string;
-  bold: string;
+  light: "300";
+  regular: "400";
+  medium: "500";
+  semibold: "600";
+  bold: "700";
 
   // Line Heights
   tight: number;
@@ -136,6 +167,7 @@ export interface DesignTokens {
   spacing: SpacingTokens;
   borderRadius: BorderRadiusTokens;
   shadows: ShadowTokens;
+  gradients: GradientTokens;
 }
 
 // Professional Azure Theme (Global Default)
@@ -152,6 +184,15 @@ export const professionalAzureTokens: DesignTokens = {
     background: "#F8FCFF",
     surface: "#FFFFFF",
     surfaceElevated: "#FFFFFF",
+    surfaceVariant: "#F5F5F5",
+
+    // Container Colors
+    primaryContainer: "#E3F2FD",
+    onPrimaryContainer: "#0D47A1",
+    secondaryContainer: "#E8F5E8",
+    onSecondaryContainer: "#1B5E20",
+    warningContainer: "#FFF3E0",
+    onWarningContainer: "#E65100",
 
     // Text Colors
     onPrimary: "#FFFFFF",
@@ -169,6 +210,8 @@ export const professionalAzureTokens: DesignTokens = {
     // Border & Divider
     border: "#E0E0E0",
     divider: "#F5F5F5",
+    outline: "#79747E",
+    outlineVariant: "#CAC4D0",
 
     // Input Colors
     inputBackground: "#E8F4FD",
@@ -179,6 +222,7 @@ export const professionalAzureTokens: DesignTokens = {
   typography: {
     // Font Sizes
     display: 32,
+    headline: 26,
     headline1: 28,
     headline2: 24,
     title: 22,
@@ -270,6 +314,21 @@ export const professionalAzureTokens: DesignTokens = {
       elevation: 16,
     },
   },
+
+  gradients: {
+    header: ['#1565C0', '#0D47A1', '#0A3D91'],
+    card: ['#F5F5F5', '#FAFAFA', '#FFFFFF'],
+    button: ['#42A5F5', '#0D47A1', '#0A3D91'],
+    background: ['#F8FCFF', '#F0F6FF'],
+    surface: ['#FFFFFF', '#F8FCFF'],
+    accent: ['#64B5F6', '#2196F3', '#1976D2'],
+    
+    directions: {
+      vertical: { x: 0, y: 1 },
+      horizontal: { x: 1, y: 0 },
+      diagonal: { x: 1, y: 1 },
+    },
+  },
 };
 
 // Light Theme Variant
@@ -281,6 +340,14 @@ export const lightTokens: DesignTokens = {
     surface: "#F8F9FA",
     onSurface: "#1A1A1A",
     onSurfaceVariant: "#6C757D",
+  },
+  gradients: {
+    ...professionalAzureTokens.gradients,
+    header: ['#E3F2FD', '#BBDEFB', '#90CAF9'],
+    card: ['#FFFFFF', '#F8F9FA', '#F0F0F0'],
+    button: ['#E3F2FD', '#BBDEFB', '#90CAF9'],
+    background: ['#FFFFFF', '#F8F9FA'],
+    surface: ['#F8F9FA', '#FFFFFF'],
   },
 };
 
@@ -301,5 +368,13 @@ export const darkTokens: DesignTokens = {
     inputBackground: "#2D2D2D",
     inputBorder: "#42A5F5",
     placeholder: "#9E9E9E",
+  },
+  gradients: {
+    ...professionalAzureTokens.gradients,
+    header: ['#1E3A8A', '#1565C0', '#0D47A1'],
+    card: ['#2D2D2D', '#1E1E1E', '#121212'],
+    button: ['#1E3A8A', '#1565C0', '#0D47A1'],
+    background: ['#121212', '#1E1E1E'],
+    surface: ['#1E1E1E', '#2D2D2D'],
   },
 };

@@ -1,10 +1,6 @@
-import {
-  useServiceTheme,
-  useThemedStyles,
-} from "@/contexts/ServiceThemeContext";
+import { useAuthTheme, useAuthThemedStyles } from "@/contexts/AuthThemeProvider";
 import { secureStorage } from "@/services/storage/secureStorage";
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
@@ -64,18 +60,12 @@ export default function OnboardingScreen() {
     new Array(onboardingData.length).fill(true)
   );
   const scrollViewRef = useRef<ScrollView>(null);
-  const { resetToGlobalTheme } = useServiceTheme();
+  const themeContext = useAuthTheme();
+  const styles = useAuthThemedStyles(createStyles, themeContext);
 
-  const styles = useThemedStyles(createStyles);
-
-  // Reset to global theme on component mount
-  React.useEffect(() => {
-    resetToGlobalTheme();
-  }, []);
+  // Theme is already scoped to auth context
 
   const handleNext = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
     if (currentIndex < onboardingData.length - 1) {
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
@@ -91,16 +81,12 @@ export default function OnboardingScreen() {
   };
 
   const handleSkip = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
     // Mark onboarding as completed when skipping
     await secureStorage.setOnboardingStatus("completed");
     router.replace("/(auth)/login");
   };
 
   const handleBack = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
     if (currentIndex > 0) {
       const prevIndex = currentIndex - 1;
       setCurrentIndex(prevIndex);

@@ -1,8 +1,10 @@
-import { useThemedStyles } from "@/contexts/ServiceThemeContext";
+import { useAuthTheme, useAuthThemedStyles } from "@/contexts/AuthThemeProvider";
 import { useAuth } from "@/hooks/useAuth";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { useRouteGroupNavigation } from "@/utils/navigationStackReset";
 import { useEffect, useState } from "react";
 import {
   Pressable,
@@ -22,8 +24,13 @@ const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const { login } = useAuth();
+  const { getGradient } = useAuthTheme();
+  const styles = useAuthThemedStyles(createStyles);
+  const { navigateToMainApp } = useRouteGroupNavigation();
 
-  const styles = useThemedStyles(createStyles);
+  const headerGradient = getGradient("header");
+  const buttonGradient = getGradient("button");
+  const backgroundGradient = getGradient("background");
 
   useEffect(() => {
     loadStoredCredentials();
@@ -61,8 +68,8 @@ const LoginScreen = () => {
         await SecureStore.deleteItemAsync("remember_me");
       }
 
-      router.replace("/(app)/(tabs)");
-    } catch (e) {
+      navigateToMainApp();
+    } catch (e: any) {
       setError(e.message || "Login failed");
     } finally {
       setLoading(false);
@@ -70,8 +77,21 @@ const LoginScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerSection}>
+    <LinearGradient
+      colors={backgroundGradient.colors}
+      start={{
+        x: backgroundGradient.direction.x,
+        y: backgroundGradient.direction.y,
+      }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}
+    >
+      <LinearGradient
+        colors={headerGradient.colors}
+        start={{ x: headerGradient.direction.x, y: headerGradient.direction.y }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerSection}
+      >
         <SafeAreaView style={styles.headerSafeArea}>
           <View style={styles.headerContent}>
             <Text style={styles.title}>Welcome Back</Text>
@@ -81,7 +101,7 @@ const LoginScreen = () => {
             </Text>
           </View>
         </SafeAreaView>
-      </View>
+      </LinearGradient>
       <View style={styles.contentSection}>
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <Text style={styles.label}>Email</Text>
@@ -139,15 +159,25 @@ const LoginScreen = () => {
           </TouchableOpacity>
         </View>
         <TouchableOpacity
-          style={styles.loginBtn}
           onPress={handleLogin}
           disabled={loading}
           accessibilityRole="button"
           accessibilityLabel="Log In"
+          style={styles.loginBtn}
         >
-          <Text style={styles.loginBtnText}>
-            {loading ? "Logging in..." : "Log In"}
-          </Text>
+          <LinearGradient
+            colors={buttonGradient.colors}
+            start={{
+              x: buttonGradient.direction.x,
+              y: buttonGradient.direction.y,
+            }}
+            end={{ x: 1, y: 1 }}
+            style={styles.loginBtnGradient}
+          >
+            <Text style={styles.loginBtnText}>
+              {loading ? "Logging in..." : "Log In"}
+            </Text>
+          </LinearGradient>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
@@ -182,18 +212,55 @@ const LoginScreen = () => {
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </LinearGradient>
   );
 };
 
-const createStyles = (tokens, layout, variants) =>
-  StyleSheet.create({
+const createStyles = (tokens: any, layout: any, variants: any) => {
+  // Create soft blue-tinted backgrounds for better eye comfort
+  const getSoftTintedColors = () => {
+    const primaryColor = tokens.colors.primary;
+
+    if (primaryColor === "#0D47A1") {
+      // Professional blue theme - soft blue tints
+      return {
+        softBackground: "#F8FAFE", // Very light blue tint
+        softSurface: "#F0F6FF", // Light blue tint for cards/surfaces
+      };
+    } else if (primaryColor === "#7B1FA2") {
+      // Purple theme - soft purple tints
+      return {
+        softBackground: "#FDFAFF", // Very light purple tint
+        softSurface: "#F9F2FF", // Light purple tint
+      };
+    } else if (primaryColor === "#2E7D32") {
+      // Green theme - soft green tints
+      return {
+        softBackground: "#F9FDF9", // Very light green tint
+        softSurface: "#F2F8F2", // Light green tint
+      };
+    } else if (primaryColor === "#E91E63") {
+      // Pink theme - soft pink tints
+      return {
+        softBackground: "#FFFAFC", // Very light pink tint
+        softSurface: "#FFF2F7", // Light pink tint
+      };
+    } else {
+      // Default soft blue tints
+      return {
+        softBackground: "#F8FAFE",
+        softSurface: "#F0F6FF",
+      };
+    }
+  };
+
+  const tintedColors = getSoftTintedColors();
+
+  return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: tokens.colors.background,
     },
     headerSection: {
-      backgroundColor: tokens.colors.primary,
       paddingBottom: tokens.spacing.xxl,
       minHeight: 280,
     },
@@ -227,9 +294,12 @@ const createStyles = (tokens, layout, variants) =>
     },
     contentSection: {
       flex: 1,
-      backgroundColor: tokens.colors.surface,
+      backgroundColor: tintedColors.softSurface,
       paddingHorizontal: tokens.spacing.lg,
-      paddingTop: tokens.spacing.xl,
+      paddingTop: tokens.spacing.lg,
+      marginTop: -tokens.spacing.md, // Overlap with header for smoother transition
+      borderTopLeftRadius: tokens.borderRadius.xl,
+      borderTopRightRadius: tokens.borderRadius.xl,
     },
     cardTitle: {
       fontSize: tokens.typography.title,
@@ -322,13 +392,15 @@ const createStyles = (tokens, layout, variants) =>
       textAlign: "right",
     },
     loginBtn: {
-      backgroundColor: tokens.colors.primaryDark,
-      paddingVertical: tokens.spacing.buttonPadding.vertical,
       borderRadius: tokens.borderRadius.button,
-      alignItems: "center",
       marginBottom: tokens.spacing.lg,
       marginTop: tokens.spacing.xxs,
       ...tokens.shadows.sm,
+    },
+    loginBtnGradient: {
+      paddingVertical: tokens.spacing.buttonPadding.vertical,
+      borderRadius: tokens.borderRadius.button,
+      alignItems: "center",
     },
     loginBtnText: {
       color: tokens.colors.onPrimary,
@@ -393,5 +465,6 @@ const createStyles = (tokens, layout, variants) =>
       fontWeight: tokens.typography.medium,
     },
   });
+};
 
 export default LoginScreen;

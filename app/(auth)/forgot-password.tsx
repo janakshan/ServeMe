@@ -1,4 +1,4 @@
-import { useThemedStyles } from "@/contexts/ServiceThemeContext";
+import { useAuthTheme, useAuthThemedStyles } from "@/contexts/AuthThemeProvider";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { authApi } from "../../services/api/auth";
 
 const ForgotPasswordScreen = () => {
@@ -17,7 +18,13 @@ const ForgotPasswordScreen = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  const styles = useThemedStyles(createStyles);
+  const themeContext = useAuthTheme();
+  const { getGradient } = themeContext;
+  const styles = useAuthThemedStyles(createStyles, themeContext);
+  
+  const headerGradient = getGradient('header');
+  const buttonGradient = getGradient('button');
+  const backgroundGradient = getGradient('background');
 
   const handleResetPassword = async () => {
     setError("");
@@ -44,8 +51,18 @@ const ForgotPasswordScreen = () => {
 
   if (success) {
     return (
-      <View style={styles.container}>
-        <View style={styles.headerSection}>
+      <LinearGradient
+        colors={backgroundGradient.colors}
+        start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
+        end={{ x: 1, y: 1 }}
+        style={styles.container}
+      >
+        <LinearGradient
+          colors={headerGradient.colors}
+          start={{ x: headerGradient.direction.x, y: headerGradient.direction.y }}
+          end={{ x: 1, y: 1 }}
+          style={styles.headerSection}
+        >
           <SafeAreaView style={styles.headerSafeArea}>
             <View style={styles.headerContent}>
               <Text style={styles.title}>Check Your Email</Text>
@@ -54,7 +71,7 @@ const ForgotPasswordScreen = () => {
               </Text>
             </View>
           </SafeAreaView>
-        </View>
+        </LinearGradient>
         <View style={styles.contentSection}>
           <Text style={styles.cardTitle}>Email Sent!</Text>
           <Text style={styles.contentDescription}>
@@ -64,16 +81,33 @@ const ForgotPasswordScreen = () => {
             style={styles.resetBtn}
             onPress={() => router.push("/(auth)/login")}
           >
-            <Text style={styles.resetBtnText}>Back to Login</Text>
+            <LinearGradient
+              colors={buttonGradient.colors}
+              start={{ x: buttonGradient.direction.x, y: buttonGradient.direction.y }}
+              end={{ x: 1, y: 1 }}
+              style={styles.resetBtnGradient}
+            >
+              <Text style={styles.resetBtnText}>Back to Login</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
-      </View>
+      </LinearGradient>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerSection}>
+    <LinearGradient
+      colors={backgroundGradient.colors}
+      start={{ x: backgroundGradient.direction.x, y: backgroundGradient.direction.y }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}
+    >
+      <LinearGradient
+        colors={headerGradient.colors}
+        start={{ x: headerGradient.direction.x, y: headerGradient.direction.y }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerSection}
+      >
         <SafeAreaView style={styles.headerSafeArea}>
           <View style={styles.headerContent}>
             <Text style={styles.title}>Reset Password</Text>
@@ -82,7 +116,7 @@ const ForgotPasswordScreen = () => {
             </Text>
           </View>
         </SafeAreaView>
-      </View>
+      </LinearGradient>
       <View style={styles.contentSection}>
         <Text style={styles.contentDescription}>
           Enter your email address and we'll send you instructions to reset your
@@ -108,9 +142,16 @@ const ForgotPasswordScreen = () => {
           accessibilityRole="button"
           accessibilityLabel="Send Reset Email"
         >
-          <Text style={styles.resetBtnText}>
-            {loading ? "Sending..." : "Send Reset Email"}
-          </Text>
+          <LinearGradient
+            colors={buttonGradient.colors}
+            start={{ x: buttonGradient.direction.x, y: buttonGradient.direction.y }}
+            end={{ x: 1, y: 1 }}
+            style={styles.resetBtnGradient}
+          >
+            <Text style={styles.resetBtnText}>
+              {loading ? "Sending..." : "Send Reset Email"}
+            </Text>
+          </LinearGradient>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -122,18 +163,55 @@ const ForgotPasswordScreen = () => {
           <Text style={styles.backBtnText}>Back</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </LinearGradient>
   );
 };
 
-const createStyles = (tokens, layout, variants) =>
-  StyleSheet.create({
+const createStyles = (tokens, layout, variants) => {
+  // Create soft blue-tinted backgrounds for better eye comfort
+  const getSoftTintedColors = () => {
+    const primaryColor = tokens.colors.primary;
+
+    if (primaryColor === "#0D47A1") {
+      // Professional blue theme - soft blue tints
+      return {
+        softBackground: "#F8FAFE", // Very light blue tint
+        softSurface: "#F0F6FF", // Light blue tint for cards/surfaces
+      };
+    } else if (primaryColor === "#7B1FA2") {
+      // Purple theme - soft purple tints
+      return {
+        softBackground: "#FDFAFF", // Very light purple tint
+        softSurface: "#F9F2FF", // Light purple tint
+      };
+    } else if (primaryColor === "#2E7D32") {
+      // Green theme - soft green tints
+      return {
+        softBackground: "#F9FDF9", // Very light green tint
+        softSurface: "#F2F8F2", // Light green tint
+      };
+    } else if (primaryColor === "#E91E63") {
+      // Pink theme - soft pink tints
+      return {
+        softBackground: "#FFFAFC", // Very light pink tint
+        softSurface: "#FFF2F7", // Light pink tint
+      };
+    } else {
+      // Default soft blue tints
+      return {
+        softBackground: "#F8FAFE",
+        softSurface: "#F0F6FF",
+      };
+    }
+  };
+
+  const tintedColors = getSoftTintedColors();
+
+  return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: tokens.colors.background,
     },
     headerSection: {
-      backgroundColor: tokens.colors.primary,
       paddingBottom: tokens.spacing.xxl,
       minHeight: 280,
     },
@@ -167,9 +245,12 @@ const createStyles = (tokens, layout, variants) =>
     },
     contentSection: {
       flex: 1,
-      backgroundColor: tokens.colors.surface,
+      backgroundColor: tintedColors.softSurface,
       paddingHorizontal: tokens.spacing.lg,
       paddingTop: tokens.spacing.xl,
+      marginTop: -tokens.spacing.md, // Overlap with header for smoother transition
+      borderTopLeftRadius: tokens.borderRadius.xl,
+      borderTopRightRadius: tokens.borderRadius.xl,
     },
     cardTitle: {
       fontSize: tokens.typography.title,
@@ -205,13 +286,15 @@ const createStyles = (tokens, layout, variants) =>
       placeholderTextColor: tokens.colors.placeholder,
     },
     resetBtn: {
-      backgroundColor: tokens.colors.primaryDark,
-      paddingVertical: tokens.spacing.buttonPadding.vertical,
       borderRadius: tokens.borderRadius.button,
-      alignItems: "center",
       marginBottom: tokens.spacing.lg,
       marginTop: tokens.spacing.xxs,
       ...tokens.shadows.sm,
+    },
+    resetBtnGradient: {
+      paddingVertical: tokens.spacing.buttonPadding.vertical,
+      borderRadius: tokens.borderRadius.button,
+      alignItems: "center",
     },
     resetBtnText: {
       color: tokens.colors.onPrimary,
@@ -239,5 +322,6 @@ const createStyles = (tokens, layout, variants) =>
       fontSize: tokens.typography.caption,
     },
   });
+};
 
 export default ForgotPasswordScreen;
